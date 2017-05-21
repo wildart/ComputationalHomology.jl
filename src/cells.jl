@@ -4,9 +4,9 @@ import Base: ==
 abstract AbstractCell
 """Dimension of the cell"""
 dim(c::AbstractCell) = throw(MethodError(dim,(typeof(c),)))
-"""Get cell properties"""
+"""Get cell properties: `:index` & `:values`"""
 Base.getindex(c::AbstractCell, k::Symbol) = throw(MethodError(getindex,(typeof(c),)))
-"""Set cell properties"""
+"""Set cell properties: `:index` & `:values`"""
 Base.setindex!(c::AbstractCell, v, k::Symbol) = throw(MethodError(setindex!,(typeof(c),)))
 """Cell comparison"""
 ==(a::AbstractCell, b::AbstractCell) = throw(MethodError(==,(typeof(a), typeof(b))))
