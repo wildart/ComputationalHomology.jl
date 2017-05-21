@@ -1,5 +1,8 @@
 module PersistentHomology
 
-# package code goes here
+export AbstractCell, Simplex, Cube,
+       dim, faces, volume
+
+include("cells.jl")
 
 end # module
