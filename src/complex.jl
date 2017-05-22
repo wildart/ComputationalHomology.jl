@@ -54,7 +54,7 @@ function Base.getindex{C}(cplx::AbstractComplex, c::C, d::Int)
     dcells = get(ndcells)
     cidx = findfirst(dcells, c)
     cidx == 0 && return size(cplx, d)+1
-    return index(dcells[cidx])
+    return dcells[cidx][:index]
 end
 Base.getindex{C}(cplx::AbstractComplex, c::C) =  cplx[c, dim(c)]
 
