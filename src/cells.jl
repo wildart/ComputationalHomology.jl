@@ -1,5 +1,3 @@
-import Base: ==
-
 """Abstract cell type"""
 abstract AbstractCell
 """Dimension of the cell"""
