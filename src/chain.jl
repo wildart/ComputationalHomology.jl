@@ -48,6 +48,8 @@ function Base.append!{R}(a::Chain{R}, b::Chain{R})
     append!(a.elems, b.elems)
     return a
 end
++{R}(ch::Chain{R}, e::Tuple{R,Int}) = push!(ch, e[1], e[2])
+
 +{R}(a::Chain{R}, b::Chain{R}) = Chain{R}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
 -{R}(a::Chain{R}, b::Chain{R}) = Chain{R}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
 

@@ -15,8 +15,13 @@
 
     a+=c
     a+=b
+    a+=(1,2)
     @test a[1] == (1,0)
     @test a[2] == (1,1)
+    @test a[3] == (1,2)
+
+    b+=(1,2)
+    @test b[2] == (1,2)
 
     @testset "loop thrugh chain" for (chc,chel) in a
         @test chc == 1
