@@ -1,4 +1,4 @@
-using PersistentHomology
+using ComputationalHomology
 using Base.Test
 
 include("cells.jl")
