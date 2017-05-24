@@ -1,5 +1,7 @@
 module PersistentHomology
 
+import SmithNormalForm
+
 import Base: ==, -, +, *
 
 export AbstractCell,
@@ -13,12 +15,24 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, celltype, cells, boundary_matrix,
        SimplicialComplex,
-       addsimplex, addsimplex!
+       addsimplex, addsimplex!,
 
+       AbstractHomology,
+       grouptype, group,
+       Homology,
+       homology, withgenerators, generators
+
+global SNF = SmithNormalForm.snf
 
 include("cells.jl")
 include("chain.jl")
 include("complex.jl")
 include("simplicial.jl")
+include("homology.jl")
+
+function setsnf!(f::Function)
+    global SNF
+    SNF = f
+end
 
 end # module
