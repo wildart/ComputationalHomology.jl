@@ -22,35 +22,53 @@ function coboundary{R}(cplx::AbstractComplex, ch::Chain{R})
     return cc
 end
 
-# AbstractComplex Interface required implemetation
-"""Return complex boundary given element and dimension"""
+#
+# AbstractComplex Public Interface
+#
+"""Return a complex boundary given element and dimension"""
 boundary{M}(cplx::AbstractComplex, i::M, d::Int) = throw(MethodError(boundary, (typeof(cplx),M,Int)))
-"""Return complex coboundary given element and dimension"""
+
+"""Return a complex coboundary given element and dimension"""
 coboundary{M}(cplx::AbstractComplex, i::M, d::Int) = throw(MethodError(coboundary, (typeof(cplx),M,Int)))
-"""Return complex cell type"""
+
+"""Return a complex cell type"""
 celltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
-"""Return dimension of the complex"""
+
+"""Return a dimension of the complex"""
 dim(cplx::AbstractComplex) = throw(MethodError(dim,(typeof(cplx),)))
+
 """Set dimension of the complex"""
 setdim!(cplx::AbstractComplex, d::Int) = throw(MethodError(setdim!, (typeof(cplx),Int)))
-"""Return cell collection per dimension (increasing)"""
+
+"""Return a cell collection per dimension (increasing)"""
 cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
-"""Return nullable cell collection per dimension (increasing)"""
+
+"""Return a nullable cell collection per dimension (increasing)"""
 cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),Int)))
-"""Return size of cell collections per dimension"""
+
+#
+# Public Methods
+#
+"""Return a size of cell collections per dimension"""
 Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...)
-"""Return size of the cell collection for dimension (0-based)"""
+
+"""Return a size of the cell collection for dimension (0-based)"""
 function Base.size{C<:AbstractComplex}(cplx::C, d::Int)
-    d < 0 || d > dim(cplx) && return 0
+    (d < 0 || d > dim(cplx)) && return 0
     sz = size(cplx)
     d >= length(sz) && return 0
     return sz[d+1]
 end
 
+"""Return an index of the k-dimensional cell in the complex.
+
+**Note:** If returned index is larger than the number of cells of this dimension, then the cell is not in complex and the returned index will be assigned to the cell when it's added to the complex.
+"""
 function Base.getindex{C}(cplx::AbstractComplex, c::C, d::Int)
     @assert celltype(cplx) == C "Incorrect cell type"
+    @assert dim(c) == d "Incorrect cell dimension"
     ndcells = cells(cplx, d)
-    isnull(ndcells) && return 0
+    isnull(ndcells) && return 1
     dcells = get(ndcells)
     cidx = findfirst(dcells, c)
     cidx == 0 && return size(cplx, d)+1
@@ -58,12 +76,13 @@ function Base.getindex{C}(cplx::AbstractComplex, c::C, d::Int)
 end
 Base.getindex{C}(cplx::AbstractComplex, c::C) =  cplx[c, dim(c)]
 
+"""Return a `d`-dimensional cell given its index `idx`."""
 function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
     cs = cells(cplx, d)
     isnull(cs) ? Nullable{eltype(eltype(cs))}() : Nullable(get(cs)[idx])
 end
 
-"""Generate a boundary matrix from the complex cells of the dimension `d`"""
+"""Generate a boundary matrix from the cell complex of the dimension `d`."""
 function boundary_matrix{R}(::Type{R}, cplx::AbstractComplex, d::Int)
     csize = size(cplx)
     rows = d > 0 ? csize[d] : 0

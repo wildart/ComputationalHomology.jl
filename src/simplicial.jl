@@ -10,7 +10,10 @@ Base.copy(cplx::SimplicialComplex) = SimplicialComplex(deepcopy(cplx.cells))
 # ---------------
 # Private Methods
 # ---------------
-"Add a simplex to the complex (as is) and return a complex size, a dimension of simplex and its index in it"
+"""Add a simplex to the complex (as is) and return a complex size, a dimension of simplex and its index in it
+
+This function **doesn't** add missing faces of the simplex to the complex. Use `addsimplex!` function for instead.
+"""
 function addsimplex{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
     d = dim(splx)
     d < 0 && return (0,d,0)
@@ -22,12 +25,12 @@ function addsimplex{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
     return sum(size(cplx)), d, i
 end
 
-"Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"
+"""Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"""
 function addsimplex!{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
     # cache already
     added = Set{Simplex}()
 
-    toprocess = Vector{Simplex}()
+    toprocess = Simplex[]
     addedidxs = NTuple{3,Int}[]
 
     # add simplex to complex
@@ -42,7 +45,7 @@ function addsimplex!{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
         tmp = pop!(toprocess) # processing simplex faces
         d = dim(tmp)
 
-        0 < cplx[tmp, d] <=size(cplx, d) && continue # skip if already in complex
+        cplx[tmp, d] <= size(cplx, d) && continue # skip if already in complex
         tmp in added && continue # skip if already processed
 
         t = addsimplex(cplx, tmp) # add simples to the complex
@@ -62,34 +65,21 @@ function addsimplex!{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
     return [ (minidx+i-1, e[2], e[3]) for (i, e) in enumerate(sort(addedidxs,by=(s->s[2]))) ]
 end
 
-# public interface
+#
+# Public Interface
+#
 celltype{P}(::SimplicialComplex{P}) = Simplex{P}
-cells(cplx::SimplicialComplex) = [cplx.cells[d] for d in sort!(collect(keys(cplx.cells)))]
-cells(cplx::SimplicialComplex, d::Int) = haskey(cplx.cells, d) ? Nullable(cplx.cells[d]) : Nullable{valtype(cplx.cells)}()
-dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
-SimplicialComplex{P}(::Type{P}) = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
-function SimplicialComplex{P}(splxs::Simplex{P}...)
-    sc = SimplicialComplex(P)
-
-    added = Set{Simplex}()
-    toprocess = Vector{Simplex}()
-    for splx in splxs
-        push!(toprocess, splx) # add simplex to process its faces
-        while(length(toprocess) > 0)
-            tmp = pop!(toprocess) # processing simplex faces
-            tmp in added && continue # skip if already processed
-            addsimplex(sc, tmp) # add simples to complex
-            push!(added, tmp) # mark as processed
-            for f in faces(tmp) # add simplex faces for processing
-                push!(toprocess, f)
-            end
-        end
-    end
-
-    return sc
+function cells(cplx::SimplicialComplex)
+    CCT = valtype(cplx.cells)
+    length(cplx.cells) == 0 && return CCT[] # no cell in complex
+    dims = maximum(keys(cplx.cells))
+    CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
 end
-SimplicialComplex(splxs::Vector{Simplex}) = SimplicialComplex(splxs...)
+
+cells(cplx::SimplicialComplex, d::Int) = haskey(cplx.cells, d) ? Nullable(cplx.cells[d]) : Nullable{valtype(cplx.cells)}()
+
+dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
 function boundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
     ch = Chain(d-1, R)
@@ -132,6 +122,35 @@ function coboundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
     return cbd[idx]
 end
 
+#
+# Constructors
+#
+SimplicialComplex{P}(::Type{P}) = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
+function SimplicialComplex{P}(splxs::Simplex{P}...)
+    cplx = SimplicialComplex(P)
+
+    added = Set{Simplex}()
+    toprocess = Vector{Simplex}()
+    for splx in splxs
+        push!(toprocess, splx) # add simplex to process its faces
+        while(length(toprocess) > 0)
+            tmp = pop!(toprocess) # processing simplex faces
+            tmp in added && continue # skip if already processed
+            addsimplex(cplx, tmp) # add simples to complex
+            push!(added, tmp) # mark as processed
+            for f in faces(tmp) # add simplex faces for processing
+                push!(toprocess, f)
+            end
+        end
+    end
+
+    return cplx
+end
+SimplicialComplex(splxs::Vector{Simplex}) = SimplicialComplex(splxs...)
+
+#
+# Miscellaneous
+#
 function readsimcomplex(io::IO)
     splxs = Simplex[]
     while !eof(io)
