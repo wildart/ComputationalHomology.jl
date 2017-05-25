@@ -1,5 +1,4 @@
 @testset "Homology" begin
-
     cplx = SimplicialComplex(Simplex(1,2,3),
                         Simplex(2,4),
                         Simplex(3,4),
