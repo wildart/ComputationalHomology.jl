@@ -1,6 +1,7 @@
 module ComputationalHomology
 
 import SmithNormalForm
+import Distances
 
 import Base: ==, -, +, *
 
@@ -16,6 +17,7 @@ export AbstractCell,
        boundary, coboundary, celltype, cells, boundary_matrix,
        SimplicialComplex,
        addsimplex, addsimplex!,
+       vietorisrips,
 
        AbstractHomology,
        grouptype, group,
@@ -28,6 +30,7 @@ include("cells.jl")
 include("chain.jl")
 include("complex.jl")
 include("simplicial.jl")
+include("vietorisrips.jl")
 include("homology.jl")
 
 function setsnf!(f::Function)

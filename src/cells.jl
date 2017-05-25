@@ -15,6 +15,10 @@ faces(c::AbstractCell) = throw(MethodError(faces,(typeof(c),)))
 type Simplex{P} <: AbstractCell
     idx::Int
     vs::Vector{P}
+    hash::UInt64
+    function Simplex(idx, vals)
+        new(idx, vals, hash(vals))
+    end
 end
 Simplex{P}(splx::P...) = Simplex{P}(0, sort!([i for i in splx]))
 Simplex{P}(splx::Vector{P}) = Simplex{P}(0, sort!(splx))
@@ -22,7 +26,7 @@ Simplex{P}(splx::Vector{P}) = Simplex{P}(0, sort!(splx))
 # Private methods
 
 Base.convert{P}(::Type{Simplex{P}}, v::Vector{P}) = Simplex{P}(0, sort!(v))
-Base.hash(splx::Simplex) = hash(splx.vs)
+Base.hash(splx::Simplex) = splx.hash
 Base.show(io::IO, splx::Simplex) = show(io, "Σ($(splx.vs))[$(splx.idx)]")
 Base.eltype{P}(splx::Simplex{P}) = P
 
@@ -50,7 +54,7 @@ function Base.setindex!(splx::Simplex, v, k::Symbol)
     end
 end
 
-==(a::Simplex, b::Simplex) = a[:values] == b[:values]
+==(a::Simplex, b::Simplex) = hash(a) == hash(b) # a[:values] == b[:values]
 
 function faces{P}(splx::Simplex{P})
     faces = typeof(splx)[]
