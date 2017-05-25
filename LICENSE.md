@@ -1,4 +1,4 @@
-The PersistentHomology.jl package is licensed under the MIT "Expat" License:
+The ComputationalHomology.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2017: Art.
 > 

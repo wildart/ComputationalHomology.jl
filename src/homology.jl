@@ -116,7 +116,7 @@ function Base.next(g::WithGenerators, state)
 
     P = A * (B * C)
 
-    gU, gUinv, gV, gVinv, gD = PersistentHomology.SNF(P)
+    gU, gUinv, gV, gVinv, gD = SNF(P)
     G = gU * gD
 
     # betti generator

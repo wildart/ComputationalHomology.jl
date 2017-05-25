@@ -1,6 +1,3 @@
-using PersistentHomology
-using Base.Test
-
 @testset "Homology" begin
 
     cplx = SimplicialComplex(Simplex(1,2,3),
@@ -40,7 +37,7 @@ using Base.Test
     @test st[1] == 3
 
     g = withgenerators(h)
-    @test eltype(typeof(g)) == Tuple{Tuple{Int64,Int64,Int64},Dict{PersistentHomology.Chain,Int64}}
+    @test eltype(typeof(g)) == Tuple{Tuple{Int64,Int64,Int64},Dict{Chain,Int64}}
     @test length(g) == 2
 
     st = start(g)
