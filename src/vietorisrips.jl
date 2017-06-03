@@ -24,7 +24,7 @@ function inductive!(cplx, k, E)
             for v in N
                 first(v[:values]) in τvals && continue
                 σ = Simplex(τvals..., v[:values]...)
-                cplx[σ, i] > size(cplx, i) && addsimplex(cplx, σ)
+                cplx[σ, i] > size(cplx, i) && push!(cplx, σ)
             end
         end
     end
@@ -34,7 +34,7 @@ end
 function addcofaces!(cplx, k, τ, N, E)
     # V ← V ∪ {τ}
     τdim = dim(τ)
-    cplx[τ, τdim] > size(cplx, τdim) && addsimplex(cplx, τ)
+    cplx[τ, τdim] > size(cplx, τdim) && push!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
     τvals = τ[:values]
@@ -92,7 +92,7 @@ function vietorisrips(X::AbstractMatrix,  ɛ::Float64, weights=false)
             s = Simplex(u...,v...)
             if cplx[s] > size(cplx, 1)
                 # add simplex to complex
-                addsimplex(cplx, s)
+                push!(cplx, s)
                 # fill adjacency matrix
                 E[s[:values], s[:values]] = true
             end

@@ -46,6 +46,13 @@ cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
 """Return a nullable cell collection per dimension (increasing)"""
 cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),Int)))
 
+"""
+    push!(cplx::AbstractComplex, cell::AbstractCell; recursive=false) -> Vector{AbstractCell}
+
+Insert a `cell` to a complex `cplx`, and returns an array of inserted cell(s). If `recursive=true` is passed then all faces of the `cell` are also added to the complex `cplx`.
+"""
+Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
+
 #
 # Public Methods
 #
