@@ -3,7 +3,7 @@
 abstract AbstractHomology{G}
 grouptype{G}(::Type{AbstractHomology{G}}) = G
 grouptype{H <: AbstractHomology}(::Type{H}) = supertype(H) |> grouptype
-group{G}(h::AbstractHomology{G}, dim::Int) = throw(MethodError(group,(typeof(h),Int)))
+group{G}(h::AbstractHomology{G}, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
 
 """
 Homology group iterator for an abstract complex
@@ -12,12 +12,18 @@ immutable Homology{C<:AbstractComplex, G} <: AbstractHomology{G}
     complex::C
 end
 homology{C <: AbstractComplex, G}(c::C, ::Type{G}) = Homology{C,G}(c)
+homology{C <: AbstractComplex}(c::C) = homology(c, Int)
+
 Base.show(io::IO, h::Homology) = print(io, "Homology[$(h.complex)]")
 
 """Return homology group type: dimension, Betti & torsion numbers."""
 Base.eltype{C,G}(::Type{Homology{C,G}}) = Tuple{Int, Int, Int}
 
-function group{C <: AbstractComplex, G}(h::Homology{C, G}, p::Int, Dₚ::Int=0)
+#
+# Interface methods
+#
+
+function group{C <: AbstractComplex, G}(h::Homology{C, G}, p::Int; Dₚ::Int=0)
     M = boundary_matrix(G, h.complex, p+1)
     U, Uinv, V, Vinv, D = SNF(M)
 
@@ -47,6 +53,7 @@ end
 #
 # Iterator methods
 #
+
 Base.length{C, G}(h::Homology{C, G}) = dim(h.complex)+1
 
 function Base.start{C, G}(h::Homology{C, G})
@@ -56,9 +63,8 @@ end
 
 function Base.next{C, G}(h::Homology{C, G}, state)
     p = state[1]
-    Dₚ = state[2][end]
 
-    βₚ, τₚ, snfstate = group(h, p, Dₚ)
+    βₚ, τₚ, snfstate = group(h, p, Dₚ = state[2][end])
 
     return (p, βₚ, τₚ), (p+1, snfstate)
 end
