@@ -23,11 +23,19 @@
     push!(cplx, Simplex('a','b','c'), recursive=true)
 
     # create filtration from an existed complex
-    flt = Filtration(cplx, Int)
+    flt = filtration(cplx, Int)
 
     # compute boundary matrix
     ∂ = boundary_matrix(flt)
     @test length(∂) == 8
     @test countnz(sparse(∂)) == 12
 
+    srand(9236493643764)
+    N = 10
+    X = rand(3,N)
+    cplx, w = vietorisrips(X, 0.4, true)
+    flt = filtration(cplx, w)
+    ∂ = boundary_matrix(flt)
+    @test length(∂) == sum(size(cplx))+1
+    @test countnz(sparse(∂)) == 29
 end

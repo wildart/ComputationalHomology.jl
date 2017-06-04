@@ -1,9 +1,3 @@
-# include("src/ComputationalHomology.jl")
-# using ComputationalHomology
-# using Base.Test
-# include("test\\runtests.jl")
-# include("test/runtests.jl")
-
 @testset "Persistent Homology" begin
 
     # Create complex and filtration simultaneously

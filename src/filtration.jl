@@ -9,18 +9,17 @@ type Filtration{C<:AbstractComplex, FI}
     complex::C
     # total order of simplexes defined by corresponding values of type FI
     index::Dict{FI,Vector{Tuple{Int,Int}}} # filtration_value => (cell dimension, cell index)
-
-    # make total order structure explicit from implicit representation: filtration_value=>(cell dimension, cell index)
-    # by embedding it in cell order and corresponding filtration values relation (cell_dim, cell_index)=>total_order & total_order=>filtration_value
-    #index::Dict{Pair{Int,Int}, Int} # (cell_dim, cell_index)=>total_order
-    #values::Dict{Int,FI}            # total_order=>filtration_value
 end
 Base.show(io::IO, flt::Filtration) = print(io, "Filtration($(flt.complex))")
 Base.length(flt::Filtration) = length(flt.index)
 
+#
 # Constructors
+#
+
 Filtration{C <: AbstractComplex, FI}(::Type{C}, ::Type{FI}) = Filtration(C(), Dict{FI,Vector{Tuple{Int,Int}}}())
-function Filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
+
+function filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
     idx = Dict{FI,Vector{Tuple{Int,Int}}}()
     i = one(FI)
     for d in 0:dim(cplx)
@@ -29,7 +28,21 @@ function Filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
             i += one(FI)
         end
     end
-    Filtration(cplx, idx)
+    return Filtration(cplx, idx)
+end
+
+"""Construct filtration from a cell complex and a complex weight function"""
+function filtration{C <: AbstractComplex, FI}(cplx::C, w::Dict{Int,Vector{FI}})
+    idx = Dict{FI,Vector{Tuple{Int,Int}}}()
+    for d in 0:dim(cplx)
+        for c in get(cells(cplx, d))
+            ci = c[:index]
+            fltval = w[d][ci]
+            !haskey(idx, fltval) && setindex!(idx, FI[], fltval)
+            push!(idx[fltval], (dim(c), c[:index]))
+        end
+    end
+    return Filtration(cplx, idx)
 end
 
 function Base.push!{C<:AbstractComplex, FI}(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false)
