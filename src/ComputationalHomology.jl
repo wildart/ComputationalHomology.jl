@@ -16,13 +16,17 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, celltype, cells, boundary_matrix,
        SimplicialComplex,
-       addsimplex, addsimplex!,
        vietorisrips,
 
-       AbstractHomology,
-       grouptype, group,
-       Homology,
-       homology, withgenerators, generators
+       AbstractHomology, grouptype, group,
+       Homology, homology, withgenerators, generators,
+
+       Filtration,
+
+       AbstractPersistenceReduction,
+       StandardReduction, TwistReduction,
+       pairs,
+       PersistentHomology, persistenthomology
 
 global SNF = SmithNormalForm.snf
 
@@ -31,7 +35,9 @@ include("chain.jl")
 include("complex.jl")
 include("simplicial.jl")
 include("vietorisrips.jl")
+include("filtration.jl")
 include("homology.jl")
+include("persistence.jl")
 
 function setsnf!(f::Function)
     global SNF
