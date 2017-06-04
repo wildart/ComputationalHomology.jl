@@ -47,7 +47,11 @@
     end
 
     ps, R = pairs(TwistReduction, boundary_matrix(flt, reduced=false))
-    itr = ComputationalHomology.endpoints(flt, ps)
+    itr, _ = intervals(flt, ps)
+    @test itr[0] == [1=>2]
+    @test itr[1] == [3=>7]
+
+    itr, _ = intervals(flt)
     @test itr[0] == [1=>2]
     @test itr[1] == [3=>7]
 

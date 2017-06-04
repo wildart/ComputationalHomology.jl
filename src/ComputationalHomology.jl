@@ -25,7 +25,7 @@ export AbstractCell,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
-       pairs,
+       pairs, intervals,
        PersistentHomology, persistenthomology
 
 global SNF = SmithNormalForm.snf

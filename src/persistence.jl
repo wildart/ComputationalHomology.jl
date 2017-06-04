@@ -62,9 +62,9 @@ function pairs{R<:AbstractPersistenceReduction}(::Type{R}, ∂::Vector)
 end
 
 """Return birth-death pairs per dimension"""
-function endpoints(flt::Filtration, ps::Vector{Pair{Int,Int}}; length0=false)
+function intervals(flt::Filtration, ps::Vector{Pair{Int,Int}}; length0=false)
     ITT = keytype(flt.index)
-    intervals = Dict{Int,Vector{Pair{ITT,ITT}}}()
+    intrs = Dict{Int,Vector{Pair{ITT,ITT}}}()
 
     # Construct total order index of simplexes in filtration
     total = Dict{Int,Tuple{Int,Int,ITT}}()
@@ -77,17 +77,22 @@ function endpoints(flt::Filtration, ps::Vector{Pair{Int,Int}}; length0=false)
     end
 
     for (b,d) in ps
-        (total[b][3] == total[d][3] || length0) && continue # do not include 0-length intervals
+        (total[b][3] == total[d][3] && !length0) && continue # do not include 0-length intervals
         intr = total[b][3] => total[d][3]
 
         idim = total[d][1]-1
-        if !haskey(intervals, idim)
-            intervals[idim] = Pair{ITT,ITT}[]
+        if !haskey(intrs, idim)
+            intrs[idim] = Pair{ITT,ITT}[]
         end
-        push!(intervals[idim], intr)
+        push!(intrs[idim], intr)
     end
 
-    return intervals
+    return intrs, total
+end
+
+function intervals(flt::Filtration; reduction=TwistReduction, length0=false)
+    ps, _ = pairs(reduction, boundary_matrix(flt, reduced=false))
+    return intervals(flt, ps, length0=length0)
 end
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
