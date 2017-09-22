@@ -18,13 +18,13 @@
     ∂ = boundary_matrix(flt, reduced=false)
 
     # Twist reduction
-    ps, R = pairs(TwistReduction, deepcopy(∂))
+    ps, R = ComputationalHomology.pairs(TwistReduction, deepcopy(∂))
     @testset for (p, t) = zip(ps, [2=>4, 3=>5, 6=>7])
         @test p == t
     end
 
     # Standard reduction
-    ps, R = pairs(StandardReduction, deepcopy(∂))
+    ps, R = ComputationalHomology.pairs(StandardReduction, deepcopy(∂))
     @testset for (p, t) = zip(ps, [2=>4, 3=>5, 6=>7])
         @test p == t
     end
@@ -46,7 +46,7 @@
         push!(flt, s...)
     end
 
-    ps, R = pairs(TwistReduction, boundary_matrix(flt, reduced=false))
+    ps, R = ComputationalHomology.pairs(TwistReduction, boundary_matrix(flt, reduced=false))
     itr, _ = intervals(flt, ps)
     @test itr[0] == [1=>2]
     @test itr[1] == [3=>7]
@@ -73,14 +73,18 @@
         push!(flt, s...)
     end
     @test size(flt.complex) == (5,6,1)
+    @test length(flt) == 12
 
     ∂ = boundary_matrix(flt)
+    @test sparse(∂)[6,12] == 6
     R = reduce(StandardReduction, deepcopy(∂))
     @test ComputationalHomology.betti(∂, R, 0) == 1
     @test ComputationalHomology.betti(∂, R, 1) == 1
     @test ComputationalHomology.betti(∂, R, 2) == 0
 
     ph = persistenthomology(flt, TwistReduction)
+    @test eltype(ph) == Tuple{Int64,Int64}
+    @test length(ph) == 3
     @test group(ph, 0) == 1
     @test group(ph, 1) == 1
     @test group(ph, 2) == 0

@@ -72,4 +72,14 @@
     @test size(cplx, 0) == 3
     @test size(cplx, 1) == 2
 
+    io = IOBuffer()
+    ComputationalHomology.writesimcomplex(io, cplx)
+    seekstart(io)
+    cplx2 = ComputationalHomology.readsimcomplex(io)
+    @test size(cplx2, 0) == 3
+    @test size(cplx2, 1) == 2
+
+    ch = boundary(cplx2, 1, 0, Int)
+    @test dim(ch) == -1
+
 end

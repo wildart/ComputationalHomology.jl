@@ -91,7 +91,6 @@ function Base.sparse(∂::Vector{IntSet})
             ret[j,i] = j # (-1)^((l-1)%2) # coefs require exact order of faces in provides simplex
         end
     end
-    collect(ret)
     return ret
 end
 

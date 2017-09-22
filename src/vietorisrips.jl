@@ -71,7 +71,8 @@ This is a inefficient implementation (based on distance matrix) of the VRC algor
 
     Afra Zomorodian, Fast construction of the Vietoris-Rips complex, 2010
 """
-function vietorisrips(X::AbstractMatrix,  ɛ::Float64, weights=false)
+function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights=false;
+                      method=:incremental)
     d, n = size(X)
 
     # add zero-dimensional simplices to complex
@@ -103,7 +104,13 @@ function vietorisrips(X::AbstractMatrix,  ɛ::Float64, weights=false)
     kmax = maximum(mapslices(c->count(d->d <= ɛ, c), dist, 1))
 
     # perform VR expansion
-    incremental!(cplx, kmax, E)
+    if method == :incremental
+        incremental!(cplx, kmax, E)
+    elseif method == :inductive
+        inductive!(cplx, kmax, E)
+    else
+        throw(ArgumentError("Invalid method name $(method)"))
+    end
 
     # calculate weights
     if !weights

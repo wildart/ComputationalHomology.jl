@@ -35,6 +35,9 @@
     @test itm[2] == 0
     @test st[1] == 3
 
+    @test all(ComputationalHomology.betti(h) .== [2,1,0])
+    @test ComputationalHomology.euler(h) == 1
+
     g = withgenerators(h)
     @test eltype(typeof(g)) == Tuple{Int64,Int64,Int64,Dict{Chain,Int64}}
     @test length(g) == 3
