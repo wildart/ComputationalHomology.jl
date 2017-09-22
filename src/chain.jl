@@ -1,4 +1,4 @@
-abstract AbstractChain
+abstract type AbstractChain end
 
 """ k-Chain is a formal linear combination of k-cells.
 

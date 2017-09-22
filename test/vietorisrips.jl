@@ -17,6 +17,6 @@
     @test size(cplx, 1) == 8
     @test size(cplx, 2) == 1
     @test w[0][1] == 0.
-    @test_approx_eq w[1][1] 0.24932439624731
-    @test_approx_eq w[2][1] 0.36949278019681
+    @test w[1][1] ≈ 0.24932439624731
+    @test w[2][1] ≈ 0.36949278019681
 end

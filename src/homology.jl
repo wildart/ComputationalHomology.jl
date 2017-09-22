@@ -1,6 +1,6 @@
 # Homology: type and methods
 
-abstract AbstractHomology{G}
+abstract type AbstractHomology{G} end
 grouptype{G}(::Type{AbstractHomology{G}}) = G
 grouptype{H <: AbstractHomology}(::Type{H}) = supertype(H) |> grouptype
 group{G}(h::AbstractHomology{G}, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
@@ -25,7 +25,7 @@ Base.eltype{C,G}(::Type{Homology{C,G}}) = Tuple{Int, Int, Int}
 
 function group{C <: AbstractComplex, G}(h::Homology{C, G}, p::Int; Dₚ::Int=0)
     M = boundary_matrix(G, h.complex, p+1)
-    U, Uinv, V, Vinv, D = SNF(M)
+    U, V, D, Uinv, Vinv  = SNF(M)
 
     nₚ, nₚ₊₁ = size(D)
     Dₚ₊₁ = trivial = 0
@@ -124,7 +124,7 @@ function Base.next(g::WithGenerators, state)
 
     P = A * (B * C)
 
-    gU, gUinv, gV, gVinv, gD = SNF(P)
+    gU, gV, gD, gUinv, gVinv = SNF(P)
     G = gU * gD
 
     # betti generator

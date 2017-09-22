@@ -1,5 +1,5 @@
 """Abstract cell type"""
-abstract AbstractCell
+abstract type AbstractCell end
 """Dimension of the cell"""
 dim(c::AbstractCell) = throw(MethodError(dim,(typeof(c),)))
 """Get cell properties: `:index` & `:values`"""
@@ -16,19 +16,19 @@ type Simplex{P} <: AbstractCell
     idx::Int
     vs::Vector{P}
     hash::UInt64
-    function Simplex(idx, vals)
-        new(idx, vals, hash(vals))
+    function Simplex{P}(idx, vals) where {P}
+        return new(idx, vals, hash(vals))
     end
 end
-Simplex{P}(splx::P...) = Simplex{P}(0, sort!([i for i in splx]))
-Simplex{P}(splx::Vector{P}) = Simplex{P}(0, sort!(splx))
+Simplex(splx::P...) where {P} = Simplex{P}(0, sort!([i for i in splx]))
+Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, sort!(splx))
 
 # Private methods
 
-Base.convert{P}(::Type{Simplex{P}}, v::Vector{P}) = Simplex{P}(0, sort!(v))
+Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, sort!(v))
 Base.hash(splx::Simplex) = splx.hash
 Base.show(io::IO, splx::Simplex) = show(io, "Σ($(splx.vs))[$(splx.idx)]")
-Base.eltype{P}(splx::Simplex{P}) = P
+Base.eltype(splx::Simplex{P}) where {P} = P
 
 # Public methods
 
@@ -81,7 +81,7 @@ volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,s[:values]])
 type Cube{P<:Vector} <: AbstractCell
     origin::P
     extent::P
-    function Cube(o::P, x::P)
+    function Cube{P}(o::P, x::P) where {P}
         @assert length(x) <= length(o) "Too many extent elements"
         new(o, x)
     end

@@ -2,7 +2,7 @@
 Each complex should have collection of cells per dimension:
 - cells::Dict{Int,Vector{C}} or Vector{Vector{C}}
 =#
-abstract AbstractComplex
+abstract type AbstractComplex end
 
 function boundary{R}(cplx::AbstractComplex, ch::Chain{R})
     d = dim(ch)

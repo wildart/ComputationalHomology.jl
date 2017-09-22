@@ -1,4 +1,4 @@
-abstract AbstractPersistenceReduction
+abstract type AbstractPersistenceReduction end
 type StandardReduction <: AbstractPersistenceReduction end
 type TwistReduction <: AbstractPersistenceReduction end
 
