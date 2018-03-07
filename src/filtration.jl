@@ -108,3 +108,26 @@ function writeboundarymatrix(io::IO, bm::Vector, zeroindex = true)
         write(io, 0x0A)
     end
 end
+
+#
+# Iterator methods
+#
+
+function Base.start(flt::Filtration{C, FI}) where {C<:AbstractComplex, FI}
+    vals = sort!(collect(keys(flt.index)))
+    return (C(), 0, vals)
+end
+
+function Base.next(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
+    c = state[1]
+    i = state[2]+1
+    v = state[3][i]
+    for (d,ci) in flt.index[v]
+        push!(c, get(flt.complex[ci, d]))
+    end
+    return (v, c), (c, i, state[3])
+end
+
+function Base.done(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
+     return state[2] == length(state[3])
+end
