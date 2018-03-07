@@ -12,11 +12,11 @@ type Filtration{C<:AbstractComplex, FI}
 end
 Base.show(io::IO, flt::Filtration) = print(io, "Filtration($(flt.complex))")
 Base.length(flt::Filtration) = length(flt.index)
+Base.complex(flt::Filtration) = flt.complex
 
 #
 # Constructors
 #
-
 Filtration{C <: AbstractComplex, FI}(::Type{C}, ::Type{FI}) = Filtration(C(), Dict{FI,Vector{Tuple{Int,Int}}}())
 
 function filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
