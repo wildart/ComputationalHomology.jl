@@ -12,13 +12,12 @@ Base.setindex!(c::AbstractCell, v, k::Symbol) = throw(MethodError(setindex!,(typ
 faces(c::AbstractCell) = throw(MethodError(faces,(typeof(c),)))
 
 #=== Simples ===#
-type Simplex{P} <: AbstractCell
+mutable struct Simplex{P} <: AbstractCell
     idx::Int
     vs::Vector{P}
     hash::UInt64
-    function Simplex{P}(idx, vals) where {P}
-        return new(idx, vals, hash(vals))
-    end
+    Simplex{P}(idx, vals) where {P} = new(idx, vals, hash(vals))
+    Simplex{P}() where {P} = new(0, P[])
 end
 Simplex(splx::P...) where {P} = Simplex{P}(0, sort!([i for i in splx]))
 Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, sort!(splx))

@@ -1,6 +1,6 @@
 # Simplicial Complex
 
-type SimplicialComplex{P} <: AbstractComplex
+mutable struct SimplicialComplex{P} <: AbstractComplex
     cells::Dict{Int,Vector{Simplex{P}}}   # cells per dimension
     # order::Dict{Pair{Int,Int},Int}      # order of cells
 end
@@ -15,7 +15,7 @@ Base.copy(cplx::SimplicialComplex) = SimplicialComplex(deepcopy(cplx.cells))
 
 This function **doesn't** add missing faces of the simplex to the complex. Use `addsimplex!` function for instead.
 """
-function addsimplex{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
+function addsimplex(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
     d = dim(splx)
     d < 0 && return (0,d,0)
     !haskey(cplx.cells, d) && setindex!(cplx.cells, Simplex{P}[], d)
@@ -27,7 +27,7 @@ function addsimplex{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
 end
 
 """Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"""
-function addsimplex!{P}(cplx::SimplicialComplex{P}, splx::Simplex{P})
+function addsimplex!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
     # cache already
     added = Set{Simplex{P}}()
 
@@ -69,7 +69,7 @@ end
 # Public Interface
 #
 
-celltype{P}(::SimplicialComplex{P}) = Simplex{P}
+celltype(::SimplicialComplex{P}) where {P} = Simplex{P}
 
 function cells(cplx::SimplicialComplex)
     CCT = valtype(cplx.cells)
@@ -82,7 +82,7 @@ cells(cplx::SimplicialComplex, d::Int) = haskey(cplx.cells, d) ? Nullable(cplx.c
 
 dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
-function boundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
+function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where {R}
     ch = Chain(d-1, R)
     if d == 0
         setdim!(ch, -1)
@@ -104,7 +104,7 @@ function boundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
     return ch
 end
 
-function coboundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
+function coboundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where {R}
 
     d == 0 && return Chain(d+1, R)
 
@@ -123,18 +123,18 @@ function coboundary{R}(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R})
     return cbd[idx]
 end
 
-Base.push!{P}(cplx::SimplicialComplex{P}, splx::Simplex{P}; recursive=false) =
+Base.push!(cplx::SimplicialComplex{P}, splx::Simplex{P}; recursive=false) where {P} =
     recursive ? addsimplex!(cplx, splx) : [addsimplex(cplx, splx)]
 
 #
 # Constructors
 #
 
-SimplicialComplex{P}(::Type{P}) = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
+SimplicialComplex(::Type{P}) where {P} = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
 
 (::Type{SimplicialComplex{P}}){P}() = SimplicialComplex(P)
 
-function SimplicialComplex{P}(splxs::Simplex{P}...)
+function SimplicialComplex(splxs::Simplex{P}...) where {P}
     cplx = SimplicialComplex(P)
     added = Set{Simplex}()
     toprocess = Vector{Simplex}()
@@ -160,17 +160,17 @@ SimplicialComplex(splxs::Vector{Simplex}) = SimplicialComplex(splxs...)
 # Miscellaneous
 #
 
-function readsimcomplex(io::IO)
+function Base.read(io::IO, ::Type{SimplicialComplex{P}}) where {P}
     splxs = Simplex[]
     while !eof(io)
         l = chomp(readline(io))
-        si = map(e->parse(Int, e), split(l, ' '))
+        si = map(e->parse(P, e), split(l, ' '))
         push!(splxs, Simplex(si...))
     end
     return SimplicialComplex(splxs)
 end
 
-function writesimcomplex(io::IO, cplx::SimplicialComplex)
+function Base.write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,Int}()
     for s in cplx.cells[0]
         zsplxs[s.vs[]] = s.idx

@@ -25,6 +25,18 @@
         end
     end
 
+    # test io
+    let io = IOBuffer()
+        write(io, flt)
+        @test String(io) == "1,1\n2,2\n1,2,3\n1,3,4\n3,4\n"
+        seekstart(io)
+        tmp = read(io, Filtration{SimplicialComplex{Int}, Int})
+        @testset for ((v1,c1),(v2,c2)) in zip(flt, tmp)
+            @test v1 == v2
+            @test c1.cells == c2.cells
+        end
+    end
+
     # compute boundary matrix
     ∂ = boundary_matrix(flt, reduced=false)
     @test length(∂) == sum(size(flt.complex))

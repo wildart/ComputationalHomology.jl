@@ -4,7 +4,7 @@ We call this sequence of complexes the **filtration** of `f` and
 think of it as a construction by adding chunks of simplices at a time `t::FI`.
 ∅ = K0 ⊆ K1 ⊆ . . . ⊆ Kn = K.
 """
-type Filtration{C<:AbstractComplex, FI}
+mutable struct Filtration{C<:AbstractComplex, FI}
     # underlying abstract cell complex
     complex::C
     # total order of simplexes defined by corresponding values of type FI
@@ -17,9 +17,10 @@ Base.complex(flt::Filtration) = flt.complex
 #
 # Constructors
 #
-Filtration{C <: AbstractComplex, FI}(::Type{C}, ::Type{FI}) = Filtration(C(), Dict{FI,Vector{Tuple{Int,Int}}}())
+Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
+    Filtration(C(), Dict{FI,Vector{Tuple{Int,Int}}}())
 
-function filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
+function filtration(cplx::C, ::Type{FI}) where {C<:AbstractComplex, FI}
     idx = Dict{FI,Vector{Tuple{Int,Int}}}()
     i = one(FI)
     for d in 0:dim(cplx)
@@ -32,7 +33,7 @@ function filtration{C <: AbstractComplex, FI}(cplx::C, ::Type{FI})
 end
 
 """Construct filtration from a cell complex and a complex weight function"""
-function filtration{C <: AbstractComplex, FI}(cplx::C, w::Dict{Int,Vector{FI}})
+function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex, FI}
     idx = Dict{FI,Vector{Tuple{Int,Int}}}()
     for d in 0:dim(cplx)
         for c in get(cells(cplx, d))
@@ -45,7 +46,7 @@ function filtration{C <: AbstractComplex, FI}(cplx::C, w::Dict{Int,Vector{FI}})
     return Filtration(cplx, idx)
 end
 
-function Base.push!{C<:AbstractComplex, FI}(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false)
+function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
     @assert isa(cl, celltype(flt.complex)) "Complex $(flt.complex) does not accept $(typeof(cl))"
     !haskey(flt.index, v) && setindex!(flt.index, Tuple{Int,Int}[], v)
     cls = push!(flt.complex, cl, recursive=recursive)
@@ -92,6 +93,37 @@ function Base.sparse(∂::Vector{IntSet})
         end
     end
     return ret
+end
+
+#
+# I/O
+#
+
+function Base.write(io::IO, flt::Filtration)
+    cplx = complex(flt)
+    for v in sort!(collect(keys(flt.index)))
+        for (d, i) in flt.index[v]
+            simplex = get(cplx[i,d])
+            for k in simplex[:values]
+                write(io, "$k,")
+            end
+            write(io, "$v\n")
+        end
+    end
+end
+
+function Base.read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
+    flt = Filtration(C,FI)
+    ST = celltype(complex(flt))
+    ET = eltype(ST())
+    while !eof(io)
+        l = readline(io)
+        vals = split(l, ',')
+        svals = map(v->parse(ET, v), vals[1:end-1])
+        fval = parse(FI, vals[end])
+        push!(flt, ST(svals), fval)
+    end
+    return flt
 end
 
 "Write a combined boundary matrix to a text file"
