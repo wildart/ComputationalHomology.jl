@@ -16,7 +16,7 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, celltype, cells, boundary_matrix,
        SimplicialComplex,
-       vietorisrips,
+       vietorisrips, witness,
 
        AbstractHomology, grouptype, group,
        Homology, homology, withgenerators, generators,
@@ -34,7 +34,7 @@ include("cells.jl")
 include("chain.jl")
 include("complex.jl")
 include("simplicial.jl")
-include("vietorisrips.jl")
+include("constructions.jl")
 include("filtration.jl")
 include("homology.jl")
 include("persistence.jl")

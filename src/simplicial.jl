@@ -78,7 +78,7 @@ function cells(cplx::SimplicialComplex)
     CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
 end
 
-cells(cplx::SimplicialComplex, d::Int) = haskey(cplx.cells, d) ? Nullable(cplx.cells[d]) : Nullable{valtype(cplx.cells)}()
+cells(cplx::SimplicialComplex{P}, d::Int) where {P} = haskey(cplx.cells, d) ? Nullable(cplx.cells[d]) : Nullable{valtype(cplx.cells)}()
 
 dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
