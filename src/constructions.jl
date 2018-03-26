@@ -122,7 +122,7 @@ function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights = true;
     end
 
     # determine maximal dimension
-    kmax = min(maxdim, maximum(mapslices(c->count(d->d <= ɛ, c)-1, D, 1)))
+    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤ɛ, c), D, 1)))
 
     # calculate weights of nerve
     w = nothing
@@ -193,11 +193,12 @@ function witness(X::AbstractMatrix, l::Int, R::Float64, weights = true;
                    maxdim=maxdim, expansion=expansion)
 end
 
-function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = false;
+function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = true;
                  expansion = :incremental, firstpoint = 0,
                  ν::Int = 2, distance = Distances.Euclidean(), maxdim = size(X,2)-1)
 
     @assert ν < 3 "ν only can take values of 0, 1 or 2"
+    @assert maxdim > 0 "Maximum dimension should be more then 0"
 
     d, n = size(X)
     l = length(L)
@@ -248,7 +249,7 @@ function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = false;
     end
 
     # determine maximal dimension
-    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤R, c)-1, D, 2)))
+    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤R, c), D, 1)))
 
     # perform expansion
     expand(expansion, cplx, w, kmax, E)

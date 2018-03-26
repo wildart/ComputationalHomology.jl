@@ -1,34 +1,40 @@
 # Homology: type and methods
 
 abstract type AbstractHomology{G} end
-grouptype{G}(::Type{AbstractHomology{G}}) = G
-grouptype{H <: AbstractHomology}(::Type{H}) = supertype(H) |> grouptype
-group{G}(h::AbstractHomology{G}, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
+grouptype(::Type{AbstractHomology{G}}) where {G} = G
+grouptype(::Type{H}) where {H <: AbstractHomology} = supertype(H) |> grouptype
+group(h::AbstractHomology{G}, dim::Int; kw...) where {G} = throw(MethodError(group,(typeof(h),Int)))
 
 """
 Homology group iterator for an abstract complex
 """
-immutable Homology{C<:AbstractComplex, G} <: AbstractHomology{G}
+struct Homology{C<:AbstractComplex, G} <: AbstractHomology{G}
     complex::C
 end
-homology{C <: AbstractComplex, G}(c::C, ::Type{G}) = Homology{C,G}(c)
-homology{C <: AbstractComplex}(c::C) = homology(c, Int)
+homology(c::C, ::Type{G}) where {C <: AbstractComplex,G} = Homology{C,G}(c)
+homology(c::C) where {C <: AbstractComplex} = homology(c, Int)
 
 Base.show(io::IO, h::Homology) = print(io, "Homology[$(h.complex)]")
 
 """Return homology group type: dimension, Betti & torsion numbers."""
-Base.eltype{C,G}(::Type{Homology{C,G}}) = Tuple{Int, Int, Int}
+Base.eltype(::Type{Homology{C,G}}) where {C,G} = Tuple{Int, Int, Int}
 
 #
 # Interface methods
 #
 
-function group{C <: AbstractComplex, G}(h::Homology{C, G}, p::Int; Dₚ::Int=0)
+function group(h::Homology{C, G}, p::Int; Dₚ::Int=0) where {C <: AbstractComplex, G}
+    cdim = dim(h.complex)
+    @assert cdim >= p "Cannot define $p-th homology group for $cdim-dimensional complex"
+
     M = boundary_matrix(G, h.complex, p+1)
     U, V, D, Uinv, Vinv  = SNF(M)
 
     nₚ, nₚ₊₁ = size(D)
     Dₚ₊₁ = trivial = 0
+
+    # empty boundary
+    nₚ₊₁ == 0 && return (0, 0, (U, Uinv, V, Vinv, D, Dₚ₊₁))
 
     # Calculate rank B_p = rank D_{p+1}
     for i in 1:nₚ₊₁
@@ -54,14 +60,14 @@ end
 # Iterator methods
 #
 
-Base.length{C, G}(h::Homology{C, G}) = dim(h.complex)+1
+Base.length(h::Homology{C, G}) where {C,G} = dim(h.complex)+1
 
-function Base.start{C, G}(h::Homology{C, G})
+function Base.start(h::Homology{C, G}) where {C,G}
     Z = zeros(G,0,0)
     return (0, (Z,Z,Z,Z,Z,0))
 end
 
-function Base.next{C, G}(h::Homology{C, G}, state)
+function Base.next(h::Homology{C, G}, state) where {C,G}
     p = state[1]
 
     βₚ, τₚ, snfstate = group(h, p, Dₚ = state[2][end])
@@ -69,15 +75,15 @@ function Base.next{C, G}(h::Homology{C, G}, state)
     return (p, βₚ, τₚ), (p+1, snfstate)
 end
 
-function Base.done{C, G}(h::Homology{C, G}, state)
-     return dim(h.complex) < state[1]
+function Base.done(h::Homology{C, G}, state) where {C,G}
+    return dim(h.complex) < state[1]
 end
 
 
 """
 Homology generator iterator
 """
-immutable WithGenerators{H <: AbstractHomology}
+struct WithGenerators{H <: AbstractHomology}
     homology::H
 end
 
@@ -89,8 +95,8 @@ An iterator that yields homology generators from a homology iterator `hom`.
 Returns homology group parameters from iterator `hom` and generators as pair of `Chain` **x** and coefficient **k** that compose boundary **kx**.
 When **k** is zero, then **x** is a boundary without any coefficient.
 """
-withgenerators{H <: AbstractHomology}(h::H) = WithGenerators{H}(h)
-Base.eltype{H <: AbstractHomology}(::Type{WithGenerators{H}}) = Tuple{Int, Int, Int, Dict{Chain, grouptype(H)}}
+withgenerators(h::H) where {H <: AbstractHomology} = WithGenerators{H}(h)
+Base.eltype(::Type{WithGenerators{H}}) where {H <: AbstractHomology} = Tuple{Int, Int, Int, Dict{Chain, grouptype(H)}}
 
 #
 # Iterator methods
@@ -162,7 +168,7 @@ betti(g::AbstractHomology) = [gst[2] for gst in g]
 euler(g::AbstractHomology) = [isodd(i) ? gst[2] : -gst[2] for (i,gst) in enumerate(g)] |> sum
 
 """Return linearly independent generators"""
-function generators{H <: AbstractHomology}(g::WithGenerators{H})
+function generators(g::WithGenerators{H}) where {H <: AbstractHomology}
     chains = Dict{Int,Vector{Chain}}()
     for (d,b,t,gens) in g
         chains[d] = collect(keys(gens))
