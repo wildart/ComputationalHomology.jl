@@ -19,8 +19,8 @@ mutable struct Simplex{P} <: AbstractCell
     Simplex{P}(idx, vals) where {P} = new(idx, vals, hash(vals))
     Simplex{P}() where {P} = new(0, P[])
 end
-Simplex(splx::P...) where {P} = Simplex{P}(0, sort!([i for i in splx]))
-Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, sort!(splx))
+Simplex(splx::Vector{P}; ordered=true) where {P} = Simplex{P}(0, ordered ? sort!(splx) : splx)
+Simplex(splx::P...; ordered=true) where {P} = Simplex(P[splx...], ordered=ordered)
 
 # Private methods
 

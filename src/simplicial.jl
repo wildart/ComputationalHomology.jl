@@ -1,5 +1,9 @@
 # Simplicial Complex
 
+"""Simplicial Complex Type
+
+Simplex parameter type `P` must have implemented total order function `isless`.
+"""
 mutable struct SimplicialComplex{P} <: AbstractComplex
     cells::Dict{Int,Vector{Simplex{P}}}   # cells per dimension
     # order::Dict{Pair{Int,Int},Int}      # order of cells
