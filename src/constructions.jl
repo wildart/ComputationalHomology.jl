@@ -39,10 +39,9 @@ function addcofaces!(cplx, k, τ, N, E)
     dim(τ) >= k && return
     τvals = τ[:values]
     for v in N
-        # σ ← τ ∪ {v}
         first(v[:values]) in τvals && continue
-        σ = Simplex(τvals..., v[:values]...)
         # σ ← τ ∪ {v}
+        σ = Simplex(τvals..., v[:values]...)
         M = intersect(N, lowernbrs(cplx, v, E))
         addcofaces!(cplx, k, σ, M, E)
     end
@@ -183,28 +182,31 @@ For parameter ν = 0, 1, 2 determines size of landmark radius.
 - If ν > 0, then for i = 1, 2, . . . , N define m_i to be the ν-th smallest entry of the i-th column of D.
 """
 function witness(X::AbstractMatrix, l::Int, R::Float64, weights = true;
-                 landmark = :minmax, expansion = :incremental, firstpoint = 0,
-                 ν::Int = 2, distance = Distances.Euclidean(), maxdim = size(X,2)-1)
+                 landmark = :minmax, distance = Distances.Euclidean(),
+                 expansion = :incremental, ν::Int = 2, maxdim = size(X,2)-1,
+                 firstpoint = 0)
 
     # get landmarks
     L = landmarks(X, l, method = landmark, distance = distance, firstpoint=firstpoint)
 
-    return witness(X, L, R, weights, ν=ν, distance=distance,
-                   maxdim=maxdim, expansion=expansion)
+    # get distances to landmarks
+    D = Distances.pairwise(distance, X[:,L], X)
+
+    # simplexes contain indexes to landamarks
+    cplx, w = witness(D, R, weights, expansion=expansion, ν=ν, maxdim=maxdim, firstpoint=firstpoint)
+
+    return cplx, w, L
 end
 
-function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = true;
-                 expansion = :incremental, firstpoint = 0,
-                 ν::Int = 2, distance = Distances.Euclidean(), maxdim = size(X,2)-1)
+"""Genenerate witness complex from the distance matrix with simplexes constructed from landmark indexes"""
+function witness(D::AbstractMatrix, R::Float64, weights = true;
+                 expansion = :incremental, ν::Int = 2, maxdim = size(D,1)-1,
+                 firstpoint = 0)
 
     @assert ν < 3 "ν only can take values of 0, 1 or 2"
     @assert maxdim > 0 "Maximum dimension should be more then 0"
 
-    d, n = size(X)
-    l = length(L)
-
-    # get distances to landmarks
-    D = Distances.pairwise(distance, X[:,L], X)
+    l, n = size(D)
 
     # get landmark radius extension m_i
     m = zeros(eltype(D), n)
@@ -217,7 +219,7 @@ function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = true;
     end
 
     # construct 1-seleton edges
-    splxs = map(Simplex, L)
+    splxs = map(Simplex, 1:l)
     cplx = SimplicialComplex(splxs...)
     w = nothing
     if weights
@@ -228,7 +230,7 @@ function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = true;
 
     # the edge σ = [ab] belongs to W(D; R, ν) iff there exists a witness i ∈ {1, 2, ..., N} such that:
     # max(D(a, i), D(b, i)) ≤ R + m_i
-    E = spzeros(Bool, n, n) # adjacency matrix
+    E = spzeros(Bool, l, l) # adjacency matrix
     for i in 1:l
         for j in i+1:l
             e = Inf
@@ -241,9 +243,9 @@ function witness(X::AbstractMatrix, L::Vector{Int}, R::Float64, weights = true;
             end
 
             if e ≤ R
-                push!(cplx, Simplex(L[i], L[j]))
+                push!(cplx, Simplex(i, j))
                 weights && push!(w[1], e)
-                E[L[i], L[j]] = true
+                E[i, j] = true
             end
         end
     end

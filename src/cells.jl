@@ -53,7 +53,7 @@ function Base.setindex!(splx::Simplex, v, k::Symbol)
     end
 end
 
-==(a::Simplex, b::Simplex) = hash(a) == hash(b) # a[:values] == b[:values]
+==(a::Simplex, b::Simplex) = a[:values] == b[:values]
 
 function faces{P}(splx::Simplex{P})
     faces = typeof(splx)[]

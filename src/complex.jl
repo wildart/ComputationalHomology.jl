@@ -4,7 +4,7 @@ Each complex should have collection of cells per dimension:
 =#
 abstract type AbstractComplex end
 
-function boundary{R}(cplx::AbstractComplex, ch::Chain{R})
+function boundary(cplx::AbstractComplex, ch::Chain{R}) where {R}
     d = dim(ch)
     cc = Chain(d-1,R)
     for (coef,elem) in ch
@@ -13,7 +13,7 @@ function boundary{R}(cplx::AbstractComplex, ch::Chain{R})
     return cc
 end
 
-function coboundary{R}(cplx::AbstractComplex, ch::Chain{R})
+function coboundary(cplx::AbstractComplex, ch::Chain{R}) where {R}
     d = dim(ch)
     cc = Chain(d+1,R)
     for (coef,elem) in ch
@@ -26,10 +26,10 @@ end
 # AbstractComplex Public Interface
 #
 """Return a complex boundary given element and dimension"""
-boundary{M}(cplx::AbstractComplex, i::M, d::Int) = throw(MethodError(boundary, (typeof(cplx),M,Int)))
+boundary(cplx::AbstractComplex, i::M, d::Int) where {M} = throw(MethodError(boundary, (typeof(cplx),M,Int)))
 
 """Return a complex coboundary given element and dimension"""
-coboundary{M}(cplx::AbstractComplex, i::M, d::Int) = throw(MethodError(coboundary, (typeof(cplx),M,Int)))
+coboundary(cplx::AbstractComplex, i::M, d::Int) where {M} = throw(MethodError(coboundary, (typeof(cplx),M,Int)))
 
 """Return a complex cell type"""
 celltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
@@ -60,7 +60,7 @@ Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(Meth
 Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...)
 
 """Return a size of the cell collection for dimension (0-based)"""
-function Base.size{C<:AbstractComplex}(cplx::C, d::Int)
+function Base.size(cplx::AbstractComplex, d::Int)
     (d < 0 || d > dim(cplx)) && return 0
     sz = size(cplx)
     d >= length(sz) && return 0
@@ -71,7 +71,7 @@ end
 
 **Note:** If returned index is larger than the number of cells of this dimension, then the cell is not in complex and the returned index will be assigned to the cell when it's added to the complex.
 """
-function Base.getindex{C}(cplx::AbstractComplex, c::C, d::Int)
+function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C}
     @assert celltype(cplx) == C "Incorrect cell type"
     @assert dim(c) == d "Incorrect cell dimension"
     ndcells = cells(cplx, d)
@@ -81,7 +81,7 @@ function Base.getindex{C}(cplx::AbstractComplex, c::C, d::Int)
     cidx == 0 && return size(cplx, d)+1
     return dcells[cidx][:index]
 end
-Base.getindex{C}(cplx::AbstractComplex, c::C) =  cplx[c, dim(c)]
+Base.getindex(cplx::AbstractComplex, c::C) where {C} =  cplx[c, dim(c)]
 
 """Return a `d`-dimensional cell given its index `idx`."""
 function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
@@ -90,7 +90,7 @@ function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
 end
 
 """Generate a boundary matrix from the cell complex of the dimension `d`."""
-function boundary_matrix{R}(::Type{R}, cplx::AbstractComplex, d::Int)
+function boundary_matrix(::Type{R}, cplx::AbstractComplex, d::Int) where {R}
     csize = size(cplx)
     rows = d > 0 ? csize[d] : 0
     cols = d <= dim(cplx) ? csize[d+1] : 0
