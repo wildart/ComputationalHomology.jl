@@ -57,7 +57,7 @@ function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=fa
 end
 
 """Generate a combined boundary matrix from the filtration `flt` for the persistent homology calculations."""
-function boundary_matrix(flt::Filtration; reduced=true)
+function boundary_matrix(flt::Filtration; reduced=false)
     makereduced = convert(Int, reduced)
     # filtration total order map (simplex dimension => its order in dimension) => total order in filtration
     total = Dict{Pair{Int,Int}, Int}()
@@ -66,7 +66,7 @@ function boundary_matrix(flt::Filtration; reduced=true)
     # fill boundary matrix
     col = 1 + makereduced
     for fltval in sort!(collect(keys(flt.index)))
-        for (d, ci) in sort(flt.index[fltval], lt=(x,y)->(x[1] <= y[1])) # sort by dimension
+        for (d, ci) in sort(flt.index[fltval], lt=(x,y)->(x[1] < y[1])) # sort by dimension
             total[d=>ci] = col
             if d > 0
                 splx = get(flt.complex[ci, d])

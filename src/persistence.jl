@@ -1,6 +1,6 @@
 abstract type AbstractPersistenceReduction end
-type StandardReduction <: AbstractPersistenceReduction end
-type TwistReduction <: AbstractPersistenceReduction end
+mutable struct StandardReduction <: AbstractPersistenceReduction end
+mutable struct TwistReduction <: AbstractPersistenceReduction end
 
 lastindex(col::IntSet) = length(col) == 0 ? -1 : last(col)
 
@@ -47,7 +47,7 @@ function generate_pairs(∂::Vector)
     pairs = Pair{Int,Int}[]
     for col in eachindex(∂)
         if length(∂[col]) > 0
-            birth =lastindex(∂[col])
+            birth = last(∂[col])
             death = col
             push!(pairs, birth=>death)
         end
@@ -56,7 +56,7 @@ function generate_pairs(∂::Vector)
 end
 
 "Compute raw persistence pairs (boundary matrix is reduced in a process)"
-function pairs{R<:AbstractPersistenceReduction}(::Type{R}, ∂::Vector)
+function pairs(::Type{R}, ∂::Vector) where {R <: AbstractPersistenceReduction}
     reduce(R, ∂) # reduce  boundary matrix
     return generate_pairs(∂), ∂  # generate pairs
 end
@@ -64,34 +64,33 @@ end
 """Return birth-death pairs per dimension"""
 function intervals(flt::Filtration, ps::Vector{Pair{Int,Int}}; length0=false)
     ITT = keytype(flt.index)
-    intrs = Dict{Int,Vector{Pair{ITT,ITT}}}()
 
     # Construct total order index of simplexes in filtration
-    total = Dict{Int,Tuple{Int,Int,ITT}}()
+    total = Dict{Int,Tuple{Int,Int,ITT}}() # idx => (dim, simplex_id, fvalue)
     idx = 1
     for fltval in sort!(collect(keys(flt.index)))
-        for (d, ci) in sort(flt.index[fltval], lt=(x,y)->(x[1] <= y[1]))
+        for (d, ci) in sort(flt.index[fltval], lt=(x,y)->(x[1] < y[1]))
             total[idx] = (d, ci, fltval)
             idx+=1
         end
     end
 
+    # construct intervals
+    intrs = Dict{Int,Vector{Pair{ITT,ITT}}}()
     for (b,d) in ps
         (total[b][3] == total[d][3] && !length0) && continue # do not include 0-length intervals
         intr = total[b][3] => total[d][3]
 
         idim = total[d][1]-1
-        if !haskey(intrs, idim)
-            intrs[idim] = Pair{ITT,ITT}[]
-        end
+        !haskey(intrs, idim) && setindex!(intrs, Pair{ITT,ITT}[], idim)
         push!(intrs[idim], intr)
     end
 
     return intrs, total
 end
 
-function intervals(flt::Filtration; reduction=TwistReduction, length0=false)
-    ps, _ = pairs(reduction, boundary_matrix(flt, reduced=false))
+function intervals(flt::Filtration; reduction=TwistReduction, length0=false, reduced = false)
+    ps, _ = pairs(reduction, boundary_matrix(flt, reduced=reduced))
     return intervals(flt, ps, length0=length0)
 end
 
@@ -127,7 +126,7 @@ end
 """
 Persistent homology group iterator for a filtration
 """
-type PersistentHomology{G} <: AbstractHomology{G}
+mutable struct PersistentHomology{G} <: AbstractHomology{G}
     filtration::Filtration
     reduction::DataType
     ∂::Vector{IntSet}
