@@ -251,7 +251,8 @@ function witness(D::AbstractMatrix, R::Float64, weights = true;
     end
 
     # determine maximal dimension
-    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤R, c), D, 1)))
+    Rmax = R+maximum(m)
+    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤Rmax, c), D, 1)))
 
     # perform expansion
     expand(expansion, cplx, w, kmax, E)
