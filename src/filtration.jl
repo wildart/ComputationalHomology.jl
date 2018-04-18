@@ -43,7 +43,7 @@ function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex,
             push!(idx, (d, ci, w[d][ci]))
         end
     end
-    sort!(idx, by=x->(x[1],x[3])) # sort by dimension & filtration value
+    sort!(idx, by=x->(x[3], x[1])) # sort by dimension & filtration value
     return Filtration(cplx, idx)
 end
 
