@@ -7,26 +7,28 @@ think of it as a construction by adding chunks of simplices at a time `t::FI`.
 mutable struct Filtration{C<:AbstractComplex, FI}
     # underlying abstract cell complex
     complex::C
-    # total order of simplexes defined by corresponding values of type FI
-    index::Dict{FI,Vector{Tuple{Int,Int}}} # filtration_value => (cell dimension, cell index)
+    # total order of simplexes as array of (dim, simplex id, filtation value)
+    total::Vector{Tuple{Int,Int,FI}}
 end
-Base.show(io::IO, flt::Filtration) = print(io, "Filtration($(flt.complex))")
-Base.length(flt::Filtration) = length(flt.index)
+Base.length(flt::Filtration) = length(flt.total)
 Base.complex(flt::Filtration) = flt.complex
+Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
+Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
 
 #
 # Constructors
 #
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
-    Filtration(C(), Dict{FI,Vector{Tuple{Int,Int}}}())
+    Filtration(C(), Vector{Tuple{Int,Int,FI}}())
 
-function filtration(cplx::C, ::Type{FI}) where {C<:AbstractComplex, FI}
-    idx = Dict{FI,Vector{Tuple{Int,Int}}}()
-    i = one(FI)
+"""Construct filtration from a cell complex using the order of their appearence in the complex"""
+function filtration(cplx::C) where {C<:AbstractComplex}
+    idx = Vector{Tuple{Int,Int,Int}}()
+    i = 1
     for d in 0:dim(cplx)
         for c in get(cells(cplx, d))
-            idx[i] = [(dim(c), c[:index])]
-            i += one(FI)
+            push!(idx, (dim(c), c[:index], i))
+            i += 1
         end
     end
     return Filtration(cplx, idx)
@@ -34,50 +36,49 @@ end
 
 """Construct filtration from a cell complex and a complex weight function"""
 function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex, FI}
-    idx = Dict{FI,Vector{Tuple{Int,Int}}}()
+    idx = Vector{Tuple{Int,Int,FI}}()
     for d in 0:dim(cplx)
         for c in get(cells(cplx, d))
             ci = c[:index]
-            fltval = w[d][ci]
-            !haskey(idx, fltval) && setindex!(idx, FI[], fltval)
-            push!(idx[fltval], (dim(c), c[:index]))
+            push!(idx, (d, ci, w[d][ci]))
         end
     end
+    sort!(idx, by=x->(x[1],x[3])) # sort by dimension & filtration value
     return Filtration(cplx, idx)
 end
 
 function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
-    @assert isa(cl, celltype(flt.complex)) "Complex $(flt.complex) does not accept $(typeof(cl))"
-    !haskey(flt.index, v) && setindex!(flt.index, Tuple{Int,Int}[], v)
-    cls = push!(flt.complex, cl, recursive=recursive)
-    for c in cls
-        push!(flt.index[v], (dim(c), c[:index]))
+    cplx = complex(flt)
+    @assert isa(cl, celltype(cplx)) "Complex $(cplx) does not accept $(typeof(cl))"
+    cls = push!(cplx, cl, recursive=recursive)
+    idx = length(flt.total) == 0 ? 1 : findlast(e->e[3]<=v, flt.total)
+    for c in sort!(cls, by=s->dim(s))
+        if idx == length(flt.total)
+            push!(flt.total, (dim(c), c[:index], v))
+        else
+            insert!(flt.total, idx, (dim(c), c[:index], v))
+        end
+        idx += 1
     end
     return flt
 end
 
 """Generate a combined boundary matrix from the filtration `flt` for the persistent homology calculations."""
 function boundary_matrix(flt::Filtration; reduced=false)
-    makereduced = convert(Int, reduced)
-    # filtration total order map (simplex dimension => its order in dimension) => total order in filtration
-    total = Dict{Pair{Int,Int}, Int}()
+    ridx = reduced ? 1 : 0
     # initialize boundary matrix
-    bm = map(i->IntSet(), 1:sum(size(flt.complex))+makereduced)
+    cplx = complex(flt)
+    bm = map(i->IntSet(), 1:sum(size(cplx))+ridx)
     # fill boundary matrix
-    col = 1 + makereduced
-    for fltval in sort!(collect(keys(flt.index)))
-        for (d, ci) in sort(flt.index[fltval], lt=(x,y)->(x[1] < y[1])) # sort by dimension
-            total[d=>ci] = col
-            if d > 0
-                splx = get(flt.complex[ci, d])
-                for face in faces(splx)
-                    fi = flt.complex[face, d-1]
-                    push!(bm[col], total[d-1=>fi])
-                end
-            elseif reduced
-                push!(bm[col], 1)
+    for (i, (d, ci, fv)) in enumerate(flt.total)
+        if d > 0
+            splx = get(cplx[ci, d])
+            for face in faces(splx)
+                fi = cplx[face, d-1]
+                push!(bm[i+ridx], findfirst(e->e[1] == d-1 && e[2] == fi, flt.total)+ridx)
             end
-            col += 1
+        elseif reduced
+            push!(bm[i+ridx], 1)
         end
     end
     return bm
@@ -101,14 +102,11 @@ end
 
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
-    for v in sort!(collect(keys(flt.index)))
-        for (d, i) in flt.index[v]
-            simplex = get(cplx[i,d])
-            for k in simplex[:values]
-                write(io, "$k,")
-            end
-            write(io, "$v\n")
+    for (d, ci, fv) in flt.total
+        for k in get(cplx[ci,d])[:values]
+            write(io, "$k,")
         end
+        write(io, "$fv\n")
     end
 end
 
@@ -146,20 +144,17 @@ end
 #
 
 function Base.start(flt::Filtration{C, FI}) where {C<:AbstractComplex, FI}
-    vals = sort!(collect(keys(flt.index)))
-    return (C(), 0, vals)
+    return (C(), 0)
 end
 
 function Base.next(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
-    c = state[1]
+    c = copy(state[1])
     i = state[2]+1
-    v = state[3][i]
-    for (d,ci) in flt.index[v]
-        push!(c, get(flt.complex[ci, d]))
-    end
-    return (v, c), (c, i, state[3])
+    d, ci, v = flt.total[i]
+    push!(c, get(complex(flt)[ci, d]))
+    return (v, c), (c, i)
 end
 
 function Base.done(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
-     return state[2] == length(state[3])
+     return state[2] == length(flt.total)
 end
