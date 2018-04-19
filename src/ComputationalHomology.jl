@@ -21,7 +21,7 @@ export AbstractCell,
        AbstractHomology, grouptype, group,
        Homology, homology, withgenerators, generators,
 
-       Filtration, filtration,
+       Filtration, filtration, order, simplices,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,

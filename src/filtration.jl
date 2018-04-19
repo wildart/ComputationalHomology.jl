@@ -7,13 +7,15 @@ think of it as a construction by adding chunks of simplices at a time `t::FI`.
 mutable struct Filtration{C<:AbstractComplex, FI}
     # underlying abstract cell complex
     complex::C
-    # total order of simplexes as array of (dim, simplex id, filtation value)
+    # total order of simplices as array of (dim, simplex id, filtation value)
     total::Vector{Tuple{Int,Int,FI}}
 end
 Base.length(flt::Filtration) = length(flt.total)
-Base.complex(flt::Filtration) = flt.complex
 Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
 Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
+
+Base.complex(flt::Filtration) = flt.complex
+order(flt::Filtration) = flt.total
 
 #
 # Constructors
@@ -142,7 +144,6 @@ end
 #
 # Iterator methods
 #
-
 function Base.start(flt::Filtration{C, FI}) where {C<:AbstractComplex, FI}
     return (C(), 0)
 end
@@ -157,4 +158,47 @@ end
 
 function Base.done(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
      return state[2] == length(flt.total)
+end
+
+#
+# Filtration simplex iterator
+#
+struct Simplices{F <: Filtration}
+    itr::F
+end
+simplices(flt::F) where {F <: Filtration} = Simplices{F}(flt)
+Base.show(io::IO, splxs::Simplices{F}) where {F <: Filtration} = print(io, "Simplex Iterator for $F")
+
+Base.length(splxs::Simplices{F}) where {F <: Filtration} = length(unique(e->e[3], order(splxs.itr)))
+
+function Base.start(splxs::Simplices{F}) where {F <: Filtration}
+    minval = mapreduce(v->v[3], min, order(splxs.itr))
+    return (minval,)
+end
+
+function Base.next(splxs::Simplices{F}, state) where {F <: Filtration}
+    v = state[1]
+    ord = order(splxs.itr)
+    cplx = complex(splxs.itr)
+    CT = celltype(cplx)
+    ss = CT[]
+    idx = findfirst(e->e[3] == v, ord)
+    if idx == 0
+        nextv = Inf
+    else
+        while length(ord) >= idx && ord[idx][3] == v
+            s = cplx[ord[idx][2], ord[idx][1]]
+            if !isnull(s)
+                push!(ss, get(s))
+            end
+            idx += 1
+        end
+        nextv = length(ord) >= idx ? ord[idx][3] : Inf
+    end
+
+    return (v, ss), (nextv,)
+end
+
+function Base.done(splxs::Simplices{F}, state) where {F <: Filtration}
+    return isinf(state[1])
 end
