@@ -8,14 +8,14 @@ abstract type AbstractChain end
 
     where the a_i ∈ R.
 """
-type Chain{R} <: AbstractChain
+mutable struct Chain{R} <: AbstractChain
     dim::Int
     coefs::Vector{R}   # coefficients from ring R
     elems::Vector{Int} # indexes to elements of E
 end
-Chain{R}(coefs::Vector{R}, elems::Vector{Int}) = Chain{R}(0, coefs, elems)
-Chain{R}(dim::Int, ::Type{R}) = Chain{R}(dim, R[], Int[])
-Chain{R}(::Type{R}) = Chain(0,R)
+Chain(coefs::Vector{R}, elems::Vector{Int}) where {R} = Chain{R}(0, coefs, elems)
+Chain(dim::Int, ::Type{R}) where {R} = Chain{R}(dim, R[], Int[])
+Chain(::Type{R}) where {R} = Chain(0,R)
 dim(ch::Chain) = ch.dim
 setdim!(ch::Chain, dim::Int) = (ch.dim = dim)
 
@@ -36,27 +36,27 @@ function Base.show(io::IO, ch::Chain)
     end
 end
 
-function Base.push!{R}(ch::Chain{R}, coef::R, idx::Int)
+function Base.push!(ch::Chain{R}, coef::R, idx::Int) where {R}
     push!(ch.coefs, coef)
     push!(ch.elems, idx)
     return ch
 end
-Base.push!{R}(ch::Chain{R}, e::Tuple{R,Int}) = push!(ch, e[1], e[2])
-Base.push!{R}(ch::Chain{R}, e::Pair{R,Int})  = push!(ch, e[1], e[2])
-function Base.append!{R}(a::Chain{R}, b::Chain{R})
+Base.push!(ch::Chain{R}, e::Tuple{R,Int}) where {R} = push!(ch, e[1], e[2])
+Base.push!(ch::Chain{R}, e::Pair{R,Int}) where {R}  = push!(ch, e[1], e[2])
+function Base.append!(a::Chain{R}, b::Chain{R}) where {R}
     append!(a.coefs, b.coefs)
     append!(a.elems, b.elems)
     return a
 end
-+{R}(ch::Chain{R}, e::Tuple{R,Int}) = push!(ch, e[1], e[2])
++(ch::Chain{R}, e::Tuple{R,Int}) where {R} = push!(ch, e[1], e[2])
 
-+{R}(a::Chain{R}, b::Chain{R}) = Chain{R}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
--{R}(a::Chain{R}, b::Chain{R}) = Chain{R}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
++(a::Chain{R}, b::Chain{R}) where {R} = Chain{R}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
+-(a::Chain{R}, b::Chain{R}) where {R} = Chain{R}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
 
-*{R}(ch::Chain{R}, r::R) = Chain{R}(dim(ch), ch.coefs*r, ch.elems)
-*{R}(r::R, c::Chain{R}) = c*r
+*(ch::Chain{R}, r::R) where {R} = Chain{R}(dim(ch), ch.coefs*r, ch.elems)
+*(r::R, c::Chain{R}) where {R} = c*r
 
-function simplify{R}(ch::Chain{R})
+function simplify(ch::Chain{R}) where {R}
     tmpChain = Dict{Int,R}()
     for (c,el) in ch
         if haskey(tmpChain, el)

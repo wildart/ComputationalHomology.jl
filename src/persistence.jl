@@ -2,7 +2,7 @@ abstract type AbstractPersistenceReduction end
 mutable struct StandardReduction <: AbstractPersistenceReduction end
 mutable struct TwistReduction <: AbstractPersistenceReduction end
 
-const Interval = Pair{Number,Number}
+const Interval = Pair{<:Number, <:Number}
 Base.show(io::IO, intr::Interval) = print(io, "[$(intr[1]),$(intr[2]))")
 
 lastindex(col::IntSet) = length(col) == 0 ? -1 : last(col)

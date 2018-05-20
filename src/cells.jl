@@ -55,7 +55,7 @@ end
 
 ==(a::Simplex, b::Simplex) = a[:values] == b[:values]
 
-function faces{P}(splx::Simplex{P})
+function faces(splx::Simplex{P}) where {P}
     faces = typeof(splx)[]
     for i in 1:dim(splx)+1
         face = copy(splx[:values])
@@ -77,7 +77,7 @@ volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,s[:values]])
 
 #=== Cube ===#
 
-type Cube{P<:Vector} <: AbstractCell
+mutable struct Cube{P<:Vector} <: AbstractCell
     origin::P
     extent::P
     function Cube{P}(o::P, x::P) where {P}

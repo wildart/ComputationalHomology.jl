@@ -26,7 +26,9 @@ export AbstractCell,
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
        pairs, intervals,
-       PersistentHomology, persistenthomology
+       PersistentHomology, persistenthomology,
+
+       Interval, landscape
 
 global SNF = SmithNormalForm.snf
 
@@ -38,6 +40,7 @@ include("constructions.jl")
 include("filtration.jl")
 include("homology.jl")
 include("persistence.jl")
+include("landscape.jl")
 
 function setsnf!(f::Function)
     global SNF
