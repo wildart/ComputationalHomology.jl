@@ -62,8 +62,10 @@
     @test length(∂) == sum(size(cplx))+1
     @test countnz(sparse(∂)) == 29
 
+    SF = simplices(flt)
+    @test length(SF) == 9
     @test length(flt) == 19
     @test length((first(v) for v in flt)) == 19
-    @test sum(map(e->length(e[2]), simplices(flt))) == 19
+    @test sum(map(e->length(e[2]), SF)) == 19
 
 end

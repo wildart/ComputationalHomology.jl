@@ -121,3 +121,29 @@ end
 
 #     return cplx
 # end
+
+
+#
+# Complex simplex iterator
+#
+Base.length(splxs::Simplices{C}) where {C <: AbstractComplex} = splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
+
+function Base.start(splxs::Simplices{C}) where {C <: AbstractComplex}
+    return (0, splxs.dim, 1) # total id, dim, dim id
+end
+
+function Base.next(splxs::Simplices{C}, state) where {C <: AbstractComplex}
+    tid, d, did = state
+    if d < 0
+        d = 0
+    end
+    if did > size(splxs.itr, d)
+        d += 1
+        did = 1
+    end
+    return get(splxs.itr[did, d]), (tid+1, d, did+1)
+end
+
+function Base.done(splxs::Simplices{C}, state) where {C <: AbstractComplex}
+    return state[1] >= length(splxs)
+end

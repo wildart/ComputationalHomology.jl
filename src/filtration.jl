@@ -163,12 +163,6 @@ end
 #
 # Filtration simplex iterator
 #
-struct Simplices{F <: Filtration}
-    itr::F
-end
-simplices(flt::F) where {F <: Filtration} = Simplices{F}(flt)
-Base.show(io::IO, splxs::Simplices{F}) where {F <: Filtration} = print(io, "Simplex Iterator for $F")
-
 Base.length(splxs::Simplices{F}) where {F <: Filtration} = length(unique(e->e[3], order(splxs.itr)))
 
 function Base.start(splxs::Simplices{F}) where {F <: Filtration}

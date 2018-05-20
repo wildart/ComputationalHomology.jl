@@ -17,6 +17,13 @@
     @test cplx[Simplex(10), 0] > size(cplx,0)
     @test cplx[Simplex(10), 0] == 5
 
+    @test length(simplices(cplx)) == 9
+    scitr = simplices(cplx, 1)
+    @test length(scitr) == 4
+    for s in simplices(cplx, 2)
+        @test s == Simplex(1,2,3)
+    end
+
     cplx = SimplicialComplex(Simplex(1,2,3),
                        Simplex(2,4),
                        Simplex(3,4),
