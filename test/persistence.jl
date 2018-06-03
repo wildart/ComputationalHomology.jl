@@ -116,7 +116,7 @@
 
     # PH object
     ph = persistenthomology(TwistReduction, flt)
-    @test eltype(typeof(ph)) == Tuple{Int64,Int64}
+    @test eltype(ph) == Tuple{Int64,Int64}
     @test length(ph) == 3
     @test group(ph, 0) == 2
     @test group(ph, 1) == 1

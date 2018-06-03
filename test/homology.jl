@@ -6,7 +6,7 @@
                         Simplex(6))
 
     h = homology(cplx)
-    @test eltype(typeof(h)) == Tuple{Int64,Int64,Int64}
+    @test eltype(h) == Tuple{Int64,Int64,Int64}
     @test grouptype(supertype(typeof(h))) == Int
     @test grouptype(typeof(h)) == Int
     @test length(h) == 3
@@ -39,7 +39,7 @@
     @test ComputationalHomology.euler(h) == 1
 
     g = withgenerators(h)
-    @test eltype(typeof(g)) == Tuple{Int64,Int64,Int64,Dict{Chain,Int64}}
+    @test eltype(g) == Tuple{Int64,Int64,Int64,Dict{Chain,Int64}}
     @test length(g) == 3
 
     st = start(g)

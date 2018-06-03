@@ -27,7 +27,7 @@ Simplex(splx::P...; ordered=true) where {P} = Simplex(P[splx...], ordered=ordere
 Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, sort!(v))
 Base.hash(splx::Simplex) = splx.hash
 Base.show(io::IO, splx::Simplex) = show(io, "Σ($(splx.vs))[$(splx.idx)]")
-Base.eltype(splx::Simplex{P}) where {P} = P
+Base.eltype(::Type{Simplex{P}}) where {P} = P
 
 # Public methods
 
