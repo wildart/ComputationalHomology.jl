@@ -1,7 +1,10 @@
 module ComputationalHomology
 
-import SmithNormalForm
+using LinearAlgebra
+using SparseArrays
+import SmithNormalForm: smith
 import Distances
+import Random
 
 import Base: ==, -, +, *
 
@@ -30,8 +33,6 @@ export AbstractCell,
 
        Interval, landscape
 
-global SNF = SmithNormalForm.snf
-
 include("cells.jl")
 include("chain.jl")
 include("complex.jl")
@@ -41,10 +42,5 @@ include("filtration.jl")
 include("homology.jl")
 include("persistence.jl")
 include("landscape.jl")
-
-function setsnf!(f::Function)
-    global SNF
-    SNF = f
-end
 
 end # module

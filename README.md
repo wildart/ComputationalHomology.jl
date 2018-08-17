@@ -9,9 +9,9 @@ This package provides various computational homology tools for cellular complexe
 ## Installation
 This package requires [SmithNormalForm.jl](https://github.com/wildart/SmithNormalForm.jl/) package for work.
 
-```julia
-julia> Pkg.clone("https://github.com/wildart/SmithNormalForm.jl.git")
-julia> Pkg.clone("https://github.com/wildart/ComputationalHomology.jl.git")
+```
+pkg> add https://github.com/wildart/SmithNormalForm.jl.git#0.2.1
+pkg> add https://github.com/wildart/ComputationalHomology.jl.git#0.2.0
 ```
 
 ## Example

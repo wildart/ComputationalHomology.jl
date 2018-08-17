@@ -1,5 +1,8 @@
 using ComputationalHomology
-using Base.Test
+using LinearAlgebra
+using SparseArrays
+using Test
+import Random
 
 include("cells.jl")
 include("chain.jl")
@@ -9,4 +12,3 @@ include("homology.jl")
 include("filtration.jl")
 include("persistence.jl")
 include("landscape.jl")
-println("Done.")

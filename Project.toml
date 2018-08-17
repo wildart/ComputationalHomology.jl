@@ -1,0 +1,19 @@
+name = "ComputationalHomology"
+uuid = "9393a4d0-be1e-45b0-9991-b60434c721e6"
+version = "0.2.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SmithNormalForm = "ba71f38f-f508-439b-ac77-437f86a20aa1"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+
+[compat]
+SmithNormalForm = "0.2.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

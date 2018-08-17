@@ -28,7 +28,7 @@
     # test io
     let io = IOBuffer()
         write(io, flt)
-        @test String(io) == "1,1\n2,2\n1,2,3\n3,4\n1,3,4\n"
+        @test String(take!(copy(io))) == "1,1\n2,2\n1,2,3\n3,4\n1,3,4\n"
         seekstart(io)
         tmp = read(io, Filtration{SimplicialComplex{Int}, Int})
         @testset for ((v1,c1),(v2,c2)) in zip(flt, tmp)
@@ -40,7 +40,7 @@
     # compute boundary matrix
     ∂ = boundary_matrix(flt)
     @test length(∂) == sum(size(complex(flt)))
-    @test countnz(sparse(∂)) == 4
+    @test count(!iszero, sparse(∂)) == 4
 
     # create filtration from an existed complex
     cplx = SimplicialComplex(Char)
@@ -51,16 +51,16 @@
     # compute boundary matrix
     ∂ = boundary_matrix(flt)
     @test length(∂) == 7
-    @test countnz(sparse(∂)) == 9
+    @test count(!iszero, sparse(∂)) == 9
 
-    srand(9236493643764)
+    Random.seed!(9236493643764)
     N = 10
     X = rand(3,N)
     cplx, w = vietorisrips(X, 0.4, true)
     flt = filtration(cplx, w)
     ∂ = boundary_matrix(flt, reduced=true)
     @test length(∂) == sum(size(cplx))+1
-    @test countnz(sparse(∂)) == 29
+    @test count(!iszero, sparse(∂)) == 29
 
     SF = simplices(flt)
     @test length(SF) == 9

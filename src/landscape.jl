@@ -40,7 +40,7 @@ function landscape(bar::Vector{Interval})
         end
         while !(L[k][end] == (Inf=>0.0) || L[k][end] == (Inf=>Inf))
             i = findfirst(x->last(x) > d, A[p:end])
-            if i == 0
+            if i === nothing
                 push!(L[k], d => 0.0)
                 push!(L[k], Inf => 0.0)
             else

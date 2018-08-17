@@ -28,7 +28,7 @@ function filtration(cplx::C) where {C<:AbstractComplex}
     idx = Vector{Tuple{Int,Int,Int}}()
     i = 1
     for d in 0:dim(cplx)
-        for c in get(cells(cplx, d))
+        for c in cells(cplx, d)
             push!(idx, (dim(c), c[:index], i))
             i += 1
         end
@@ -40,7 +40,7 @@ end
 function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex, FI}
     idx = Vector{Tuple{Int,Int,FI}}()
     for d in 0:dim(cplx)
-        for c in get(cells(cplx, d))
+        for c in cells(cplx, d)
             ci = c[:index]
             push!(idx, (d, ci, w[d][ci]))
         end
@@ -70,11 +70,11 @@ function boundary_matrix(flt::Filtration; reduced=false)
     ridx = reduced ? 1 : 0
     # initialize boundary matrix
     cplx = complex(flt)
-    bm = map(i->IntSet(), 1:sum(size(cplx))+ridx)
+    bm = map(i->BitSet(), 1:sum(size(cplx))+ridx)
     # fill boundary matrix
     for (i, (d, ci, fv)) in enumerate(flt.total)
         if d > 0
-            splx = get(cplx[ci, d])
+            splx = cplx[ci, d]
             for face in faces(splx)
                 fi = cplx[face, d-1]
                 push!(bm[i+ridx], findfirst(e->e[1] == d-1 && e[2] == fi, flt.total)+ridx)
@@ -86,7 +86,7 @@ function boundary_matrix(flt::Filtration; reduced=false)
     return bm
 end
 
-function Base.sparse(∂::Vector{IntSet})
+function Base.sparse(∂::Vector{BitSet})
     m = length(∂)
     ret = spzeros(Int, m, m)
     for i in 1:m
@@ -105,7 +105,7 @@ end
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in flt.total
-        for k in get(cplx[ci,d])[:values]
+        for k in cplx[ci,d][:values]
             write(io, "$k,")
         end
         write(io, "$fv\n")
@@ -135,7 +135,7 @@ function writeboundarymatrix(io::IO, bm::Vector, zeroindex = true)
             write(io, "$(length(smplx)-1)")
         end
         for i in smplx
-            write(io, " $(zeroindex ? i-1: i)")
+            write(io, " $(zeroindex ? i-1 : i)")
         end
         write(io, 0x0A)
     end
@@ -152,7 +152,7 @@ function Base.next(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
     c = copy(state[1])
     i = state[2]+1
     d, ci, v = flt.total[i]
-    push!(c, get(complex(flt)[ci, d]))
+    push!(c, complex(flt)[ci, d])
     return (v, c), (c, i)
 end
 
@@ -182,8 +182,8 @@ function Base.next(splxs::Simplices{F}, state) where {F <: Filtration}
     else
         while length(ord) >= idx && ord[idx][3] == v
             s = cplx[ord[idx][2], ord[idx][1]]
-            if !isnull(s)
-                push!(ss, get(s))
+            if s !== nothing
+                push!(ss, s)
             end
             idx += 1
         end

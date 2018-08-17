@@ -89,7 +89,7 @@ Base.show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
 
 # Public methods
 
-dim(c::Cube) = length(findn(c.extent))
+dim(c::Cube) = length(findall(!iszero, c.extent))
 
 function Base.getindex(c::Cube, k::Symbol)
     if k == :index || k == :values

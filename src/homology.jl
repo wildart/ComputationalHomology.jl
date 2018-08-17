@@ -28,13 +28,14 @@ function group(h::Homology{C, G}, p::Int; Dₚ::Int=0) where {C <: AbstractCompl
     @assert cdim >= p "Cannot define $p-th homology group for $cdim-dimensional complex"
 
     M = boundary_matrix(G, h.complex, p+1)
-    U, V, D, Uinv, Vinv  = SNF(M)
+    F = smith(M)
+    D = diagm(F)
 
     nₚ, nₚ₊₁ = size(D)
     Dₚ₊₁ = trivial = 0
 
     # empty boundary
-    nₚ₊₁ == 0 && return (0, 0, (U, Uinv, V, Vinv, D, Dₚ₊₁))
+    nₚ₊₁ == 0 && return (0, 0, (F.S, F.Sinv, F.T, F.Tinv, D, Dₚ₊₁))
 
     # Calculate rank B_p = rank D_{p+1}
     for i in 1:nₚ₊₁
@@ -53,7 +54,7 @@ function group(h::Homology{C, G}, p::Int; Dₚ::Int=0) where {C <: AbstractCompl
     βₚ = nₚ - Dₚ - Dₚ₊₁
     τₚ = Dₚ₊₁ - trivial
 
-    return (βₚ, τₚ, (U, Uinv, V, Vinv, D, Dₚ₊₁))
+    return (βₚ, τₚ, (F.S, F.Sinv, F.T, F.Tinv, D, Dₚ₊₁))
 end
 
 #
@@ -121,7 +122,7 @@ function Base.next(g::WithGenerators, state)
     B = view(Uinv, t+1:size(Uinv,1), 1:size(Uinv,2))
     C = if p == 0
         n = size(cplx, p)
-        speye(GT, n, n)
+        SparseMatrixCSC{GT}(I, n, n)
     else
         VinvPrev = state[2][4]
         tPrev = state[2][6]
@@ -129,16 +130,15 @@ function Base.next(g::WithGenerators, state)
     end
 
     P = A * (B * C)
-
-    gU, gV, gD, gUinv, gVinv = SNF(P)
-    G = gU * gD
+    F = smith(P)
+    G = F.S * diagm(F)
 
     # betti generator
     for j in 1:size(G,2)
-        I, V = findnz(G[:,j])
-        length(I) == 0 && continue
+        ii, V = findnz(G[:,j])
+        length(ii) == 0 && continue
         ch = Chain(p, GT)
-        for (i,v) in zip(I,V)
+        for (i,v) in zip(ii,V)
             push!(ch, v=>i)
         end
         chains[ch] = 0

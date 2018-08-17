@@ -82,7 +82,7 @@ function cells(cplx::SimplicialComplex)
     CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
 end
 
-cells(cplx::SimplicialComplex{P}, d::Int) where {P} = haskey(cplx.cells, d) ? Nullable(cplx.cells[d]) : Nullable{valtype(cplx.cells)}()
+cells(cplx::SimplicialComplex{P}, d::Int) where {P} = get(cplx.cells, d,  nothing)
 
 dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
@@ -96,10 +96,10 @@ function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where {R
     neg = -one(R)
 
     splx = cplx[idx, d]
-    isnull(splx) && return ch
+    splx === nothing && return ch
 
     sgn = true
-    for face in faces(get(splx))
+    for face in faces(splx)
         fidx = cplx[face, d-1]
         push!(ch, (sgn ? pos : neg), fidx)
         sgn = !sgn
@@ -134,9 +134,8 @@ Base.push!(cplx::SimplicialComplex{P}, splx::Simplex{P}; recursive=false) where 
 # Constructors
 #
 
-SimplicialComplex(::Type{P}) where {P} = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
-
-(::Type{SimplicialComplex{P}}){P}() = SimplicialComplex(P)
+SimplicialComplex(::Type{P}) where P = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
+(::Type{SimplicialComplex{P}})() where P = SimplicialComplex(P)
 
 function SimplicialComplex(splxs::Simplex{P}...) where {P}
     cplx = SimplicialComplex(P)

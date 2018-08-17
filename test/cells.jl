@@ -28,7 +28,7 @@
     s = Simplex([1,2], [1,3])
     @test dim(s) == 1
 
-    X = hcat(zeros(3), eye(3))
+    X = hcat(zeros(3), Matrix(I,3,3))
     S = Simplex(1,2,3,4)
     @test volume(S,X) == 1/6
 end

@@ -5,10 +5,10 @@ mutable struct TwistReduction <: AbstractPersistenceReduction end
 const Interval = Pair{<:Number, <:Number}
 Base.show(io::IO, intr::Interval) = print(io, "[$(intr[1]),$(intr[2]))")
 
-lastindex(col::IntSet) = length(col) == 0 ? -1 : last(col)
+lastindex(col::BitSet) = length(col) == 0 ? -1 : last(col)
 
 """Standart reduction"""
-function Base.reduce(::Type{StandardReduction}, ∂::Vector{IntSet})
+function Base.reduce(::Type{StandardReduction}, ∂::Vector{BitSet})
     lowest_one_lookup = fill(-1, length(∂))
     for col in eachindex(∂)
         lowest_one = lastindex(∂[col])
@@ -25,7 +25,7 @@ function Base.reduce(::Type{StandardReduction}, ∂::Vector{IntSet})
 end
 
 """Twist reduction"""
-function Base.reduce(::Type{TwistReduction}, ∂::Vector{IntSet})
+function Base.reduce(::Type{TwistReduction}, ∂::Vector{BitSet})
     lowest_one_lookup = fill(-1, length(∂))
 
     for dim in maximum(map(length, ∂)):-1:1
@@ -58,9 +58,9 @@ function generate_pairs(∂::Vector)
     return pairs
 end
 
-function generate_pairs(∂::Vector{IntSet}; reduced = false)
+function generate_pairs(∂::Vector{BitSet}; reduced = false)
     ridx = reduced ? 1 : 0
-    births = IntSet()
+    births = BitSet()
     pairs = Interval[]
     for i in eachindex(∂)
         if length(∂[i]) > 0
@@ -80,7 +80,7 @@ function generate_pairs(∂::Vector{IntSet}; reduced = false)
 end
 
 "Compute raw persistence pairs (boundary matrix is reduced in a process)"
-function pairs(::Type{R}, ∂::Vector{IntSet}; reduced = false) where {R <: AbstractPersistenceReduction}
+function pairs(::Type{R}, ∂::Vector{BitSet}; reduced = false) where {R <: AbstractPersistenceReduction}
     reduce(R, ∂) # reduce  boundary matrix
     return generate_pairs(∂, reduced=reduced), ∂  # generate pairs
 end
@@ -153,12 +153,12 @@ Persistent homology group iterator for a filtration
 mutable struct PersistentHomology{G} <: AbstractHomology{G}
     filtration::Filtration
     reduction::DataType
-    ∂::Vector{IntSet}
-    R::Vector{IntSet}
+    ∂::Vector{BitSet}
+    R::Vector{BitSet}
     reduced::Bool
 end
 persistenthomology(::Type{R}, ::Type{G}, flt::Filtration; reduced=false) where {R <: AbstractPersistenceReduction, G} =
-    PersistentHomology{G}(flt, R, Vector{IntSet}(), Vector{IntSet}(), reduced)
+    PersistentHomology{G}(flt, R, Vector{BitSet}(), Vector{BitSet}(), reduced)
 persistenthomology(::Type{R}, flt::Filtration; reduced::Bool=false) where {R <: AbstractPersistenceReduction} =
     persistenthomology(R, Int, flt, reduced=reduced)
 

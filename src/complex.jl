@@ -57,7 +57,7 @@ Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(Meth
 # Public Methods
 #
 """Return a size of cell collections per dimension"""
-Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...)
+Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...,)
 
 """Return a size of the cell collection for dimension (0-based)"""
 function Base.size(cplx::AbstractComplex, d::Int)
@@ -73,12 +73,10 @@ end
 """
 function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C}
     @assert celltype(cplx) == C "Incorrect cell type"
-    @assert dim(c) == d "Incorrect cell dimension"
-    ndcells = cells(cplx, d)
-    isnull(ndcells) && return 1
-    dcells = get(ndcells)
-    cidx = findfirst(dcells, c)
-    cidx == 0 && return size(cplx, d)+1
+    dcells = cells(cplx, dim(c))
+    dcells === nothing && return 1
+    cidx = findfirst(isequal(c), dcells)
+    cidx === nothing && return size(cplx, d)+1
     return dcells[cidx][:index]
 end
 Base.getindex(cplx::AbstractComplex, c::C) where {C} =  cplx[c, dim(c)]
@@ -86,7 +84,8 @@ Base.getindex(cplx::AbstractComplex, c::C) where {C} =  cplx[c, dim(c)]
 """Return a `d`-dimensional cell given its index `idx`."""
 function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
     cs = cells(cplx, d)
-    isnull(cs) ? Nullable{eltype(eltype(cs))}() : Nullable(get(cs)[idx])
+    cs === nothing && return nothing
+    return cs[idx]
 end
 
 """Generate a boundary matrix from the cell complex of the dimension `d`."""
@@ -105,28 +104,11 @@ function boundary_matrix(::Type{R}, cplx::AbstractComplex, d::Int) where {R}
     return bm
 end
 
-# function Base.setindex!{C}(cplx::AbstractComplex, c::C, d::Int)
-#     @assert celltype(cplx) == C "Incorrect cell type"
-#     cidx = indexes(cplx)
-#     length(cidx) <= d && resize!(cidx, d+1)
-#     ccel = cells(cplx)
-#     length(ccel) <= d && resize!(ccel, d+1)
-#     length(size(cplx)) <= d && size!(cplx, 0, d+1)
-
-#     if !haskey(cidx[d], c)
-#         cidx[d][c] = length(cidx[d]) # index stet to last element
-#         push!(cidx[d], c)
-#         size!(cplx, length(cidx[d]), d)
-#     end
-
-#     return cplx
-# end
-
-
 #
 # Complex simplex iterator
 #
-Base.length(splxs::Simplices{C}) where {C <: AbstractComplex} = splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
+Base.length(splxs::Simplices{C}) where {C <: AbstractComplex} =
+    splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
 
 function Base.start(splxs::Simplices{C}) where {C <: AbstractComplex}
     return (0, splxs.dim, 1) # total id, dim, dim id
@@ -141,7 +123,7 @@ function Base.next(splxs::Simplices{C}, state) where {C <: AbstractComplex}
         d += 1
         did = 1
     end
-    return get(splxs.itr[did, d]), (tid+1, d, did+1)
+    return splxs.itr[did, d], (tid+1, d, did+1)
 end
 
 function Base.done(splxs::Simplices{C}, state) where {C <: AbstractComplex}

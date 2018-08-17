@@ -4,10 +4,10 @@
     @test celltype(cplx) == Simplex{Int}
     @test length(cells(cplx)) == 3
     cs = cells(cplx,2)
-    @test !isnull(cs)
-    @test length(get(cs)) == 1
+    @test cs !== nothing
+    @test length(cs) == 1
     cs = cells(cplx,3)
-    @test isnull(cs)
+    @test cs === nothing
     @test size(cplx) == (4,4,1)
     @test size(cplx,0) == 4
     @test size(cplx,1) == 4

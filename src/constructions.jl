@@ -5,26 +5,26 @@ function lowernbrs(cplx, u, E)
     uidx = u[:index]
     # select {v} s.t. u > v for all edges {u,v}
     !any(E[:,uval]) && return celltype(cplx)[]
-    return filter(v->v[:index] < uidx && E[first(v[:values]),uval], get(cells(cplx,0)))
+    return filter(v->v[:index] < uidx && E[first(v[:values]),uval], cells(cplx,0))
 end
 
 """Incremental construction of VR complex from neighborhood graph"""
 function inductive!(cplx, k, E)
     for i in 1:k
         cls = cells(cplx, i)
-        isnull(cls) && continue
-        for τ in get(cells(cplx, i))
+        cls === nothing && continue
+        for τ in cells(cplx, i)
             N = celltype(cplx)[]
             τvals = τ[:values]
-            for (i, uval) in enumerate(τvals)
+            for (j, uval) in enumerate(τvals)
                 uidx = cplx[Simplex(uval), 0]
-                u = get(cplx[uidx, 0])
-                N = i == 1 ? lowernbrs(cplx, u, E) : intersect(N, lowernbrs(cplx, u, E))
+                u = cplx[uidx, 0]
+                N = j == 1 ? lowernbrs(cplx, u, E) : intersect(N, lowernbrs(cplx, u, E))
             end
             for v in N
                 first(v[:values]) in τvals && continue
                 σ = Simplex(τvals..., v[:values]...)
-                cplx[σ, i] > size(cplx, i) && push!(cplx, σ)
+                cplx[σ] > size(cplx, i+1) && push!(cplx, σ)
             end
         end
     end
@@ -50,7 +50,7 @@ end
 """Incremental construction of VR complex from neighborhood graph"""
 function incremental!(cplx, k, E)
     # construct VR complex
-    for u in get(cells(cplx, 0))
+    for u in cells(cplx, 0)
         N = lowernbrs(cplx, u, E)
         addcofaces!(cplx, k, u, N, E)
     end
@@ -77,7 +77,7 @@ function expand(method, cplx, w, kmax, E)
     if w !== nothing
         for k in 2:dim(cplx)
             w[k] = zeros(size(cplx,k))
-            for σ in get(cells(cplx,k))
+            for σ in cells(cplx,k)
                 w[k][σ[:index]] = weight(σ, w, cplx)
             end
         end
@@ -104,24 +104,25 @@ function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights = true;
 
     # build 1-skeleton (neighborhood graph)
     E = spzeros(Bool, n, n) # adjacency matrix
-    for σ in get(cells(cplx, 0))
+    for σ in cells(cplx, 0)
         u = σ[:values]
-        edges = find(d->d <= ɛ && d > 0., D[:,u])
+        Du = view(D, :, u)
+        edges = (LinearIndices(Du))[findall(d->d <= ɛ && d > 0., Du)]
         length(edges) == 0 && continue
         for i in edges
-            v = get(cplx[i, 0])[:values]
+            v = cplx[i, 0][:values]
             s = Simplex(u...,v...)
             if cplx[s] > size(cplx, 1)
                 # add simplex to complex
                 push!(cplx, s)
                 # fill adjacency matrix
-                E[s[:values], s[:values]] = true
+                E[s[:values], s[:values]] .= true
             end
         end
     end
 
     # determine maximal dimension
-    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤ɛ, c), D, 1)))
+    kmax = min(maxdim, maximum(mapslices(c->count(d-> 0.0 < d ≤ ɛ, c), D, dims=1)))
 
     # calculate weights of nerve
     w = nothing
@@ -129,7 +130,7 @@ function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights = true;
         w = Dict{Int, Vector{Float64}}()
         w[0] = zeros(size(cplx,0))
         w[1] = zeros(size(cplx,1))
-        for e in get(cells(cplx,1))
+        for e in cells(cplx,1)
             w[1][e[:index]] = D[e[:values]...]
         end
     end
@@ -147,7 +148,7 @@ function landmarks(X::AbstractMatrix, l::Int; method = :minmax,
                    distance = Distances.Euclidean(), firstpoint = 0)
     d, n = size(X)
     if method == :random
-        return randperm(n)[1:l]
+        return Random.randperm(n)[1:l]
     elseif method == :minmax
         idxs = firstpoint > 0 ? [firstpoint] : rand(1:n, 1)
         Z = view(X, :, idxs)
@@ -252,7 +253,7 @@ function witness(D::AbstractMatrix, R::Float64, weights = true;
 
     # determine maximal dimension
     Rmax = R+maximum(m)
-    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤Rmax, c), D, 1)))
+    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤Rmax, c), D, dims=1)))
 
     # perform expansion
     expand(expansion, cplx, w, kmax, E)

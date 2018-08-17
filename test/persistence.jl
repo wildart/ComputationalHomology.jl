@@ -48,7 +48,7 @@
     end
 
     @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
-        titrs = d == 0 ? [0=>Inf, 0=>1, 1=>1, 1=>2]: [3=>4, 2=>5]
+        titrs = d == 0 ? [0=>Inf, 0=>1, 1=>1, 1=>2] : [3=>4, 2=>5]
         for itr in itrs
             @test itr ∈ titrs
         end
