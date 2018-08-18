@@ -107,25 +107,20 @@ end
 #
 # Complex simplex iterator
 #
-Base.length(splxs::Simplices{C}) where {C <: AbstractComplex} =
+Base.length(splxs::Simplices{C}) where C<:AbstractComplex =
     splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
 
-function Base.start(splxs::Simplices{C}) where {C <: AbstractComplex}
-    return (0, splxs.dim, 1) # total id, dim, dim id
-end
+Base.eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
 
-function Base.next(splxs::Simplices{C}, state) where {C <: AbstractComplex}
-    tid, d, did = state
+# State (total id, dim, dim id)
+function Base.iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex
+    tid >= length(iter) && return nothing
     if d < 0
         d = 0
     end
-    if did > size(splxs.itr, d)
+    if did > size(iter.itr, d)
         d += 1
         did = 1
     end
-    return splxs.itr[did, d], (tid+1, d, did+1)
-end
-
-function Base.done(splxs::Simplices{C}, state) where {C <: AbstractComplex}
-    return state[1] >= length(splxs)
+    return iter.itr[did, d], (tid+1, d, did+1)
 end

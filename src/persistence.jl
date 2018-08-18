@@ -128,9 +128,9 @@ function betti(∂::Vector, R::Vector, p::Int)
     # z = mapreduce(i->length(R[i]) == 0 ? 1 : 0, +, find(d->d==p, sdims))
 
     RR = spzeros(Int, length(R), length(R))
-    for (j, I) in enumerate(R)
+    for (j, II) in enumerate(R)
         lasti = 0
-        for i in I
+        for i in II
             lasti = i+1
             RR[lasti,j] = 1
         end
@@ -138,11 +138,11 @@ function betti(∂::Vector, R::Vector, p::Int)
             RR[lasti,j] = 2
         end
     end
-    p2i = find(d->d==p, sdims)
+    p2i = findall(d->d==p, sdims)
     # the number of zero columns that correspond to p-simplices
-    z = find(i->i==0, sum(RR[:,p2i],1)) |> length
+    z = findall(i->i==0, sum(RR[:,p2i], dims=1)) |> length
     # the number of lowest ones in rows that correspond to p-simplices
-    l = find(i->i==2, RR[p2i,:]) |> length
+    l = findall(i->i==2, RR[p2i,:]) |> length
     β = z - l
     return β < 0 ? 0 : β
 end
@@ -150,22 +150,20 @@ end
 """
 Persistent homology group iterator for a filtration
 """
-mutable struct PersistentHomology{G} <: AbstractHomology{G}
+mutable struct PersistentHomology <: AbstractHomology
     filtration::Filtration
     reduction::DataType
     ∂::Vector{BitSet}
     R::Vector{BitSet}
     reduced::Bool
 end
-persistenthomology(::Type{R}, ::Type{G}, flt::Filtration; reduced=false) where {R <: AbstractPersistenceReduction, G} =
-    PersistentHomology{G}(flt, R, Vector{BitSet}(), Vector{BitSet}(), reduced)
-persistenthomology(::Type{R}, flt::Filtration; reduced::Bool=false) where {R <: AbstractPersistenceReduction} =
-    persistenthomology(R, Int, flt, reduced=reduced)
+persistenthomology(::Type{R}, flt::Filtration; reduced::Bool=false) where R<:AbstractPersistenceReduction =
+    PersistentHomology(flt, R, Vector{BitSet}(), Vector{BitSet}(), reduced)
 
 Base.show(io::IO, h::PersistentHomology) = print(io, "PersistentHomology[$(h.filtration) with $(h.reduction)]")
 
 """Return homology group type: dimension & Betti numbers."""
-Base.eltype(::Type{PersistentHomology{G}}) where {G} = Tuple{Int, Int}
+Base.eltype(::Type{PersistentHomology}) = Tuple{Int, Int}
 
 #
 # Interface methods
@@ -186,10 +184,9 @@ end
 #
 
 Base.length(h::PersistentHomology) = dim(h.filtration.complex)+1
-Base.start(h::PersistentHomology) = 0
-Base.done(h::PersistentHomology, state) = dim(h.filtration.complex) < state[1]
-function Base.next(h::PersistentHomology, state)
-    p = state[1]
+Base.eltype(h::PersistentHomology) = Tuple{Int, Int}
+function Base.iterate(h::PersistentHomology, p=0)
+    p > dim(h.filtration.complex) && return nothing
     βₚ = group(h, p)
     return (p, βₚ), p+1
 end

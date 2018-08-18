@@ -131,5 +131,5 @@ struct Simplices{T}
     itr::T
     dim::Int
 end
-simplices(itr::T, dim::Int=-1) where {T} = Simplices{T}(itr, dim)
-Base.show(io::IO, splxs::Simplices{T}) where {T} = print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
+simplices(itr::T, dim::Int=-1) where T = Simplices{T}(itr, dim)
+Base.show(io::IO, splxs::Simplices{T}) where T = print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")

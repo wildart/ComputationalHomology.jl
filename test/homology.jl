@@ -7,7 +7,7 @@
 
     h = homology(cplx)
     @test eltype(h) == Tuple{Int64,Int64,Int64}
-    @test grouptype(supertype(typeof(h))) == Int
+    @test grouptype(supertype(typeof(h))) == Nothing
     @test grouptype(typeof(h)) == Int
     @test length(h) == 3
 
@@ -15,25 +15,22 @@
     @test b == 2
     @test t == 0
 
-    st = start(h)
-    @test st[1] == 0
-
-    itm, st = next(h, st)
+    itm, st = iterate(h)
     @test itm[1] == 0
     @test itm[2] == 2
     @test st[1] == 1
 
-    itm, st = next(h, st)
-    @test !done(h,st)
+    itm, st = iterate(h, st)
     @test itm[1] == 1
     @test itm[2] == 1
     @test st[1] == 2
 
-    itm, st = next(h, st)
-    @test done(h,st)
+    itm, st = iterate(h, st)
     @test itm[1] == 2
     @test itm[2] == 0
     @test st[1] == 3
+
+    @test iterate(h, st) === nothing
 
     @test ComputationalHomology.betti(h) == [2,1,0]
     @test ComputationalHomology.euler(h) == 1
@@ -42,10 +39,7 @@
     @test eltype(g) == Tuple{Int64,Int64,Int64,Dict{Chain,Int64}}
     @test length(g) == 3
 
-    st = start(g)
-    @test st[1] == 0
-
-    itm, st = next(g, st)
+    itm, st = iterate(g)
     @test itm[1] == 0
     @test itm[2] == 2
     @testset for (ch, d) in itm[4]
@@ -54,7 +48,7 @@
         @test ch[1][2] in [6,5]
     end
 
-    itm, st = next(g, st)
+    itm, st = iterate(g, st)
     @test itm[1] == 1
     @test itm[2] == 1
     @test first(itm[4])[2] == 0
@@ -62,10 +56,12 @@
         @test a == b
     end
 
-    itm, st = next(g, st)
+    itm, st = iterate(g, st)
     @test itm[1] == 2
     @test itm[2] == 0
     @test length(itm[4]) == 0
+
+    @test iterate(g, st) === nothing
 
     @test length(generators(g)) == 3
 end

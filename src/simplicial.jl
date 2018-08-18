@@ -73,7 +73,7 @@ end
 # Public Interface
 #
 
-celltype(::SimplicialComplex{P}) where {P} = Simplex{P}
+celltype(cplx::SimplicialComplex{P}) where {P} = Simplex{P}
 
 function cells(cplx::SimplicialComplex)
     CCT = valtype(cplx.cells)

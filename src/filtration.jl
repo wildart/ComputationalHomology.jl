@@ -10,7 +10,6 @@ mutable struct Filtration{C<:AbstractComplex, FI}
     # total order of simplices as array of (dim, simplex id, filtation value)
     total::Vector{Tuple{Int,Int,FI}}
 end
-Base.length(flt::Filtration) = length(flt.total)
 Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
 Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
 
@@ -86,7 +85,7 @@ function boundary_matrix(flt::Filtration; reduced=false)
     return bm
 end
 
-function Base.sparse(∂::Vector{BitSet})
+function SparseArrays.sparse(∂::Vector{BitSet})
     m = length(∂)
     ret = spzeros(Int, m, m)
     for i in 1:m
@@ -114,14 +113,13 @@ end
 
 function Base.read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
     flt = Filtration(C,FI)
-    ST = celltype(complex(flt))
-    ET = eltype(ST())
+    ET = eltype(celltype(complex(flt)))
     while !eof(io)
         l = readline(io)
         vals = split(l, ',')
         svals = map(v->parse(ET, v), vals[1:end-1])
         fval = parse(FI, vals[end])
-        push!(flt, ST(svals), fval)
+        push!(flt, Simplex(svals), fval)
     end
     return flt
 end
@@ -142,57 +140,47 @@ function writeboundarymatrix(io::IO, bm::Vector, zeroindex = true)
 end
 
 #
-# Iterator methods
+# Iterators
 #
-function Base.start(flt::Filtration{C, FI}) where {C<:AbstractComplex, FI}
-    return (C(), 0)
-end
 
-function Base.next(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
-    c = copy(state[1])
+# Filtration simplicial complex iterator
+Base.length(flt::Filtration) = length(flt.total)
+Base.eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
+
+"""Loop through the filtration `flt` producing growing simplicial complexes on every iteration"""
+function Base.iterate(flt::Filtration{C, FI}, state=(C(), 0)) where {C <: AbstractComplex, FI}
+    state[2] >= length(flt.total) && return nothing # done
+    c = copy(state[1]) # form next state copy
     i = state[2]+1
     d, ci, v = flt.total[i]
     push!(c, complex(flt)[ci, d])
     return (v, c), (c, i)
 end
 
-function Base.done(flt::Filtration{C, FI}, state) where {C<:AbstractComplex, FI}
-     return state[2] == length(flt.total)
-end
-
-#
 # Filtration simplex iterator
-#
-Base.length(splxs::Simplices{F}) where {F <: Filtration} = length(unique(e->e[3], order(splxs.itr)))
+Base.length(splxs::Simplices{F}) where F<:Filtration = length(unique(e->e[3], order(splxs.itr)))
+Base.eltype(splxs::Simplices{F}) where F<:Filtration = celltype(splxs.itr)
 
-function Base.start(splxs::Simplices{F}) where {F <: Filtration}
-    minval = mapreduce(v->v[3], min, order(splxs.itr))
-    return (minval,)
-end
-
-function Base.next(splxs::Simplices{F}, state) where {F <: Filtration}
-    v = state[1]
+function Base.iterate(splxs::Simplices{F},state=nothing) where F<:Filtration
+    # initial state
+    state === nothing && return iterate(splxs, mapreduce(v->v[3], min, order(splxs.itr)))
+    # final state
+    isinf(state) && return nothing
     ord = order(splxs.itr)
     cplx = complex(splxs.itr)
-    CT = celltype(cplx)
-    ss = CT[]
-    idx = findfirst(e->e[3] == v, ord)
-    if idx == 0
-        nextv = Inf
-    else
-        while length(ord) >= idx && ord[idx][3] == v
+    ss = celltype(cplx)[]
+    idx = findfirst(e->e[3] == state, ord)
+    nextstate = Inf
+    if idx != 0
+        while length(ord) >= idx && ord[idx][3] == state
             s = cplx[ord[idx][2], ord[idx][1]]
             if s !== nothing
                 push!(ss, s)
             end
             idx += 1
         end
-        nextv = length(ord) >= idx ? ord[idx][3] : Inf
+        nextstate = length(ord) >= idx ? ord[idx][3] : Inf
     end
 
-    return (v, ss), (nextv,)
-end
-
-function Base.done(splxs::Simplices{F}, state) where {F <: Filtration}
-    return isinf(state[1])
+    return (state, ss), nextstate
 end

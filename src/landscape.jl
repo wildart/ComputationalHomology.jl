@@ -2,7 +2,7 @@
 
 birth(i::Interval) = i[1] - i[2]
 death(i::Interval) = i[1] + i[2]
-Base.diag(i::Interval) = let c = death(i)/2.0; c => c end
+LinearAlgebra.diag(i::Interval) = let c = death(i)/2.0; c => c end
 
 rescaledrank(i::Interval) = (i[1] + i[2])/2.0 => (i[2] - i[1])/2.0
 rescaledrank(bar::Vector{Interval}) = map(rescaledrank, sort(bar))

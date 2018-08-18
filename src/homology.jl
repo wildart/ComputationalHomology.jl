@@ -1,18 +1,20 @@
 # Homology: type and methods
 
-abstract type AbstractHomology{G} end
-grouptype(::Type{AbstractHomology{G}}) where {G} = G
+abstract type AbstractHomology end
+grouptype(::Type{AbstractHomology}) = Nothing
 grouptype(::Type{H}) where {H <: AbstractHomology} = supertype(H) |> grouptype
-group(h::AbstractHomology{G}, dim::Int; kw...) where {G} = throw(MethodError(group,(typeof(h),Int)))
+group(h::AbstractHomology, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
 
 """
 Homology group iterator for an abstract complex
 """
-struct Homology{C<:AbstractComplex, G} <: AbstractHomology{G}
+struct Homology{C<:AbstractComplex, G} <: AbstractHomology
     complex::C
 end
 homology(c::C, ::Type{G}) where {C <: AbstractComplex,G} = Homology{C,G}(c)
 homology(c::C) where {C <: AbstractComplex} = homology(c, Int)
+
+grouptype(::Type{Homology{C,G}}) where {C,G} = G
 
 Base.show(io::IO, h::Homology) = print(io, "Homology[$(h.complex)]")
 
@@ -62,24 +64,21 @@ end
 #
 
 Base.length(h::Homology{C, G}) where {C,G} = dim(h.complex)+1
+Base.eltype(h::Homology{C, G}) where {C,G} = Tuple{Int,Int,Int}
 
-function Base.start(h::Homology{C, G}) where {C,G}
-    Z = zeros(G,0,0)
-    return (0, (Z,Z,Z,Z,Z,0))
-end
+function Base.iterate(h::Homology{C, G}, state=nothing) where {C,G}
+    if state === nothing
+        Z = zeros(G,0,0)
+        snfstate = (Z,Z,Z,Z,Z,0)
+        return iterate(h, (0, snfstate))
+    end
 
-function Base.next(h::Homology{C, G}, state) where {C,G}
     p = state[1]
+    p > dim(h.complex) && return nothing
 
     βₚ, τₚ, snfstate = group(h, p, Dₚ = state[2][end])
-
-    return (p, βₚ, τₚ), (p+1, snfstate)
+    return ((p, βₚ, τₚ), (p+1, snfstate))
 end
-
-function Base.done(h::Homology{C, G}, state) where {C,G}
-    return dim(h.complex) < state[1]
-end
-
 
 """
 Homology generator iterator
@@ -103,18 +102,20 @@ Base.eltype(::Type{WithGenerators{H}}) where {H <: AbstractHomology} = Tuple{Int
 # Iterator methods
 #
 Base.length(g::WithGenerators) = length(g.homology)
-Base.start(g::WithGenerators) = start(g.homology)
-Base.done(g::WithGenerators, state) = done(g.homology, state)
+Base.eltype(g::WithGenerators) = Tuple{Int,Int,Int,Dict{Chain, grouptype(typeof(g.homology))}}
 
-function Base.next(g::WithGenerators, state)
+function Base.iterate(g::WithGenerators, state=nothing)
+    h = g.homology
 
     # calculate betti, torsion & SNF
-    itm, nextState = next(g.homology, state)
+    result = iterate(h, state)
+    result === nothing && return nothing
 
-    GT = grouptype(typeof(g.homology))
-    p, βₚ, τₚ = itm
+    GT = grouptype(typeof(h))
     chains = Dict{Chain, GT}()
-    U, Uinv, V, Vinv, D, t = nextState[2]
+
+    p, βₚ, τₚ = result[1]
+    U, Uinv, V, Vinv, D, t = result[2][2]
     cplx = g.homology.complex
     trivial = t - τₚ
 
@@ -154,7 +155,7 @@ function Base.next(g::WithGenerators, state)
         chains[ch] = D[trivial+j, trivial+j]
     end
 
-    return (p, βₚ, τₚ, chains), nextState
+    return (p, βₚ, τₚ, chains), result[2]
 end
 
 #
