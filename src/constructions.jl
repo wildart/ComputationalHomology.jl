@@ -85,14 +85,24 @@ function expand(method, cplx, w, kmax, E)
     return
 end
 
-"""Construction of Vietoris–Rips complex (an abstract simplicial complex)
+"""
+    vietorisrips(X, ɛ[, weights])
+
+Construction of a Vietoris–Rips complex
+
+# Arguments
+- `X::AbstractMatrix{T}`: the dataset where each column defines a data point.
+- `ɛ::Real`: the maximal scale value.
+- `weights::Bool`: this flag indicates if the filteration weight should be calculated. Default value is `true`.
 
 This is an inefficient implementation (based on distance matrix) of the VRC algorithm from:
 
     Afra Zomorodian, Fast construction of the Vietoris-Rips complex, 2010
 """
-function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights = true;
-                      expansion=:incremental, distance = Distances.Euclidean(), maxdim = size(X,2)-1)
+function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
+                      expansion = :incremental,
+                      distance  = Distances.Euclidean(),
+                      maxoutdim = size(X,2)-1) where T <: Real
     d, n = size(X)
 
     # add zero-dimensional simplices to complex
@@ -122,16 +132,18 @@ function vietorisrips(X::AbstractMatrix, ɛ::Float64, weights = true;
     end
 
     # determine maximal dimension
-    kmax = min(maxdim, maximum(mapslices(c->count(d-> 0.0 < d ≤ ɛ, c), D, dims=1)))
+    kmax = min(maxoutdim, maximum(mapslices(c->count(d-> 0.0 < d ≤ ɛ, c), D, dims=1)))
 
     # calculate weights of nerve
     w = nothing
     if weights
-        w = Dict{Int, Vector{Float64}}()
+        w = Dict{Int, Vector{T}}()
         w[0] = zeros(size(cplx,0))
-        w[1] = zeros(size(cplx,1))
-        for e in cells(cplx,1)
-            w[1][e[:index]] = D[e[:values]...]
+        if size(cplx, 1) > 0
+            w[1] = zeros(size(cplx,1))
+            for e in cells(cplx,1)
+                w[1][e[:index]] = D[e[:values]...]
+            end
         end
     end
 
@@ -172,20 +184,26 @@ function landmarks(X::AbstractMatrix, l::Int; method = :minmax,
     end
 end
 
-"""Construction of witness complex (an abstract simplicial complex)
+"""
+    witness(X, l, ɛ[, weights])
 
-This is an implementation of the witness construction algorithm from:
+Construction of a witness complex.
 
-    Vin de Silva and Gunnar Carlsson, Topological estimation using witness complexes, 2004
+# Arguments
+- `X::AbstractMatrix{T}`: the dataset where each column defines a data point.
+- `l::Int`: the number of landmarks.
+- `ɛ::Real`: the maximal scale value.
+- `weights::Bool`: this flag indicates if the filteration weight should be calculated. Default value is `true`.
 
+# Keyword arguments
 For parameter ν = 0, 1, 2 determines size of landmark radius.
 - If ν = 0, then for i = 1, 2, . . . , N define m_i = 0.
 - If ν > 0, then for i = 1, 2, . . . , N define m_i to be the ν-th smallest entry of the i-th column of D.
 """
-function witness(X::AbstractMatrix, l::Int, R::Float64, weights = true;
+function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
                  landmark = :minmax, distance = Distances.Euclidean(),
-                 expansion = :incremental, ν::Int = 2, maxdim = size(X,2)-1,
-                 firstpoint = 0)
+                 expansion = :incremental, ν::Int = 2, maxoutdim = size(X,2)-1,
+                 firstpoint = 0) where T <: Real
 
     # get landmarks
     L = landmarks(X, l, method = landmark, distance = distance, firstpoint=firstpoint)
@@ -194,18 +212,24 @@ function witness(X::AbstractMatrix, l::Int, R::Float64, weights = true;
     D = Distances.pairwise(distance, X[:,L], X)
 
     # simplexes contain indexes to landamarks
-    cplx, w = witness(D, R, weights, expansion=expansion, ν=ν, maxdim=maxdim, firstpoint=firstpoint)
+    cplx, w = witness(D, ɛ, weights, expansion=expansion, ν=ν, maxoutdim=maxoutdim, firstpoint=firstpoint)
 
     return cplx, w, L
 end
 
-"""Genenerate witness complex from the distance matrix with simplexes constructed from landmark indexes"""
-function witness(D::AbstractMatrix, R::Float64, weights = true;
-                 expansion = :incremental, ν::Int = 2, maxdim = size(D,1)-1,
-                 firstpoint = 0)
+"""
+    witness(D, ɛ[, weights])
+
+Construction of a witness complex from the distance matrix `D` with a maximum scale value `ɛ`.
+"""
+function witness(D::AbstractMatrix, ɛ::Real, weights = true;
+                 expansion = :incremental,
+                 ν::Int = 2,
+                 maxoutdim = size(D,1)-1,
+                 firstpoint = 0) where T <: Real
 
     @assert ν < 3 "ν only can take values of 0, 1 or 2"
-    @assert maxdim > 0 "Maximum dimension should be more then 0"
+    @assert maxoutdim > 0 "Maximum dimension should be more then 0"
 
     l, n = size(D)
 
@@ -229,8 +253,8 @@ function witness(D::AbstractMatrix, R::Float64, weights = true;
         w[1] = zeros(0)
     end
 
-    # the edge σ = [ab] belongs to W(D; R, ν) iff there exists a witness i ∈ {1, 2, ..., N} such that:
-    # max(D(a, i), D(b, i)) ≤ R + m_i
+    # the edge σ = [ab] belongs to W(D; ɛ, ν) iff there exists a witness i ∈ {1, 2, ..., N} such that:
+    # max(D(a, i), D(b, i)) ≤ ɛ + m_i
     E = spzeros(Bool, l, l) # adjacency matrix
     for i in 1:l
         for j in i+1:l
@@ -243,7 +267,7 @@ function witness(D::AbstractMatrix, R::Float64, weights = true;
                 end
             end
 
-            if e ≤ R
+            if e ≤ ɛ
                 push!(cplx, Simplex(i, j))
                 weights && push!(w[1], e)
                 E[i, j] = true
@@ -252,11 +276,104 @@ function witness(D::AbstractMatrix, R::Float64, weights = true;
     end
 
     # determine maximal dimension
-    Rmax = R+maximum(m)
-    kmax = min(maxdim, maximum(mapslices(c->count(d->0.0<d≤Rmax, c), D, dims=1)))
+    Rmax = ɛ+maximum(m)
+    kmax = min(maxoutdim, maximum(mapslices(c->count(d->0.0<d≤Rmax, c), D, dims=1)))
 
     # perform expansion
     expand(expansion, cplx, w, kmax, E)
 
     return cplx, w
 end
+
+
+"""
+    welzl(P, R)
+
+Computes the smallest enclosing circle of the union of `P` and `R`.
+"""
+function welzl(P, R)
+    p = length(P)
+    r = length(R)
+    if p == 0 || r >= 3
+        if r == 1
+            return R[1], 0.0
+        elseif r == 2
+            p1 = R[1]
+            p2 = R[2]
+            m = (p1.+p2) ./ 2.
+            d = sqrt(sum(abs2, (x .- y)))
+            return m, d / 2.
+        elseif true
+            @warn "the points of R are cocircular"
+            return [], 0.0
+        else
+            @error "Undefined"
+            return [], -1.0
+       end
+    end
+    i = rand(1:p)
+    x = P[i]
+    c, r = welzl(deleteat!(P, i), R)
+    norm(x - c) <= r && return (c, r)
+    return welzl(P, push!(R, x))
+end
+
+"""
+    čech(X, ɛ[, weights])
+    cech(X, ɛ[, weights])
+
+Construction of a Čeck complex.
+
+# Arguments
+- `X::AbstractMatrix{T}`: the dataset where each column defines a data point.
+- `ɛ::Real`: the maximal scale value.
+- `weights::Bool`: this flag indicates if the filteration weight should be calculated. Default value is `true`.
+
+"""
+function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
+              distance  = Distances.Euclidean(),
+              maxoutdim = size(X,2)-1) where T <: Real
+
+    d, n = size(X)
+
+    splxs = map(Simplex, 1:n) # construct 0-simplices
+    cplx = SimplicialComplex(splxs...) # and 0-complex
+
+    w = nothing
+    if weights
+        w = Dict{Int, Vector{Float64}}()
+        w[0] = zeros(size(cplx,0))
+    end
+
+    for h in 1:maxoutdim
+        idx = collect(h+1:-1:1)
+        weights && setindex!(w, zeros(T, 0), h)
+
+        while idx[end] <= n-h
+            # find radius of bounding sphere
+            c, r = BoundingSphere.boundingsphere([X[:, i] for i in idx])
+
+            # add simplex in radius less then maximal filtration value
+            if r <= ε
+                s = Simplex(reverse(idx))
+                addsimplex(cplx, s)
+                weights && push!(w[h], r)
+            end
+
+            # iterate through all combinations of point indecies
+            for i in 1:h+1
+                idx[i] += 1
+                if idx[i] <= n-i+1
+                    for j in i-1:-1:1
+                        idx[j] = idx[j+1] + 1
+                    end
+                    break
+                end
+            end
+        end
+    end
+
+    return cplx, w
+end
+const cech = čech
+

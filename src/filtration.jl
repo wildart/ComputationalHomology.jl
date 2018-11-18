@@ -184,3 +184,4 @@ function Base.iterate(splxs::Simplices{F},state=nothing) where F<:Filtration
 
     return (state, ss), nextstate
 end
+

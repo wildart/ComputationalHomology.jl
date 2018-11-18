@@ -5,7 +5,61 @@
     N = 10
     X = rand(3,N)
 
+    # Gaudi example of Rips complex
+    # http://gudhi.gforge.inria.fr/doc/latest/group__rips__complex.html
+    Y = [ 1. 1.
+          7. 0.
+          4. 6.
+          9. 6.
+          0. 14.
+          2. 19.
+          9. 17.]
+
+    # Gaudi example of Cech complex
+    # http://gudhi.gforge.inria.fr/doc/latest/group__cech__complex.html
+    Z = [ 1. 0.
+          0. 1.
+          2. 1.
+          3. 2.
+          0. 3.
+          3+sqrt(3) 3.
+          1. 4.
+          3. 4.
+          2. 4. + sqrt(3)
+          0. 4.
+         -0.5 2.]
+
+    @testset "Čech Complex" begin
+        r = 1.0
+
+        cplx, w = čech(Z', r; maxoutdim = 2)
+        @test sum(size(cplx)) == 30
+
+        f = filtration(cplx, w)
+        @testset "Test from Gudhi" for ((v,ls), d) in
+            zip(simplices(f), [0. 0.5 0.559017 0.707107 0.99999 1.0])
+            @test v ≈ d atol=1e-4
+        end
+
+        cplx, w = cech(Z', r, false)
+        @test size(cplx, 0) == 11
+        @test size(cplx, 1) == 16
+        @test size(cplx, 2) == 3
+        @test w === nothing
+    end
+
     @testset "Vietoris–Rips Complex" begin
+
+        cplx, w = vietorisrips(Y', 12.; maxoutdim = 1)
+        @test sum(size(cplx)) == 18
+
+        f = filtration(cplx, w)
+        @testset "Test from Gudhi" for ((v,ls), d) in
+            zip(simplices(f),
+                [0. 5. 5.38516 5.83095 6.08276 6.32456 6.7082 7.28011 8.94427 9.43398 9.48683 11])
+            @test v ≈ d atol=1e-4
+        end
+
         cplx, w = vietorisrips(X, 0.1, false)
         @test size(cplx, 0) == N
         @test size(cplx, 1) == 0
@@ -79,3 +133,4 @@
         @test length(L) == l
     end
 end
+

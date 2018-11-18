@@ -5,6 +5,7 @@ using SparseArrays
 import SmithNormalForm: smith
 import Distances
 import Random
+import BoundingSphere
 
 import Base: ==, -, +, *
 
@@ -19,7 +20,7 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, celltype, cells, boundary_matrix,
        SimplicialComplex,
-       vietorisrips, witness,
+       vietorisrips, witness, cech, čech,
 
        AbstractHomology, grouptype, group,
        Homology, homology, withgenerators, generators,
