@@ -48,7 +48,7 @@
     end
 
     @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
-        titrs = d == 0 ? [0=>Inf, 0=>1, 1=>1, 1=>2] : [3=>4, 2=>5]
+        titrs = d == 0 ? intervals(0=>Inf, 0=>1, 1=>1, 1=> 2) : intervals(3=>4, 2=>5)
         for itr in itrs
             @test itr ∈ titrs
         end
@@ -75,14 +75,14 @@
     end
 
     itr = intervals(flt, length0=true)
-    @test (0=>0) ∈ itr[0]
-    @test (1=>2) ∈ itr[0]
-    @test (3=>7) ∈ itr[1]
+    @test Interval(0=>0) ∈ itr[0]
+    @test Interval(1=>2) ∈ itr[0]
+    @test Interval(3=>7) ∈ itr[1]
 
     itr = intervals(flt, reduction = StandardReduction)
-    @test (1=>2) ∈ itr[0]
-    @test (3=>7) ∈ itr[1]
-    @test (0=>Inf) ∈ itr[1]
+    @test Interval(1=>2) ∈ itr[0]
+    @test Interval(3=>7) ∈ itr[1]
+    @test Interval(0=>Inf) ∈ itr[1]
 
     #######
     # Ex.2

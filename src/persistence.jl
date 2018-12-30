@@ -2,8 +2,16 @@ abstract type AbstractPersistenceReduction end
 mutable struct StandardReduction <: AbstractPersistenceReduction end
 mutable struct TwistReduction <: AbstractPersistenceReduction end
 
-const Interval = Pair{<:Number, <:Number}
-Base.show(io::IO, intr::Interval) = print(io, "[$(intr[1]),$(intr[2]))")
+struct Interval{T<:Number}
+    b::T
+    d::T
+end
+Interval(p::Pair{<:Number,<:Number}) = Interval(promote(p.first, p.second)...)
+Base.show(io::IO, intr::Interval) = print(io, "[$(intr.b),$(intr.d))")
+Base.isless(i1::Interval, i2::Interval) = i1.b < i2.b ? true : ( i1.b == i2.b ? i1.d < i2.d : false )
+pair(i::Interval) = i.b => i.d
+
+intervals(ps::Pair...) = [Interval(p) for p in ps]
 
 lastindex(col::BitSet) = length(col) == 0 ? -1 : last(col)
 
@@ -61,14 +69,14 @@ end
 function generate_pairs(∂::Vector{BitSet}; reduced = false)
     ridx = reduced ? 1 : 0
     births = BitSet()
-    pairs = Interval[]
+    pairs = Pair[]
     for i in eachindex(∂)
         if length(∂[i]) > 0
             b = last(∂[i])
             d = i
             delete!(births, b)
             delete!(births, d)
-            (d > b) && push!(pairs, (b-ridx)=>(d-ridx))
+            (d > b) && push!(pairs, (b-ridx) => (d-ridx) )
         else
             push!(births, i)
         end
@@ -89,7 +97,7 @@ pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersisten
     pairs(R, boundary_matrix(flt, reduced = reduced), reduced = reduced)
 
 """Return birth-death pairs per dimension"""
-function intervals(flt::Filtration, ps::Vector{Interval}; length0=false)
+function intervals(flt::Filtration, ps::Vector{Pair}; length0=false)
     cdim = dim(complex(flt))
 
     # construct intervals from filtration index pairs
@@ -100,13 +108,13 @@ function intervals(flt::Filtration, ps::Vector{Interval}; length0=false)
         else
             flt.total[b][3], d
         end
-        (length0 ? (s > e) : (s >= e))  && continue
+        (length0 ? (s > e) : (s >= e)) && continue
         # println("$s => $e ($b => $d)")
 
         idim = flt.total[b][1]
         if 0 <= idim < cdim
             !haskey(intrs, idim) && setindex!(intrs, Vector{Interval}(), idim)
-            push!(intrs[idim], s => e)
+            push!(intrs[idim], Interval(s => e))
         end
     end
 
