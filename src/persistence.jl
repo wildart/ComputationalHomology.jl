@@ -1,3 +1,5 @@
+import LinearAlgebra: diag
+
 abstract type AbstractPersistenceReduction end
 mutable struct StandardReduction <: AbstractPersistenceReduction end
 mutable struct TwistReduction <: AbstractPersistenceReduction end
@@ -9,8 +11,11 @@ end
 Interval(p::Pair{<:Number,<:Number}) = Interval(promote(p.first, p.second)...)
 Base.show(io::IO, intr::Interval) = print(io, "[$(intr.b),$(intr.d))")
 Base.isless(i1::Interval, i2::Interval) = i1.b < i2.b ? true : ( i1.b == i2.b ? i1.d < i2.d : false )
-pair(i::Interval) = i.b => i.d
+birth(i::Interval) = i.b - i.d
+death(i::Interval) = i.b + i.d
+diag(i::Interval) = let c = death(i)/2.0; Interval(c, c) end
 
+pair(i::Interval) = i.b => i.d
 intervals(ps::Pair...) = [Interval(p) for p in ps]
 
 lastindex(col::BitSet) = length(col) == 0 ? -1 : last(col)

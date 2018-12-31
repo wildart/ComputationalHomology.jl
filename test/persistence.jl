@@ -1,5 +1,17 @@
 @testset "Persistence" begin
 
+    # Intervals
+    p = Interval(1.0, 2.0)
+    q = Interval(0.0, 3.0)
+    r = Interval(0.0, 4.0)
+
+    @test q < p
+    @test q < r
+
+    @test ComputationalHomology.birth(p) == -1.
+    @test ComputationalHomology.death(p) == 3.
+    @test diag(p)  == Interval(1.5, 1.5)
+
     #######
     # from "Computational Topology - An Introduction" by Edelsbrunner & Harer, p. 184
     #######
@@ -48,7 +60,7 @@
     end
 
     @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
-        titrs = d == 0 ? intervals(0=>Inf, 0=>1, 1=>1, 1=> 2) : intervals(3=>4, 2=>5)
+        titrs = d == 0 ? intervals(0=>Inf, 0=>1, 1=>1, 1=>2) : intervals(3=>4, 2=>5)
         for itr in itrs
             @test itr ∈ titrs
         end
