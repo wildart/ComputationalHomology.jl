@@ -6,8 +6,10 @@ import SmithNormalForm: smith
 import Distances
 import Random
 import BoundingSphere
+import Statistics: mean
 
 import Base: ==, -, +, *
+import Base.Iterators: pairs
 
 export AbstractCell,
        dim, faces, volume,
@@ -29,10 +31,10 @@ export AbstractCell,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
-       pairs, intervals,
+       pairs, intervals, reduce,
        PersistentHomology, persistenthomology,
 
-       Interval, landscape
+       Interval, Landscape, landscape, mean
 
 include("cells.jl")
 include("chain.jl")

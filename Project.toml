@@ -8,6 +8,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SmithNormalForm = "ba71f38f-f508-439b-ac77-437f86a20aa1"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 BoundingSphere = "747eb165-47b8-53f2-ad32-9704a7dfc50a"
 
 [compat]
