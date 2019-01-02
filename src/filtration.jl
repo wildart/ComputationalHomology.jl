@@ -23,7 +23,7 @@ Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
     Filtration(C(), Vector{Tuple{Int,Int,FI}}())
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
-function filtration(cplx::C) where {C<:AbstractComplex}
+function filtration(cplx::AbstractComplex)
     idx = Vector{Tuple{Int,Int,Int}}()
     i = 1
     for d in 0:dim(cplx)
@@ -158,10 +158,10 @@ function Base.iterate(flt::Filtration{C, FI}, state=(C(), 0)) where {C <: Abstra
 end
 
 # Filtration simplex iterator
-Base.length(splxs::Simplices{F}) where F<:Filtration = length(unique(e->e[3], order(splxs.itr)))
-Base.eltype(splxs::Simplices{F}) where F<:Filtration = celltype(splxs.itr)
+Base.length(splxs::Simplices{<:Filtration}) = length(unique(e->e[3], order(splxs.itr)))
+Base.eltype(splxs::Simplices{<:Filtration}) = celltype(splxs.itr)
 
-function Base.iterate(splxs::Simplices{F},state=nothing) where F<:Filtration
+function Base.iterate(splxs::Simplices{<:Filtration},state=nothing)
     # initial state
     state === nothing && return iterate(splxs, mapreduce(v->v[3], min, order(splxs.itr)))
     # final state
@@ -184,4 +184,3 @@ function Base.iterate(splxs::Simplices{F},state=nothing) where F<:Filtration
 
     return (state, ss), nextstate
 end
-
