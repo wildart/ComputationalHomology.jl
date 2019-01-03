@@ -101,12 +101,12 @@ end
 pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersistenceReduction} =
     pairs(R, boundary_matrix(flt, reduced = reduced), reduced = reduced)
 
-"""Return birth-death pairs per dimension"""
+"""Return birth-death pairs per dimension. First element corresponds to 0th dimension."""
 function intervals(flt::Filtration, ps::Vector{Pair}; length0=false)
     cdim = dim(complex(flt))
 
     # construct intervals from filtration index pairs
-    intrs = Dict{Int,Vector{Interval}}()
+    intrs = [Interval[] for i in 1:mapreduce(first, max, flt.total)]
     for (b,d) in ps
         s, e = if !isinf(d)
             flt.total[b][3], flt.total[d][3]
@@ -114,12 +114,10 @@ function intervals(flt::Filtration, ps::Vector{Pair}; length0=false)
             flt.total[b][3], d
         end
         (length0 ? (s > e) : (s >= e)) && continue
-        # println("$s => $e ($b => $d)")
 
         idim = flt.total[b][1]
         if 0 <= idim < cdim
-            !haskey(intrs, idim) && setindex!(intrs, Vector{Interval}(), idim)
-            push!(intrs[idim], Interval(s => e))
+            push!(intrs[idim+1], Interval(s => e))
         end
     end
 
@@ -190,6 +188,18 @@ function group(h::PersistentHomology, p::Int)
         h.R = reduce(h.reduction, deepcopy(h.∂))
     end
     return betti(h.∂, h.R, p)
+end
+
+function intervals(h::PersistentHomology)
+    if length(h.∂) == 0
+        h.∂ = boundary_matrix(h.filtration, reduced=h.reduced)
+    end
+    if length(h.R) == 0
+        h.R = reduce(h.reduction, deepcopy(h.∂))
+    end
+
+    ps = generate_pairs(h.∂, reduced=h.reduced)
+    return intervals(h.filtration, ps)
 end
 
 #
