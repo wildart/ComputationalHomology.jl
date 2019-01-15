@@ -138,33 +138,24 @@ function intervals(flt::Filtration; reduction=TwistReduction, length0=false, abs
 end
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
-function betti(∂::Vector, R::Vector, p::Int)
-    simdim(s) = length(s) == 0 ? 0 : length(s)-1
-    sdims = map(simdim, ∂)
-    @assert maximum(sdims) >= p "Cannot calculate $p-dimensional Betti number for $(maximum(sdims))-complex"
+function betti(flt::Filtration, R::Vector, p::Int)
+    maxdim =  dim(complex(flt))
+    @assert maxdim >= p "Cannot calculate $p-dimensional Betti number for $maxdim-complex"
+
+    # indexes of p-simplices
+    p2i = findall(d->d[1]==p, order(flt))
 
     # the number of zero columns that correspond to p-simplices
-    # z = mapreduce(i->length(R[i]) == 0 ? 1 : 0, +, find(d->d==p, sdims))
+    z = sum(map(length, R[p2i]) .== 0)
 
-    RR = spzeros(Int, length(R), length(R))
-    for (j, II) in enumerate(R)
-        lasti = 0
-        for i in II
-            lasti = i+1
-            RR[lasti,j] = 1
-        end
-        if lasti > 0
-            RR[lasti,j] = 2
-        end
-    end
-    p2i = findall(d->d==p, sdims)
-    # the number of zero columns that correspond to p-simplices
-    z = findall(i->i==0, sum(RR[:,p2i], dims=1)) |> length
     # the number of lowest ones in rows that correspond to p-simplices
-    l = findall(i->i==2, RR[p2i,:]) |> length
+    l = length( findall(l->l ∈ p2i, map(lastindex, R)) )
+
     β = z - l
     return β < 0 ? 0 : β
 end
+betti(flt::Filtration, p::Int; reduction=TwistReduction) =
+    betti(flt, reduce!(reduction, boundary_matrix(flt)), p)
 
 """
 Persistent homology group iterator for a filtration
@@ -172,12 +163,14 @@ Persistent homology group iterator for a filtration
 mutable struct PersistentHomology <: AbstractHomology
     filtration::Filtration
     reduction::DataType
-    ∂::Vector{BitSet}
     R::Vector{BitSet}
-    reduced::Bool
 end
-persistenthomology(::Type{R}, flt::Filtration; reduced::Bool=false) where R<:AbstractPersistenceReduction =
-    PersistentHomology(flt, R, Vector{BitSet}(), Vector{BitSet}(), reduced)
+function persistenthomology(::Type{R}, flt::Filtration;
+                            reduced::Bool=false) where R<:AbstractPersistenceReduction
+    RM = reduce!(R, boundary_matrix(flt, reduced = reduced))
+    return PersistentHomology(flt, R, RM)
+end
+persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
 
 Base.show(io::IO, h::PersistentHomology) = print(io, "PersistentHomology[$(h.filtration) with $(h.reduction)]")
 
@@ -188,27 +181,8 @@ Base.eltype(::Type{PersistentHomology}) = Tuple{Int, Int}
 # Interface methods
 #
 
-function group(h::PersistentHomology, p::Int)
-    if length(h.∂) == 0
-        h.∂ = boundary_matrix(h.filtration, reduced=h.reduced)
-    end
-    if length(h.R) == 0
-        h.R = reduce(h.reduction, deepcopy(h.∂))
-    end
-    return betti(h.∂, h.R, p)
-end
-
-function intervals(h::PersistentHomology)
-    if length(h.∂) == 0
-        h.∂ = boundary_matrix(h.filtration, reduced=h.reduced)
-    end
-    if length(h.R) == 0
-        h.R = reduce(h.reduction, deepcopy(h.∂))
-    end
-
-    ps = generate_pairs(h.∂, reduced=h.reduced)
-    return intervals(h.filtration, ps)
-end
+group(h::PersistentHomology, p::Int) = betti(h.filtration, h.R, p)
+intervals(h::PersistentHomology) = intervals(h.filtration, reduction=h.reduction)
 
 #
 # Iterator methods

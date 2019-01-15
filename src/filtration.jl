@@ -21,6 +21,7 @@ order(flt::Filtration) = flt.total
 #
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
     Filtration(C(), Vector{Tuple{Int,Int,FI}}())
+Base.similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C,FI)
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
 function filtration(cplx::AbstractComplex)

@@ -123,23 +123,25 @@
     @test sparse(∂)[5,11] == 5
     @test length(∂[9]) > 0
     R = reduce(StandardReduction, ∂)
-    @test ComputationalHomology.betti(∂, R, 0) == 2
-    @test ComputationalHomology.betti(∂, R, 1) == 1
-    @test ComputationalHomology.betti(∂, R, 2) == 0
+    @test ComputationalHomology.betti(flt, R, 0) == 1
+    @test ComputationalHomology.betti(flt, R, 1) == 1
+    @test ComputationalHomology.betti(flt, R, 2) == 0
+    @test_throws AssertionError ComputationalHomology.betti(flt, R, 3)
     @test length(R[9]) == 0
     reduce!(StandardReduction, ∂)
     @test length(∂[9]) == 0
 
     # PH object
-    ph = persistenthomology(TwistReduction, flt)
+    ph = persistenthomology(flt)
     @test eltype(ph) == Tuple{Int64,Int64}
     @test length(ph) == 3
-    @test group(ph, 0) == 2
+    @test group(ph, 0) == 1
     @test group(ph, 1) == 1
     @test group(ph, 2) == 0
+    @test_throws AssertionError group(ph, 3)
 
     # PH iterator
-    @testset "Method Comparison" for (g1, g2) in zip(homology(complex(flt)), persistenthomology(TwistReduction, flt, reduced=true))
+    @testset "Method Comparison" for (g1, g2) in zip(homology(complex(flt)), persistenthomology(TwistReduction, flt))
         @test g1[1] == g2[1]
         @test g1[2] == g2[2]
     end
