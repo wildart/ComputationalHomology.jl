@@ -6,7 +6,7 @@ abstract type AbstractComplex end
 
 function boundary(cplx::AbstractComplex, ch::Chain{R}) where {R}
     d = dim(ch)
-    cc = Chain(d-1,R)
+    cc = Chain(d-1, R)
     for (coef,elem) in ch
         append!(cc, coef * boundary(cplx, elem, d, R))
     end
@@ -26,10 +26,12 @@ end
 # AbstractComplex Public Interface
 #
 """Return a complex boundary given element and dimension"""
-boundary(cplx::AbstractComplex, i::M, d::Int) where {M} = throw(MethodError(boundary, (typeof(cplx),M,Int)))
+boundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{R}) where {R} = throw(MethodError(boundary, (typeof(cplx),Int,Int,R)))
+boundary(cplx::AbstractComplex, i::Int, d::Int) = boundary(cplx, i, d, Int)
 
 """Return a complex coboundary given element and dimension"""
-coboundary(cplx::AbstractComplex, i::M, d::Int) where {M} = throw(MethodError(coboundary, (typeof(cplx),M,Int)))
+coboundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{R}) where {R} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,R)))
+coboundary(cplx::AbstractComplex, i::Int, d::Int) = coboundary(cplx, i, d, Int)
 
 """Return a complex cell type"""
 celltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
@@ -103,6 +105,7 @@ function boundary_matrix(::Type{R}, cplx::AbstractComplex, d::Int) where {R}
     end
     return bm
 end
+boundary_matrix(cplx::AbstractComplex, d::Int) = boundary_matrix(Int, cplx, d)
 
 #
 # Complex simplex iterator

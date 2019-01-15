@@ -42,7 +42,7 @@
         @test a == b
     end
 
-    @test convert(Matrix, boundary_matrix(Int, cplx, 2)) == [1 -1 1 0 0 0]'
+    @test convert(Matrix, boundary_matrix(cplx, 2)) == [1 -1 1 0 0 0]'
 
     cplx = SimplicialComplex(Int)
 
