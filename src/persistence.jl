@@ -4,24 +4,29 @@ abstract type AbstractPersistenceReduction end
 mutable struct StandardReduction <: AbstractPersistenceReduction end
 mutable struct TwistReduction <: AbstractPersistenceReduction end
 
-struct Interval{T<:Number}
-    b::T
-    d::T
+struct Interval
+    dim::Int
+    generator::AbstractChain
+    b::Number
+    d::Number
 end
-Interval(p::Pair{<:Number,<:Number}) = Interval(promote(p.first, p.second)...)
+Interval(dim::Int, b::Number, d::Number) = Interval(dim, EmptyChain(), b, d)
+Interval(dim::Int, p::Pair) = Interval(dim, p.first, p.second)
+Interval(p::Pair) = Interval(0, p)
 Base.show(io::IO, intr::Interval) = print(io, "[$(intr.b),$(intr.d))")
 Base.isless(i1::Interval, i2::Interval) = i1.b < i2.b ? true : ( i1.b == i2.b ? i1.d < i2.d : false )
 birth(i::Interval) = i.b - i.d
 death(i::Interval) = i.b + i.d
-diag(i::Interval) = let c = death(i)/2.0; Interval(c, c) end
+diag(i::Interval) = let c = death(i)/2.0; Interval(i.dim, i.generator, c, c) end
 
 pair(i::Interval) = i.b => i.d
-intervals(ps::Pair...) = [Interval(p) for p in ps]
+intervals(d::Int, ps::Pair...) = [Interval(d, p) for p in ps]
 
+# Boundary matrix reduction algorithms
 lastindex(col::BitSet) = length(col) == 0 ? -1 : last(col)
 
 """Standart reduction"""
-function Base.reduce(::Type{StandardReduction}, ∂::Vector{BitSet})
+function reduce!(::Type{StandardReduction}, ∂::Vector{BitSet})
     lowest_one_lookup = fill(-1, length(∂))
     for col in eachindex(∂)
         lowest_one = lastindex(∂[col])
@@ -38,7 +43,7 @@ function Base.reduce(::Type{StandardReduction}, ∂::Vector{BitSet})
 end
 
 """Twist reduction"""
-function Base.reduce(::Type{TwistReduction}, ∂::Vector{BitSet})
+function reduce!(::Type{TwistReduction}, ∂::Vector{BitSet})
     lowest_one_lookup = fill(-1, length(∂))
 
     for dim in maximum(map(length, ∂)):-1:1
@@ -59,74 +64,77 @@ function Base.reduce(::Type{TwistReduction}, ∂::Vector{BitSet})
     return ∂
 end
 
-function generate_pairs(∂::Vector)
-    pairs = Pair{Int,Int}[]
-    for col in eachindex(∂)
-        if length(∂[col]) > 0
-            birth = last(∂[col])
-            death = col
-            push!(pairs, birth=>death)
-        end
-    end
-    return pairs
-end
+Base.reduce(::Type{R}, ∂::Vector{BitSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
 
 function generate_pairs(∂::Vector{BitSet}; reduced = false)
     ridx = reduced ? 1 : 0
     births = BitSet()
-    pairs = Pair[]
+    ps = Pair[]
     for i in eachindex(∂)
         if length(∂[i]) > 0
             b = last(∂[i])
             d = i
             delete!(births, b)
             delete!(births, d)
-            (d > b) && push!(pairs, (b-ridx) => (d-ridx) )
+            (d > b) && push!(ps, (b-ridx) => (d-ridx) )
         else
             push!(births, i)
         end
     end
     for i in births # no lowest, create semi-infinite interval
-        push!(pairs, (i-ridx)=>Inf)
+        push!(ps, (i-ridx)=>Inf)
     end
-    return pairs
+    return ps
 end
 
 "Compute raw persistence pairs (boundary matrix is reduced in a process)"
 function pairs(::Type{R}, ∂::Vector{BitSet}; reduced = false) where {R <: AbstractPersistenceReduction}
-    reduce(R, ∂) # reduce  boundary matrix
+    reduce!(R, ∂) # reduce  boundary matrix
     return generate_pairs(∂, reduced=reduced), ∂  # generate pairs
 end
-
 pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersistenceReduction} =
     pairs(R, boundary_matrix(flt, reduced = reduced), reduced = reduced)
 
-"""Return birth-death pairs per dimension. First element corresponds to 0th dimension."""
-function intervals(flt::Filtration, ps::Vector{Pair}; length0=false)
-    cdim = dim(complex(flt))
+"""Return persistent diagram (birth-death pairs) per dimension."""
+function intervals(flt::Filtration; reduction=TwistReduction, length0=false, absolute=true)
+    # reduce boundary matrix
+    ∂ = boundary_matrix(flt)
+    reduce!(reduction, ∂)
 
-    # construct intervals from filtration index pairs
-    intrs = [Interval[] for i in 1:mapreduce(first, max, flt.total)]
-    for (b,d) in ps
-        s, e = if !isinf(d)
-            flt.total[b][3], flt.total[d][3]
+    # resulting intervals
+    intrs = Dict{Int,Vector{Interval}}()
+
+    # compute intervals
+    births = BitSet()
+    total = order(flt)
+    for (i, (sdim, si, fv)) in enumerate(total)
+        col = ∂[i]
+        # println("$i] $(flt.complex.cells[sdim][si]) = $(col)")
+        if length(col) == 0
+            push!(births, i)
         else
-            flt.total[b][3], d
+            b = last(col)
+            d = i
+            delete!(births, b)
+            delete!(births, d)
+            if d > b
+                sdim = absolute ? total[b][1] : total[d][1]
+                bv = total[b][3]
+                dv = total[d][3]
+                if dv > bv || length0
+                    !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
+                    push!(intrs[sdim], Interval(sdim, bv, dv))
+                end
+            end
         end
-        (length0 ? (s > e) : (s >= e)) && continue
-
-        idim = flt.total[b][1]
-        if 0 <= idim < cdim
-            push!(intrs[idim+1], Interval(s => e))
-        end
+    end
+    for i in births
+        sdim, si, fv = total[i]
+        !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
+        push!(intrs[sdim], Interval(sdim, fv, Inf))
     end
 
     return intrs
-end
-
-function intervals(flt::Filtration; reduction=TwistReduction, reduced=false, length0=false)
-    ps, ∂ = pairs(reduction, flt, reduced=reduced)
-    return intervals(flt, ps, length0=length0)
 end
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"

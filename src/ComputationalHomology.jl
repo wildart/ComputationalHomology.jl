@@ -31,7 +31,7 @@ export AbstractCell,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
-       pairs, intervals, reduce,
+       pairs, intervals, reduce!, reduce,
        PersistentHomology, persistenthomology,
 
        Interval, Landscape, landscape, mean

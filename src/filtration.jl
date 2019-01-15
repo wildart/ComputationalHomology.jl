@@ -71,12 +71,13 @@ function boundary_matrix(flt::Filtration; reduced=false)
     cplx = complex(flt)
     bm = map(i->BitSet(), 1:sum(size(cplx))+ridx)
     # fill boundary matrix
-    for (i, (d, ci, fv)) in enumerate(flt.total)
+    ord = order(flt)
+    for (i, (d, ci, fv)) in enumerate(ord)
         if d > 0
             splx = cplx[ci, d]
             for face in faces(splx)
                 fi = cplx[face, d-1]
-                push!(bm[i+ridx], findfirst(e->e[1] == d-1 && e[2] == fi, flt.total)+ridx)
+                push!(bm[i+ridx], findfirst(e->e[1] == d-1 && e[2] == fi, ord)+ridx)
             end
         elseif reduced
             push!(bm[i+ridx], 1)

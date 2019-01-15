@@ -1,16 +1,16 @@
 @testset "Persistence" begin
 
     # Intervals
-    p = Interval(1.0, 2.0)
-    q = Interval(0.0, 3.0)
-    r = Interval(0.0, 4.0)
+    p = Interval(1.0 => 2.0)
+    q = Interval(0.0 => 3.0)
+    r = Interval(0.0 => 4.0)
 
     @test q < p
     @test q < r
 
     @test ComputationalHomology.birth(p) == -1.
     @test ComputationalHomology.death(p) == 3.
-    @test diag(p)  == Interval(1.5, 1.5)
+    @test diag(p)  == Interval(1.5 => 1.5)
 
     #######
     # from "Computational Topology - An Introduction" by Edelsbrunner & Harer, p. 184
@@ -59,8 +59,8 @@
         push!(flt, s...)
     end
 
-    @testset "Intervals " for (d, itrs) in enumerate(intervals(flt, length0=true))
-        titrs = d == 1 ? intervals(0=>Inf, 0=>1, 1=>1, 1=>2) : intervals(3=>4, 2=>5)
+    @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
+        titrs = d == 0 ? intervals(0, 0=>Inf, 0=>1, 1=>1, 1=>2) : intervals(1, 3=>4, 2=>5)
         for itr in itrs
             @test itr ∈ titrs
         end
@@ -87,14 +87,14 @@
     end
 
     itr = intervals(flt, length0=true)
-    @test Interval(0=>0) ∈ itr[1]
-    @test Interval(1=>2) ∈ itr[1]
-    @test Interval(3=>7) ∈ itr[2]
+    @test Interval(0=>0) ∈ itr[0]
+    @test Interval(1=>2) ∈ itr[0]
+    @test Interval(1, 3=>7) ∈ itr[1]
 
     itr = intervals(flt, reduction = StandardReduction)
-    @test Interval(1=>2) ∈ itr[1]
-    @test Interval(3=>7) ∈ itr[2]
-    @test Interval(0=>Inf) ∈ itr[2]
+    @test Interval(1=>2) ∈ itr[0]
+    @test Interval(1, 3=>7) ∈ itr[1]
+    @test Interval(1, 0=>Inf) ∈ itr[1]
 
     #######
     # Ex.2
@@ -121,10 +121,14 @@
     # Betti numbers
     ∂ = boundary_matrix(flt)
     @test sparse(∂)[5,11] == 5
-    R = reduce(StandardReduction, deepcopy(∂))
+    @test length(∂[9]) > 0
+    R = reduce(StandardReduction, ∂)
     @test ComputationalHomology.betti(∂, R, 0) == 2
     @test ComputationalHomology.betti(∂, R, 1) == 1
     @test ComputationalHomology.betti(∂, R, 2) == 0
+    @test length(R[9]) == 0
+    reduce!(StandardReduction, ∂)
+    @test length(∂[9]) == 0
 
     # PH object
     ph = persistenthomology(TwistReduction, flt)
