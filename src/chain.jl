@@ -1,5 +1,18 @@
 abstract type AbstractChain end
 
+# Chain interface
+Base.getindex(ch::AbstractChain, i::Integer) = throw(MethodError(getindex, (typeof(ch),Integer)))
+Base.length(ch::AbstractChain) = throw(MethodError(length, (typeof(ch),)))
+Base.eltype(ch::AbstractChain) = throw(MethodError(eltype, (typeof(ch),)))
+function Base.iterate(ch::AbstractChain, state=1)
+    state > length(ch) && return nothing
+    return (ch[state], state+1)
+end
+
+"""Empty Chain"""
+struct EmptyChain <: AbstractChain end
+Base.length(ch::EmptyChain) = 0
+
 """ k-Chain is a formal linear combination of k-cells.
 
     Given a set E, we can construct a free R-module M that has E ⊆ M as a basis M, the module M is the module of the formal linear combinations of elements of E, or free module over E, R^{(E)}, s.t. given a finite subset {X_1, ..., X_n} of E, a formal linear combination of X_1, ..., X_n is
@@ -19,13 +32,10 @@ Chain(::Type{R}) where {R} = Chain(0,R)
 dim(ch::Chain) = ch.dim
 setdim!(ch::Chain, dim::Int) = (ch.dim = dim)
 
-Base.getindex(ch::Chain, i::Integer) = (ch.coefs[i],ch.elems[i])
+# implement interface
+Base.getindex(ch::Chain, i::Integer) = (ch.coefs[i], ch.elems[i])
 Base.length(ch::Chain) = length(ch.coefs)
 Base.eltype(ch::Chain{R}) where {R} = R
-function Base.iterate(ch::Chain, state=1)
-    state > length(ch) && return nothing
-    return (ch[state], state+1)
-end
 
 function Base.show(io::IO, ch::Chain)
     if length(ch.elems) == 0
