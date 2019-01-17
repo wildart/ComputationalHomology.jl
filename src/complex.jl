@@ -60,6 +60,7 @@ Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(Meth
 #
 """Return a size of cell collections per dimension"""
 Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...,)
+Base.length(cplx::AbstractComplex) = sum(size(cplx))
 
 """Return a size of the cell collection for dimension (0-based)"""
 function Base.size(cplx::AbstractComplex, d::Int)

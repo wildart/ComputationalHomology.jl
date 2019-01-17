@@ -9,19 +9,21 @@ mutable struct Filtration{C<:AbstractComplex, FI}
     complex::C
     # total order of simplices as array of (dim, simplex id, filtation value)
     total::Vector{Tuple{Int,Int,FI}}
+    divisions::Number
 end
 Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
 Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
 
 Base.complex(flt::Filtration) = flt.complex
 order(flt::Filtration) = flt.total
-
+Base.minimum(flt::Filtration) = order(flt)[1][3]
+Base.maximum(flt::Filtration) = order(flt)[end][3]
 #
 # Constructors
 #
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
-    Filtration(C(), Vector{Tuple{Int,Int,FI}}())
-Base.similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C,FI)
+    Filtration(C(), Vector{Tuple{Int,Int,FI}}(), Inf)
+Base.similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, FI)
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
 function filtration(cplx::AbstractComplex)
@@ -33,11 +35,11 @@ function filtration(cplx::AbstractComplex)
             i += 1
         end
     end
-    return Filtration(cplx, idx)
+    return Filtration(cplx, idx, Inf)
 end
 
 """Construct filtration from a cell complex and a complex weight function"""
-function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex, FI}
+function filtration(cplx::C, w::Dict{Int,Vector{FI}}; divisions::Number=Inf) where {C<:AbstractComplex, FI}
     idx = Vector{Tuple{Int,Int,FI}}()
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
@@ -46,19 +48,20 @@ function filtration(cplx::C, w::Dict{Int,Vector{FI}}) where {C<:AbstractComplex,
         end
     end
     sort!(idx, by=x->(x[3], x[1])) # sort by dimension & filtration value
-    return Filtration(cplx, idx)
+    return Filtration(cplx, idx, divisions)
 end
 
 function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
     cplx = complex(flt)
     @assert isa(cl, celltype(cplx)) "Complex $(cplx) does not accept $(typeof(cl))"
     cls = push!(cplx, cl, recursive=recursive)
-    idx = length(flt.total) == 0 ? 1 : findlast(e->e[3]<=v, flt.total)
+    ord = order(flt)
+    idx = length(ord) == 0 ? 1 : findlast(e->e[3]<=v, ord)
     for c in sort!(cls, by=s->dim(s))
-        if idx == length(flt.total)
-            push!(flt.total, (dim(c), c[:index], v))
+        if idx == length(ord)
+            push!(ord, (dim(c), c[:index], v))
         else
-            insert!(flt.total, idx, (dim(c), c[:index], v))
+            insert!(ord, idx, (dim(c), c[:index], v))
         end
         idx += 1
     end
@@ -105,7 +108,7 @@ end
 
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
-    for (d, ci, fv) in flt.total
+    for (d, ci, fv) in order(flt)
         for k in cplx[ci,d][:values]
             write(io, "$k,")
         end
@@ -146,26 +149,40 @@ end
 #
 
 # Filtration simplicial complex iterator
-Base.length(flt::Filtration) = length(flt.total)
+Base.length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
 Base.eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
 
 """Loop through the filtration `flt` producing growing simplicial complexes on every iteration"""
-function Base.iterate(flt::Filtration{C, FI}, state=(C(), 0)) where {C <: AbstractComplex, FI}
-    state[2] >= length(flt.total) && return nothing # done
-    c = copy(state[1]) # form next state copy
-    i = state[2]+1
-    d, ci, v = flt.total[i]
-    push!(c, complex(flt)[ci, d])
-    return (v, c), (c, i)
+function Base.iterate(flt::Filtration, state=(1, -Inf, 0))
+    ord = order(flt)
+    idx = state[1]
+    idx > length(ord) && return nothing # done
+    if state[2] == -Inf # calculate initial state
+        fval = ord[idx][3]
+        incr = (maximum(flt)-minimum(flt)) / flt.divisions
+    else
+        fval = state[2]
+        incr = state[3]
+    end
+    splxs = Tuple{Int,Int}[] #simplex dim & index
+    while idx <= length(ord) && (fval+incr) >= ord[idx][3]
+        push!(splxs, ord[idx][1:2])
+        idx += 1
+    end
+    nextfval = fval+incr
+    if idx <= length(ord) && isinf(flt.divisions)
+        nextfval = ord[idx][3]
+    end
+    return (fval, splxs), (idx, nextfval, incr)
 end
 
 # Filtration simplex iterator
-Base.length(splxs::Simplices{<:Filtration}) = length(unique(e->e[3], order(splxs.itr)))
+Base.length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
 Base.eltype(splxs::Simplices{<:Filtration}) = celltype(splxs.itr)
 
 function Base.iterate(splxs::Simplices{<:Filtration},state=nothing)
     # initial state
-    state === nothing && return iterate(splxs, mapreduce(v->v[3], min, order(splxs.itr)))
+    state === nothing && return iterate(splxs, minimum(splxs.itr))
     # final state
     isinf(state) && return nothing
     ord = order(splxs.itr)

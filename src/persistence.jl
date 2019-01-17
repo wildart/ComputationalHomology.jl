@@ -96,20 +96,15 @@ pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersisten
     pairs(R, boundary_matrix(flt, reduced = reduced), reduced = reduced)
 
 """Return persistent diagram (birth-death pairs) per dimension."""
-function intervals(flt::Filtration; reduction=TwistReduction, length0=false, absolute=true)
-    # reduce boundary matrix
-    ∂ = boundary_matrix(flt)
-    reduce!(reduction, ∂)
-
+function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
     # resulting intervals
     intrs = Dict{Int,Vector{Interval}}()
 
     # compute intervals
     births = BitSet()
-    total = order(flt)
-    for (i, (sdim, si, fv)) in enumerate(total)
-        col = ∂[i]
-        # println("$i] $(flt.complex.cells[sdim][si]) = $(col)")
+    ord = order(flt)
+    for (i, (sdim, si, fv)) in enumerate(ord)
+        col = R[i]
         if length(col) == 0
             push!(births, i)
         else
@@ -118,9 +113,9 @@ function intervals(flt::Filtration; reduction=TwistReduction, length0=false, abs
             delete!(births, b)
             delete!(births, d)
             if d > b
-                sdim = absolute ? total[b][1] : total[d][1]
-                bv = total[b][3]
-                dv = total[d][3]
+                sdim = absolute ? ord[b][1] : ord[d][1]
+                bv = ord[b][3]
+                dv = ord[d][3]
                 if dv > bv || length0
                     !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
                     push!(intrs[sdim], Interval(sdim, bv, dv))
@@ -129,13 +124,16 @@ function intervals(flt::Filtration; reduction=TwistReduction, length0=false, abs
         end
     end
     for i in births
-        sdim, si, fv = total[i]
+        sdim, si, fv = ord[i]
         !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
         push!(intrs[sdim], Interval(sdim, fv, Inf))
     end
 
     return intrs
 end
+
+intervals(flt::Filtration; reduction=TwistReduction, length0=false, absolute=true) =
+    intervals(flt, reduce!(reduction, boundary_matrix(flt)), length0, absolute)
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
 function betti(flt::Filtration, R::Vector, p::Int)

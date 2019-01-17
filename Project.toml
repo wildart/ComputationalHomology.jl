@@ -1,6 +1,11 @@
 name = "ComputationalHomology"
 uuid = "9393a4d0-be1e-45b0-9991-b60434c721e6"
-version = "0.2.0"
+version = "0.3.0"
+keywords = ["computational homology", "computational topology", "persistent homology"]
+license = "MIT"
+desc = "A Julia package for computational topology and homology"
+repository = "https://github.com/wildart/ComputationalHomology.jl.git"
+
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
