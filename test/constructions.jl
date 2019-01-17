@@ -95,24 +95,31 @@
     @testset "Witness Complex" begin
         l = 4
 
-        cplx, w, L = witness(X, l, 0.005, false, firstpoint = 1)
+        L = ComputationalHomology.landmarks(X, l, method=:random)
+        @test length(L) == l
+
+        L = ComputationalHomology.landmarks(X, l, firstpoint = 1)
+        @test L[1] == 1
+        @test all(i->i ∈ L, [8, 1, 4, 9])
+
+        L = ComputationalHomology.landmarks(X, l)
+        @test L[1] != 1
+        @test all(i->i ∈ L, [8, 1, 4, 9])
+
+        cplx, w = witness(X, l, 0.005, false, firstpoint = 1)
         @test size(cplx, 0) == l
         @test size(cplx, 1) == 4
-        @test L[cplx[1,1][:values]] == [1, 4]
         @test w === nothing
 
         cplx, w = witness(X, l, 0.1, false, firstpoint = 1)
         @test size(cplx, 0) == l
         @test size(cplx, 1) == 5
-        @test L[cplx[5,1][:values]] == [4, 8]
         @test w === nothing
 
         cplx, w = witness(X, l, 0.5, firstpoint = 1)
         @test size(cplx, 0) == l
         @test size(cplx, 1) == 6
-        @test L[cplx[1,1][:values]] == [1, 9]
         @test size(cplx, 2) == 4
-        @test L[cplx[1,2][:values]] == [1, 9, 4]
         @test w[0][1] == 0.
         @test w[1][1] ≈ 0.22805075942971
         @test w[2][end] ≈ 0.0782128253900049
@@ -120,17 +127,12 @@
         cplx2, w2 = witness(X, l, 0.5, expansion=:inductive, firstpoint = 1)
         @test size(cplx2, 0) == l
         @test size(cplx2, 1) == 6
-        @test L[cplx2[1,1][:values]] == [1, 9]
         @test size(cplx2, 2) == 4
-        @test L[cplx2[1,2][:values]] == [1, 9, 4]
         @test w2[0][1] == 0.
         @test w2[1][1] ≈ 0.22805075942971
         @test w2[2][end] ≈ 0.0782128253900049
 
         @test_throws ArgumentError witness(X, l, 0.4, expansion=:a)
-
-        L = ComputationalHomology.landmarks(X, l, method=:random)
-        @test length(L) == l
     end
 end
 

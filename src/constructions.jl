@@ -214,7 +214,7 @@ function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
     # simplexes contain indexes to landamarks
     cplx, w = witness(D, ɛ, weights, expansion=expansion, ν=ν, maxoutdim=maxoutdim, firstpoint=firstpoint)
 
-    return cplx, w, L
+    return cplx, w
 end
 
 """
