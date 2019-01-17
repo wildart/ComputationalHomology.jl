@@ -181,25 +181,16 @@ Base.length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
 Base.eltype(splxs::Simplices{<:Filtration}) = celltype(splxs.itr)
 
 function Base.iterate(splxs::Simplices{<:Filtration},state=nothing)
-    # initial state
-    state === nothing && return iterate(splxs, minimum(splxs.itr))
-    # final state
-    isinf(state) && return nothing
-    ord = order(splxs.itr)
-    cplx = complex(splxs.itr)
-    ss = celltype(cplx)[]
-    idx = findfirst(e->e[3] == state, ord)
-    nextstate = Inf
-    if idx != 0
-        while length(ord) >= idx && ord[idx][3] == state
-            s = cplx[ord[idx][2], ord[idx][1]]
-            if s !== nothing
-                push!(ss, s)
-            end
-            idx += 1
-        end
-        nextstate = length(ord) >= idx ? ord[idx][3] : Inf
+    # call underlying iterator
+    if state === nothing
+        res = iterate(splxs.itr)
+    else
+        res = iterate(splxs.itr, state)
     end
-
-    return (state, ss), nextstate
+    # final state
+    res == nothing && return nothing
+    # get complex
+    cplx = complex(splxs.itr)
+    ss = [cplx[i, d] for (d, i) in res[1][2]]
+    return (res[1][1], ss), res[2] # state of filtration iterator
 end
