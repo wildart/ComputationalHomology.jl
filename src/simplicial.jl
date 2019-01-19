@@ -10,6 +10,7 @@ mutable struct SimplicialComplex{P} <: AbstractComplex
 end
 Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
 Base.copy(cplx::SimplicialComplex) = SimplicialComplex(deepcopy(cplx.cells))
+Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
 # ---------------
 # Private Methods

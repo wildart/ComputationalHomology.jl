@@ -11,13 +11,14 @@ mutable struct Filtration{C<:AbstractComplex, FI}
     total::Vector{Tuple{Int,Int,FI}}
     divisions::Number
 end
+
+order(flt::Filtration) = flt.total
+Base.complex(flt::Filtration) = flt.complex
 Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
 Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
+Base.eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
+Base.length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
 
-Base.complex(flt::Filtration) = flt.complex
-order(flt::Filtration) = flt.total
-Base.minimum(flt::Filtration) = order(flt)[1][3]
-Base.maximum(flt::Filtration) = order(flt)[end][3]
 #
 # Constructors
 #
@@ -68,6 +69,27 @@ function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=fa
     return flt
 end
 
+#
+# Auxiliary function
+#
+Base.minimum(flt::Filtration) = order(flt)[1][3]
+Base.maximum(flt::Filtration) = order(flt)[end][3]
+
+"""
+    complex(flt, val)
+
+Return a complex from the filtration `flt` at the filtration value `val`
+"""
+function Base.complex(flt::Filtration{C,FI}, val::FI) where {C <: AbstractComplex, FI}
+    cplx = complex(flt)
+    res = eltype(flt)()
+    for (d,si,fv) in order(flt)
+        fv > val && break
+        push!(res, cplx[si, d])
+    end
+    return res
+end
+
 """Generate a combined boundary matrix from the filtration `flt` for the persistent homology calculations."""
 function boundary_matrix(flt::Filtration; reduced=false)
     ridx = reduced ? 1 : 0
@@ -102,10 +124,10 @@ function SparseArrays.sparse(∂::Vector{BitSet})
     return ret
 end
 
+
 #
 # I/O
 #
-
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
@@ -147,23 +169,17 @@ end
 #
 # Iterators
 #
-
-# Filtration simplicial complex iterator
-Base.length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
-Base.eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
-
 """Loop through the filtration `flt` producing growing simplicial complexes on every iteration"""
-function Base.iterate(flt::Filtration, state=(1, -Inf, 0))
+function Base.iterate(flt::Filtration, state=nothing)
     ord = order(flt)
-    idx = state[1]
-    idx > length(ord) && return nothing # done
-    if state[2] == -Inf # calculate initial state
+    if state === nothing # calculate initial state
+        idx = 1
         fval = ord[idx][3]
         incr = (maximum(flt)-minimum(flt)) / flt.divisions
     else
-        fval = state[2]
-        incr = state[3]
+        idx, fval, incr = state
     end
+    idx > length(ord) && return nothing # done
     splxs = Tuple{Int,Int}[] #simplex dim & index
     while idx <= length(ord) && (fval+incr) >= ord[idx][3]
         push!(splxs, ord[idx][1:2])
@@ -180,13 +196,9 @@ end
 Base.length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
 Base.eltype(splxs::Simplices{<:Filtration}) = celltype(splxs.itr)
 
-function Base.iterate(splxs::Simplices{<:Filtration},state=nothing)
+function Base.iterate(splxs::Simplices{<:Filtration}, state=nothing)
     # call underlying iterator
-    if state === nothing
-        res = iterate(splxs.itr)
-    else
-        res = iterate(splxs.itr, state)
-    end
+    res = iterate(splxs.itr, state)
     # final state
     res == nothing && return nothing
     # get complex
