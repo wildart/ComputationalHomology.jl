@@ -119,7 +119,7 @@
     @test length(flt) == 12
 
     # Betti numbers
-    ∂ = boundary_matrix(flt)
+    ∂ = boundary(flt)
     @test sparse(∂)[5,11] == 5
     @test length(∂[9]) > 0
     R = reduce(StandardReduction, ∂)

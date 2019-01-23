@@ -90,20 +90,25 @@ function Base.complex(flt::Filtration{C,FI}, val::FI) where {C <: AbstractComple
     return res
 end
 
-"""Generate a combined boundary matrix from the filtration `flt` for the persistent homology calculations."""
-function boundary_matrix(flt::Filtration; reduced=false)
+"""
+    boundary(flt::Filtration) -> Vector{BitSet}
+
+Generate a boundary matrix from the filtration `flt` for the persistent homology calculations.
+"""
+function boundary(flt::Filtration; reduced=false)
     ridx = reduced ? 1 : 0
     # initialize boundary matrix
     cplx = complex(flt)
     bm = map(i->BitSet(), 1:sum(size(cplx))+ridx)
     # fill boundary matrix
     ord = order(flt)
+    revidx = Dict((ci, d) => i for (i, (d, ci, fv)) in enumerate(ord))
     for (i, (d, ci, fv)) in enumerate(ord)
         if d > 0
             splx = cplx[ci, d]
             for face in faces(splx)
                 fi = cplx[face, d-1]
-                push!(bm[i+ridx], findfirst(e->e[1] == d-1 && e[2] == fi, ord)+ridx)
+                push!(bm[i+ridx], revidx[(fi, d-1)]+ridx)
             end
         elseif reduced
             push!(bm[i+ridx], 1)
@@ -194,7 +199,7 @@ end
 
 # Filtration simplex iterator
 Base.length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
-Base.eltype(splxs::Simplices{<:Filtration}) = celltype(splxs.itr)
+Base.eltype(splxs::Simplices{<:Filtration}) = eltype(splxs.itr)
 
 function Base.iterate(splxs::Simplices{<:Filtration}, state=nothing)
     # call underlying iterator

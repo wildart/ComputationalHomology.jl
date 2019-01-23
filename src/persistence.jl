@@ -93,7 +93,7 @@ function pairs(::Type{R}, ∂::Vector{BitSet}; reduced = false) where {R <: Abst
     return generate_pairs(∂, reduced=reduced), ∂  # generate pairs
 end
 pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersistenceReduction} =
-    pairs(R, boundary_matrix(flt, reduced = reduced), reduced = reduced)
+    pairs(R, boundary(flt, reduced = reduced), reduced = reduced)
 
 """Return persistent diagram (birth-death pairs) per dimension."""
 function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
@@ -133,7 +133,7 @@ function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
 end
 
 intervals(flt::Filtration; reduction=TwistReduction, length0=false, absolute=true) =
-    intervals(flt, reduce!(reduction, boundary_matrix(flt)), length0, absolute)
+    intervals(flt, reduce!(reduction, boundary(flt)), length0, absolute)
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
 function betti(flt::Filtration, R::Vector, p::Int)
@@ -153,7 +153,7 @@ function betti(flt::Filtration, R::Vector, p::Int)
     return β < 0 ? 0 : β
 end
 betti(flt::Filtration, p::Int; reduction=TwistReduction) =
-    betti(flt, reduce!(reduction, boundary_matrix(flt)), p)
+    betti(flt, reduce!(reduction, boundary(flt)), p)
 
 """
 Persistent homology group iterator for a filtration
@@ -165,7 +165,7 @@ mutable struct PersistentHomology <: AbstractHomology
 end
 function persistenthomology(::Type{R}, flt::Filtration;
                             reduced::Bool=false) where R<:AbstractPersistenceReduction
-    RM = reduce!(R, boundary_matrix(flt, reduced = reduced))
+    RM = reduce!(R, boundary(flt, reduced = reduced))
     return PersistentHomology(flt, R, RM)
 end
 persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)

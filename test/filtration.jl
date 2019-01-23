@@ -36,7 +36,7 @@
     end
 
     # compute boundary matrix
-    ∂ = boundary_matrix(flt)
+    ∂ = boundary(flt)
     @test length(∂) == sum(size(complex(flt)))
     @test count(!iszero, sparse(∂)) == 4
 
@@ -47,7 +47,7 @@
     @test order(flt)[end] == (2, 1, 7)
 
     # compute boundary matrix
-    ∂ = boundary_matrix(flt)
+    ∂ = boundary(flt)
     @test length(∂) == 7
     @test count(!iszero, sparse(∂)) == 9
 
@@ -56,7 +56,7 @@
     X = rand(3,N)
     cplx, w = vietorisrips(X, 0.4, true)
     flt = filtration(cplx, w)
-    ∂ = boundary_matrix(flt)
+    ∂ = boundary(flt)
     @test length(∂) == sum(size(cplx))
     @test count(!iszero, sparse(∂)) == sum(size(cplx))
 
