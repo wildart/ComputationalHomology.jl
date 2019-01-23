@@ -51,7 +51,9 @@
     @testset "Vietoris–Rips Complex" begin
 
         cplx, w = vietorisrips(Y', 12.; maxoutdim = 1)
-        @test sum(size(cplx)) == 18
+        @test size(cplx, 0) == 7
+        @test size(cplx, 1) == 11
+        @test length(cplx) == 18
 
         f = filtration(cplx, w)
         @testset "Test from Gudhi" for ((v,ls), d) in

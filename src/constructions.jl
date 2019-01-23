@@ -8,9 +8,9 @@ function lowernbrs(cplx, u, E)
     return filter(v->v[:index] < uidx && E[first(v[:values]),uval], cells(cplx,0))
 end
 
-"""Incremental construction of VR complex from neighborhood graph"""
+"""Inductive construction of VR complex from neighborhood graph"""
 function inductive!(cplx, k, E)
-    for i in 1:k
+    for i in 1:k-1
         cls = cells(cplx, i)
         cls === nothing && continue
         for τ in cells(cplx, i)
@@ -33,8 +33,7 @@ end
 """Add all simplices of the `k`-skeleton whose maximal vertex is `τ`"""
 function addcofaces!(cplx, k, τ, N, E)
     # V ← V ∪ {τ}
-    τdim = dim(τ)
-    cplx[τ, τdim] > size(cplx, τdim) && push!(cplx, τ)
+    !in(cplx, τ) && addsimplex!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
     τvals = τ[:values]
@@ -114,20 +113,17 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
 
     # build 1-skeleton (neighborhood graph)
     E = spzeros(Bool, n, n) # adjacency matrix
-    for σ in cells(cplx, 0)
-        u = σ[:values]
-        Du = view(D, :, u)
-        edges = (LinearIndices(Du))[findall(d->d <= ɛ && d > 0., Du)]
-        length(edges) == 0 && continue
-        for i in edges
-            v = cplx[i, 0][:values]
-            s = Simplex(u...,v...)
-            if cplx[s] > size(cplx, 1)
-                # add simplex to complex
-                push!(cplx, s)
-                # fill adjacency matrix
-                E[s[:values], s[:values]] .= true
-            end
+    for i in 1:n
+        E[i,i] = true
+        for j in findall(d-> 0 < d <= ɛ, view(D, :, i))
+            s = Simplex(i,j)
+            # check if simplex is already added
+            in(cplx, s) && continue
+            # add simplex to complex
+            push!(cplx, s)
+            # fill adjacency matrix
+            E[i,j] = true
+            E[j,i] = true
         end
     end
 
@@ -356,7 +352,7 @@ function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
             # add simplex in radius less then maximal filtration value
             if r <= ε
                 s = Simplex(reverse(idx))
-                addsimplex(cplx, s)
+                addsimplex!(cplx, s)
                 weights && push!(w[h], r)
             end
 
