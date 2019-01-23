@@ -70,19 +70,28 @@ function Base.size(cplx::AbstractComplex, d::Int)
     return sz[d+1]
 end
 
+function Base.findfirst(c::C, cells::Vector{C}) where {C<:AbstractCell}
+    if c[:index] > 0 # fast search (usually cells are ordered)
+        cidx = searchsortedfirst(cells, c, by=s->s[:index])
+        return cidx > length(cells) ? nothing : cidx
+    else # slow search
+        return findfirst(s->s==c, cells)
+    end
+end
+
 """Return an index of the k-dimensional cell in the complex.
 
 **Note:** If returned index is larger than the number of cells of this dimension, then the cell is not in complex and the returned index will be assigned to the cell when it's added to the complex.
 """
-function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C}
+function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C <: AbstractCell}
     @assert celltype(cplx) == C "Incorrect cell type"
     dcells = cells(cplx, dim(c))
     dcells === nothing && return 1
-    cidx = findfirst(isequal(c), dcells)
+    cidx = findfirst(c, dcells)
     cidx === nothing && return size(cplx, d)+1
     return dcells[cidx][:index]
 end
-Base.getindex(cplx::AbstractComplex, c::C) where {C} =  cplx[c, dim(c)]
+Base.getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell} =  cplx[c, dim(c)]
 
 """Return a `d`-dimensional cell given its index `idx`."""
 function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
@@ -107,6 +116,14 @@ function boundary_matrix(::Type{R}, cplx::AbstractComplex, d::Int) where {R}
     return bm
 end
 boundary_matrix(cplx::AbstractComplex, d::Int) = boundary_matrix(Int, cplx, d)
+
+function Base.in(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
+    sdim = dim(c)
+    dcells = cells(cplx, sdim)
+    dcells === nothing && return false
+    cidx = findfirst(c, dcells)
+    return cidx !== nothing
+end
 
 #
 # Complex simplex iterator

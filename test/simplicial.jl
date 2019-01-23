@@ -50,13 +50,13 @@
     @test splx[1][:index] == 1
     @test dim(splx[1]) == 0
     @test sum(size(cplx)) == 1
-    @test cplx.cells[0][1][:values] == [1]
+    @test cells(cplx, 0)[1][:values] == [1]
 
     splx = push!(cplx, Simplex(1,2))
     @test splx[1][:index] == 1
     @test dim(splx[1]) == 1
     @test sum(size(cplx)) == 2
-    @test cplx.cells[1][1][:values] == [1,2]
+    @test cells(cplx, 1)[1][:values] == [1,2]
 
     cplx = SimplicialComplex(Int)
     splxs = push!(cplx, Simplex(1,2), recursive=true)
@@ -78,6 +78,11 @@
     @test sum(size(cplx)) == 5
     @test size(cplx, 0) == 3
     @test size(cplx, 1) == 2
+
+    @test in(cplx, Simplex(1,3))
+    @test in(cplx, first(cells(cplx,1)))
+    @test !in(cplx, Simplex(2,3))
+    @test !in(cplx, Simplex(2,3,3))
 
     io = IOBuffer()
     write(io, cplx)
