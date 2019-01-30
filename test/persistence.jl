@@ -141,7 +141,7 @@
     @test_throws AssertionError group(ph, 3)
 
     # PH iterator
-    @testset "Method Comparison" for (g1, g2) in zip(homology(complex(flt)), persistenthomology(TwistReduction, flt))
+    @testset "Method Comparison" for (g1, g2) in zip(homology(complex(flt), Int), persistenthomology(TwistReduction, flt))
         @test g1[1] == g2[1]
         @test g1[2] == g2[2]
     end

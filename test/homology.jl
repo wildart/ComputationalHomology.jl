@@ -5,7 +5,7 @@
                         Simplex(5,4),
                         Simplex(6))
 
-    h = homology(cplx)
+    h = homology(cplx, Int)
     @test eltype(h) == Tuple{Int64,Int64,Int64}
     @test grouptype(supertype(typeof(h))) == Nothing
     @test grouptype(typeof(h)) == Int
@@ -52,7 +52,7 @@
     @test itm[1] == 1
     @test itm[2] == 1
     @test first(itm[4])[2] == 0
-    @testset for (a,b) in zip( simplify(first(itm[4])[1]), Chain(1, Int) + (-1, 4) + (1,3) + (1,5))
+    @testset for (a,b) in zip( simplify(first(itm[4])[1]), Chain(1, Int) + (1, 4) + (1, 2) + (-1,3) + (-1,5) )
         @test a == b
     end
 

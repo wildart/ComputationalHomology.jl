@@ -21,21 +21,21 @@ Base.length(ch::EmptyChain) = 0
 
     where the a_i ∈ R.
 """
-mutable struct Chain{R} <: AbstractChain
+mutable struct Chain{PID} <: AbstractChain
     dim::Int
-    coefs::Vector{R}   # coefficients from ring R
+    coefs::Vector{PID} # coefficients from PID
     elems::Vector{Int} # indexes to elements of E
 end
-Chain(coefs::Vector{R}, elems::Vector{Int}) where {R} = Chain{R}(0, coefs, elems)
-Chain(dim::Int, ::Type{R}) where {R} = Chain{R}(dim, R[], Int[])
-Chain(::Type{R}) where {R} = Chain(0,R)
+Chain(coefs::Vector{PID}, elems::Vector{Int}) where {PID} = Chain{PID}(0, coefs, elems)
+Chain(dim::Int, ::Type{PID}) where {PID} = Chain{PID}(dim, PID[], Int[])
+Chain(::Type{PID}) where {PID} = Chain(0,PID)
 dim(ch::Chain) = ch.dim
 setdim!(ch::Chain, dim::Int) = (ch.dim = dim)
 
 # implement interface
 Base.getindex(ch::Chain, i::Integer) = (ch.coefs[i], ch.elems[i])
 Base.length(ch::Chain) = length(ch.coefs)
-Base.eltype(ch::Chain{R}) where {R} = R
+Base.eltype(ch::Chain{PID}) where {PID} = PID
 
 function Base.show(io::IO, ch::Chain)
     if length(ch.elems) == 0
@@ -48,29 +48,29 @@ function Base.show(io::IO, ch::Chain)
     end
 end
 
-function Base.push!(ch::Chain{R}, coef::R, idx::Int) where {R}
+function Base.push!(ch::Chain{PID}, coef::PID, idx::Int) where {PID}
     push!(ch.coefs, coef)
     push!(ch.elems, idx)
     return ch
 end
-Base.push!(ch::Chain{R}, e::Tuple{R,Int}) where {R} = push!(ch, e[1], e[2])
-Base.push!(ch::Chain{R}, e::Pair{R,Int}) where {R}  = push!(ch, e[1], e[2])
+Base.push!(ch::Chain{PID}, e::Tuple{PID,Int}) where {PID} = push!(ch, e[1], e[2])
+Base.push!(ch::Chain{PID}, e::Pair{PID,Int}) where {PID}  = push!(ch, e[1], e[2])
 function Base.append!(a::Chain, b::Chain)
     append!(a.coefs, b.coefs)
     append!(a.elems, b.elems)
     return a
 end
-+(ch::Chain{R}, e::Tuple{R,Int}) where {R} = push!(ch, e[1], e[2])
++(ch::Chain{PID}, e::Tuple{PID,Int}) where {PID} = push!(ch, e[1], e[2])
 
-+(a::Chain{R}, b::Chain{R}) where {R} = Chain{R}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
--(a::Chain{R}, b::Chain{R}) where {R} = Chain{R}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
++(a::Chain{PID}, b::Chain{PID}) where {PID} = Chain{PID}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
+-(a::Chain{PID}, b::Chain{PID}) where {PID} = Chain{PID}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
 
-*(ch::Chain{R}, r::R) where {R} = Chain{R}(dim(ch), ch.coefs*r, ch.elems)
-*(r::R, c::Chain{R}) where {R} = c*r
+*(ch::Chain{PID}, r::PID) where {PID} = Chain{PID}(dim(ch), ch.coefs*r, ch.elems)
+*(r::PID, c::Chain{PID}) where {PID} = c*r
 
 function simplify(ch::Chain)
-    R = eltype(ch)
-    tmpChain = Dict{Int,R}()
+    PID = eltype(ch)
+    tmpChain = Dict{Int,PID}()
     for (c,el) in ch
         if haskey(tmpChain, el)
             tmpChain[el] += c
@@ -78,9 +78,9 @@ function simplify(ch::Chain)
             tmpChain[el] = c
         end
     end
-    cc = Chain(dim(ch), R)
+    cc = Chain(dim(ch), PID)
     for (el,c) in tmpChain
-        c != zero(R) && push!(cc, (c,el))
+        c != zero(PID) && push!(cc, (c,el))
     end
     return cc
 end

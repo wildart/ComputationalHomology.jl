@@ -2,34 +2,30 @@
 
 abstract type AbstractHomology end
 grouptype(::Type{AbstractHomology}) = Nothing
-grouptype(::Type{H}) where {H <: AbstractHomology} = supertype(H) |> grouptype
+# grouptype(::Type{H}) where {H <: AbstractHomology} = grouptype(supertype(H))
 group(h::AbstractHomology, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
 
 """
 Homology group iterator for an abstract complex
 """
-struct Homology{C<:AbstractComplex, G} <: AbstractHomology
+struct Homology{C<:AbstractComplex, PID} <: AbstractHomology
     complex::C
 end
-homology(c::C, ::Type{G}) where {C <: AbstractComplex,G} = Homology{C,G}(c)
-homology(c::C) where {C <: AbstractComplex} = homology(c, Int)
+homology(c::C, ::Type{PID}) where {C<:AbstractComplex, PID} = Homology{C, PID}(c)
 
-grouptype(::Type{Homology{C,G}}) where {C,G} = G
-
-Base.show(io::IO, h::Homology) = print(io, "Homology[$(h.complex)]")
-
-"""Return homology group type: dimension, Betti & torsion numbers."""
-Base.eltype(::Type{Homology{C,G}}) where {C,G} = Tuple{Int, Int, Int}
+Base.show(io::IO, h::Homology{C, PID}) where {C<:AbstractComplex, PID} = print(io, "Homology($PID)[$(h.complex)]")
 
 #
 # Interface methods
 #
 
-function group(h::Homology{C, G}, p::Int; Dₚ::Int=0) where {C <: AbstractComplex, G}
+grouptype(::Type{Homology{C, PID}}) where {C<:AbstractComplex, PID} = PID
+
+function group(h::Homology{C, PID}, p::Int; Dₚ::Int=0) where {C<:AbstractComplex, PID}
     cdim = dim(h.complex)
     @assert cdim >= p "Cannot define $p-th homology group for $cdim-dimensional complex"
 
-    M = boundary_matrix(G, h.complex, p+1)
+    M = boundary(h.complex, p+1, PID)
     F = smith(M)
     D = diagm(F)
 
@@ -41,13 +37,13 @@ function group(h::Homology{C, G}, p::Int; Dₚ::Int=0) where {C <: AbstractCompl
 
     # Calculate rank B_p = rank D_{p+1}
     for i in 1:nₚ₊₁
-        D[i,i] == zero(G) && break
+        D[i,i] == zero(PID) && break
         Dₚ₊₁ += 1
     end
 
     # rank of torsion-free subgroup
     for i in 1:min(nₚ, nₚ₊₁)
-        if D[i,i] == one(G) || D[i,i] == -one(G)
+        if D[i,i] == one(PID) || D[i,i] == -one(PID)
            trivial += 1
         end
     end
@@ -62,13 +58,14 @@ end
 #
 # Iterator methods
 #
+"""Return homology group type: dimension, Betti & torsion numbers."""
+Base.eltype(h::Homology) = Tuple{Int, Int, Int}
 
-Base.length(h::Homology{C, G}) where {C,G} = dim(h.complex)+1
-Base.eltype(h::Homology{C, G}) where {C,G} = Tuple{Int,Int,Int}
+Base.length(h::Homology) = dim(h.complex)+1
 
-function Base.iterate(h::Homology{C, G}, state=nothing) where {C,G}
+function Base.iterate(h::Homology{C, PID}, state=nothing) where {C<:AbstractComplex, PID}
     if state === nothing
-        Z = zeros(G,0,0)
+        Z = zeros(PID,0,0)
         snfstate = (Z,Z,Z,Z,Z,0)
         return iterate(h, (0, snfstate))
     end
@@ -96,7 +93,6 @@ Returns homology group parameters from iterator `hom` and generators as pair of 
 When **k** is zero, then **x** is a boundary without any coefficient.
 """
 withgenerators(h::H) where {H <: AbstractHomology} = WithGenerators{H}(h)
-Base.eltype(::Type{WithGenerators{H}}) where {H <: AbstractHomology} = Tuple{Int, Int, Int, Dict{Chain, grouptype(H)}}
 
 #
 # Iterator methods
