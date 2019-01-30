@@ -71,8 +71,8 @@ function Base.size(cplx::AbstractComplex, d::Int)
 end
 
 function Base.findfirst(c::C, cells::Vector{C}) where {C<:AbstractCell}
-    if c[:index] > 0 # fast search (usually cells are ordered)
-        cidx = searchsortedfirst(cells, c, by=s->s[:index])
+    if c.index > 0 # fast search (usually cells are ordered)
+        cidx = searchsortedfirst(cells, c, by=s->s.index)
         return cidx > length(cells) ? nothing : cidx
     else # slow search
         return findfirst(s->s==c, cells)
@@ -89,7 +89,7 @@ function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C <: Abstract
     dcells === nothing && return 1
     cidx = findfirst(c, dcells)
     cidx === nothing && return size(cplx, d)+1
-    return dcells[cidx][:index]
+    return dcells[cidx].index
 end
 Base.getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell} =  cplx[c, dim(c)]
 
@@ -101,21 +101,20 @@ function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
 end
 
 """Generate a boundary matrix from the cell complex of the dimension `d`."""
-function boundary_matrix(::Type{R}, cplx::AbstractComplex, d::Int) where {R}
+function boundary(cplx::AbstractComplex, d::Int, ::Type{PID}) where {PID}
     csize = size(cplx)
     rows = d > 0 ? csize[d] : 0
     cols = d <= dim(cplx) ? csize[d+1] : 0
-    bm = spzeros(R, rows, cols)
+    bm = spzeros(PID, rows, cols)
     if d>=0 && d <= dim(cplx)
         for i in 1:csize[d+1]
-            for (coef,elem) in boundary(cplx, i, d, R)
+            for (coef,elem) in boundary(cplx, i, d, PID)
                 bm[elem, i] = coef
             end
         end
     end
     return bm
 end
-boundary_matrix(cplx::AbstractComplex, d::Int) = boundary_matrix(Int, cplx, d)
 
 function Base.in(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
     sdim = dim(c)

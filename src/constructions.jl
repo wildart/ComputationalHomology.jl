@@ -1,11 +1,11 @@
 """Find all neighbors of vertex `u`` within `G` that precede it in the given ordering"""
 function lowernbrs(cplx, u, E)
     # get all edges of u
-    uval = first(u[:values])
-    uidx = u[:index]
+    uval = first(u.values)
+    uidx = u.index
     # select {v} s.t. u > v for all edges {u,v}
     !any(E[:,uval]) && return celltype(cplx)[]
-    return filter(v->v[:index] < uidx && E[first(v[:values]),uval], cells(cplx,0))
+    return filter(v->v.index < uidx && E[first(v.values),uval], cells(cplx,0))
 end
 
 """Inductive construction of VR complex from neighborhood graph"""
@@ -15,15 +15,15 @@ function inductive!(cplx, k, E)
         cls === nothing && continue
         for τ in cells(cplx, i)
             N = celltype(cplx)[]
-            τvals = τ[:values]
+            τvals = τ.values
             for (j, uval) in enumerate(τvals)
                 uidx = cplx[Simplex(uval), 0]
                 u = cplx[uidx, 0]
                 N = j == 1 ? lowernbrs(cplx, u, E) : intersect(N, lowernbrs(cplx, u, E))
             end
             for v in N
-                first(v[:values]) in τvals && continue
-                σ = Simplex(τvals..., v[:values]...)
+                first(v.values) in τvals && continue
+                σ = Simplex(τvals..., v.values...)
                 cplx[σ] > size(cplx, i+1) && push!(cplx, σ)
             end
         end
@@ -36,11 +36,11 @@ function addcofaces!(cplx, k, τ, N, E)
     !in(cplx, τ) && addsimplex!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
-    τvals = τ[:values]
+    τvals = τ.values
     for v in N
-        first(v[:values]) in τvals && continue
+        first(v.values) in τvals && continue
         # σ ← τ ∪ {v}
-        σ = Simplex(τvals..., v[:values]...)
+        σ = Simplex(τvals..., v.values...)
         M = intersect(N, lowernbrs(cplx, v, E))
         addcofaces!(cplx, k, σ, M, E)
     end
@@ -77,7 +77,7 @@ function expand(method, cplx, w, kmax, E)
         for k in 2:dim(cplx)
             w[k] = zeros(size(cplx,k))
             for σ in cells(cplx,k)
-                w[k][σ[:index]] = weight(σ, w, cplx)
+                w[k][σ.index] = weight(σ, w, cplx)
             end
         end
     end
@@ -138,7 +138,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
         if size(cplx, 1) > 0
             w[1] = zeros(size(cplx,1))
             for e in cells(cplx,1)
-                w[1][e[:index]] = D[e[:values]...]
+                w[1][e.index] = D[e.values...]
             end
         end
     end

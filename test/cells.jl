@@ -1,15 +1,17 @@
 @testset "Simplex" begin
     s = Simplex(1, 2, 3)
-    @test s[:index] == 0
-    @test s[:values] == [1,2,3]
-    s[:index] = 1
-    @test s[:index] == 1
+    @test s.index == 0
+    @test s.values == Set([1,2,3])
+    s.index = 1
+    @test s.index == 1
 
     s = Simplex([1,2,3])
     @test dim(s) == 2
-    @test s[:values] == [1,2,3]
-    @testset "Simplex faces" for (o,t) in zip(faces(s), [Simplex(2, 3), Simplex(1, 3), Simplex(1, 2)])
-        @test o[:values] == t[:values]
+    @test s.values == Set([1,2,3])
+    allfaces = [Simplex(2, 3), Simplex(1, 3), Simplex(1, 2)]
+    @testset "Simplex faces" for o in faces(s)
+        idx = findfirst(isequal(o), allfaces)
+        @test o.values == allfaces[idx].values
     end
 
     ss = Set{Simplex}()
@@ -44,7 +46,7 @@ end
     @test dim(c) == 2
     c = Cube{Vector{Int}}([0,0,0],[1,1,1]) # 3-cube
     @test dim(c) == 3
-    @test c[:values] == ([0,0,0],[1,1,1])
+    @test c.values == ([0,0,0],[1,1,1])
 
     c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.0,.5]) # 2-cube
     @test volume(c) == 0.5^2

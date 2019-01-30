@@ -32,7 +32,7 @@ function filtration(cplx::AbstractComplex)
     i = 1
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
-            push!(idx, (dim(c), c[:index], i))
+            push!(idx, (dim(c), c.index, i))
             i += 1
         end
     end
@@ -44,7 +44,7 @@ function filtration(cplx::C, w::Dict{Int,Vector{FI}}; divisions::Number=Inf) whe
     idx = Vector{Tuple{Int,Int,FI}}()
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
-            ci = c[:index]
+            ci = c.index
             push!(idx, (d, ci, w[d][ci]))
         end
     end
@@ -60,9 +60,9 @@ function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=fa
     idx = length(ord) == 0 ? 1 : findlast(e->e[3]<=v, ord)
     for c in sort!(cls, by=s->dim(s))
         if idx == length(ord)
-            push!(ord, (dim(c), c[:index], v))
+            push!(ord, (dim(c), c.index, v))
         else
-            insert!(ord, idx, (dim(c), c[:index], v))
+            insert!(ord, idx, (dim(c), c.index, v))
         end
         idx += 1
     end
@@ -136,7 +136,7 @@ end
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
-        for k in cplx[ci,d][:values]
+        for k in cplx[ci,d].values
             write(io, "$k,")
         end
         write(io, "$fv\n")
@@ -145,7 +145,7 @@ end
 
 function Base.read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
     flt = Filtration(C,FI)
-    ET = eltype(celltype(complex(flt)))
+    ET = eltype(celltype(complex(flt))())
     while !eof(io)
         l = readline(io)
         vals = split(l, ',')

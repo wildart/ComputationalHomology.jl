@@ -20,7 +20,7 @@ export AbstractCell,
        Chain,
 
        AbstractComplex,
-       boundary, coboundary, celltype, cells, boundary_matrix,
+       boundary, coboundary, celltype, cells,
        SimplicialComplex,
        vietorisrips, witness, cech, čech,
 

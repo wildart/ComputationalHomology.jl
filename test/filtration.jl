@@ -24,7 +24,7 @@
     # test io
     let io = IOBuffer()
         write(io, flt)
-        @test String(take!(copy(io))) == "1,1\n2,2\n1,2,3\n3,4\n1,3,4\n"
+        @test String(take!(copy(io))) == "1,1\n2,2\n2,1,3\n3,4\n3,1,4\n"
         seekstart(io)
         tmp = read(io, Filtration{SimplicialComplex{Int}, Int})
         @testset for ((f1,ss1),(f2,ss2)) in zip(flt, tmp)

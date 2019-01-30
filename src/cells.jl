@@ -3,9 +3,9 @@ abstract type AbstractCell end
 """Dimension of the cell"""
 dim(c::AbstractCell) = throw(MethodError(dim,(typeof(c),)))
 """Get cell properties: `:index` & `:values`"""
-Base.getindex(c::AbstractCell, k::Symbol) = throw(MethodError(getindex,(typeof(c),)))
+Base.getproperty(c::AbstractCell, k::Symbol) = throw(MethodError(getproperty,(typeof(c),)))
 """Set cell properties: `:index` & `:values`"""
-Base.setindex!(c::AbstractCell, v, k::Symbol) = throw(MethodError(setindex!,(typeof(c),)))
+Base.setproperty!(c::AbstractCell, v, k::Symbol) = throw(MethodError(setproperty!,(typeof(c),)))
 """Cell comparison"""
 ==(a::AbstractCell, b::AbstractCell) = throw(MethodError(==,(typeof(a), typeof(b))))
 """Get cell faces"""
@@ -14,51 +14,51 @@ faces(c::AbstractCell) = throw(MethodError(faces,(typeof(c),)))
 #=== Simples ===#
 mutable struct Simplex{P} <: AbstractCell
     idx::Int
-    vs::Vector{P}
+    vs::Set{P}
     hash::UInt64
     Simplex{P}(idx, vals) where {P} = new(idx, vals, hash(vals))
-    Simplex{P}() where {P} = new(0, P[])
+    Simplex{P}() where {P} = new(0, Set{P}())
 end
-Simplex(splx::Vector{P}; ordered=true) where {P} = Simplex{P}(0, ordered ? sort!(splx) : splx)
-Simplex(splx::P...; ordered=true) where {P} = Simplex(P[splx...], ordered=ordered)
+Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, Set(splx))
+Simplex(splx::P...) where {P} = Simplex(P[splx...])
 
 # Private methods
 
-Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, sort!(v))
+Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
 Base.hash(splx::Simplex) = splx.hash
-Base.show(io::IO, splx::Simplex) = show(io, "Σ($(splx.vs))[$(splx.idx)]")
-Base.eltype(::Type{Simplex{P}}) where {P} = P
+Base.show(io::IO, splx::Simplex) = show(io, "σ$(splx.idx)$(collect(splx.vs))")
+Base.eltype(splx::Simplex{P}) where {P} = P
 
 # Public methods
 
 dim(splx::Simplex) = length(splx.vs)-1
 
-function Base.getindex(splx::Simplex, k::Symbol)
-    if k == :index
+function Base.getproperty(splx::Simplex, name::Symbol)
+    if name == :index
         return splx.idx
-    elseif k == :values
+    elseif name == :values
         return splx.vs
     else
-        throw(KeyError(k))
+        return getfield(splx, name)
     end
 end
 
-function Base.setindex!(splx::Simplex, v, k::Symbol)
-    if k == :index
+function Base.setproperty!(splx::Simplex, name::Symbol, v)
+    if name == :index
         splx.idx = v
-    elseif k == :values
+    elseif name == :values
         splx.vs = v
     else
-        throw(KeyError(k))
+        return setfield!(splx, name, v)
     end
 end
 
-==(a::Simplex, b::Simplex) = a[:values] == b[:values]
+==(a::Simplex, b::Simplex) = a.hash == b.hash
 
 function faces(splx::Simplex{P}) where {P}
     faces = typeof(splx)[]
     for i in 1:dim(splx)+1
-        face = copy(splx[:values])
+        face = collect(splx.values)
         deleteat!(face,i)
         push!(faces, Simplex(face))
     end
@@ -73,7 +73,7 @@ function volume(S::AbstractMatrix)
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
-volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,s[:values]])
+volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,collect(s.values)])
 
 #=== Cube ===#
 
@@ -91,24 +91,24 @@ Base.show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
 
 dim(c::Cube) = length(findall(!iszero, c.extent))
 
-function Base.getindex(c::Cube, k::Symbol)
-    if k == :index || k == :values
+function Base.getproperty(c::Cube, name::Symbol)
+    if name == :index || name == :values
         return (c.origin, c.extent)
     else
-        throw(KeyError(k))
+        return getfield(c, name)
     end
 end
 
-function Base.setindex!(c::Cube, v, k::Symbol)
-    if k == :index || k == :values
+function Base.setproperty!(c::Cube, name::Symbol, v)
+    if name == :index || name == :values
         c.origin = v[1]
         c.extent = v[2]
     else
-        throw(KeyError(k))
+        return setfield!(c, name, v)
     end
 end
 
-==(a::Cube, b::Cube) = a[:values] == b[:values]
+==(a::Cube, b::Cube) = a.hash == b.hash
 
 # Misc. methods
 

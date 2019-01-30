@@ -42,39 +42,39 @@
         @test a == b
     end
 
-    @test convert(Matrix, boundary_matrix(cplx, 2)) == [1 -1 1 0 0 0]'
+    @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
 
     cplx = SimplicialComplex(Int)
 
     splx = push!(cplx, Simplex(1))
-    @test splx[1][:index] == 1
+    @test splx[1].index == 1
     @test dim(splx[1]) == 0
     @test sum(size(cplx)) == 1
-    @test cells(cplx, 0)[1][:values] == [1]
+    @test cells(cplx, 0)[1].values == Set([1])
 
     splx = push!(cplx, Simplex(1,2))
-    @test splx[1][:index] == 1
+    @test splx[1].index == 1
     @test dim(splx[1]) == 1
     @test sum(size(cplx)) == 2
-    @test cells(cplx, 1)[1][:values] == [1,2]
+    @test cells(cplx, 1)[1].values == Set([1,2])
 
     cplx = SimplicialComplex(Int)
     splxs = push!(cplx, Simplex(1,2), recursive=true)
-    @test splxs[1][:index] == 1
-    @test splxs[1][:values] == [1,2]
-    @test splxs[2][:index] == 1
-    @test splxs[2][:values] == [1]
-    @test splxs[3][:index] == 2
-    @test splxs[3][:values] == [2]
+    @test splxs[1].index == 1
+    @test splxs[1].values == Set([1,2])
+    @test splxs[2].index == 1
+    @test splxs[2].values == Set([2])
+    @test splxs[3].index == 2
+    @test splxs[3].values == Set([1])
     @test sum(size(cplx)) == 3
     @test size(cplx, 0) == 2
     @test size(cplx, 1) == 1
 
     splxs = push!(cplx, Simplex(1,3), recursive=true)
-    @test splxs[1][:index] == 2
-    @test splxs[1][:values] == [1,3]
-    @test splxs[2][:index] == 3
-    @test splxs[2][:values] == [3]
+    @test splxs[1].index == 2
+    @test splxs[1].values == Set([1,3])
+    @test splxs[2].index == 3
+    @test splxs[2].values == Set([3])
     @test sum(size(cplx)) == 5
     @test size(cplx, 0) == 3
     @test size(cplx, 1) == 2

@@ -25,7 +25,7 @@ function addsimplex!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
     d < 0 && return (0,d,0)
     !haskey(cplx.cells, d) && setindex!(cplx.cells, Simplex{P}[], d)
     i = length(cplx.cells[d])+1
-    splx[:index] = i
+    splx.index = i
     push!(cplx.cells[d], splx)
     # cplx.order[d=>i] = length(cplx.order)+1
     return splx
@@ -42,7 +42,7 @@ function addsimplices!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
 
     # add simplex to complex
     s = addsimplex!(cplx, splx)
-    push!(addedidxs, (sum(size(cplx)), dim(s), s[:index]))
+    push!(addedidxs, (sum(size(cplx)), dim(s), s.index))
     push!(ret, s)
     for f in faces(splx) # add simplex faces for processing
         push!(toprocess, f)
@@ -57,7 +57,7 @@ function addsimplices!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
         tmp in added && continue # skip if already processed
 
         s = addsimplex!(cplx, tmp) # add simples to the complex
-        push!(addedidxs, (sum(size(cplx)), dim(s), s[:index]))
+        push!(addedidxs, (sum(size(cplx)), dim(s), s.index))
         push!(added, tmp) # mark as processed
         push!(ret, s)
 
@@ -73,8 +73,8 @@ end
 #
 # Public Interface
 #
-
-celltype(cplx::SimplicialComplex{P}) where {P} = Simplex{P}
+celltype(::Type{SimplicialComplex{P}}) where {P} = Simplex{P}
+celltype(cplx::SimplicialComplex{P}) where {P} = celltype(typeof(cplx))
 
 function cells(cplx::SimplicialComplex)
     CCT = valtype(cplx.cells)
@@ -87,14 +87,14 @@ cells(cplx::SimplicialComplex{P}, d::Int) where {P} = get(cplx.cells, d,  nothin
 
 dim(cplx::SimplicialComplex) = length(size(cplx))-1
 
-function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where {R}
-    ch = Chain(d-1, R)
+function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{PID}) where {PID}
+    ch = Chain(d-1, PID)
     if d == 0
         setdim!(ch, -1)
         return ch
     end
-    pos = one(R)
-    neg = -one(R)
+    pos = one(PID)
+    neg = -one(PID)
 
     splx = cplx[idx, d]
     splx === nothing && return ch
@@ -176,13 +176,13 @@ end
 function Base.write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,Int}()
     for s in cplx.cells[0]
-        zsplxs[s.vs[]] = s.idx
+        zsplxs[first(s.values)] = s.idx
         write(io, "$(s.idx)")
         write(io, 0x0A)
     end
     for d in 1:dim(cplx)
         for s in cplx.cells[d]
-            for (j,i) in enumerate(s.vs)
+            for (j,i) in enumerate(s.values)
                 write(io, "$(zsplxs[i])")
                 if j>d
                     write(io, 0x0A)
