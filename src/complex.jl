@@ -4,20 +4,20 @@ Each complex should have collection of cells per dimension:
 =#
 abstract type AbstractComplex end
 
-function boundary(cplx::AbstractComplex, ch::Chain{R}) where {R}
+function boundary(cplx::AbstractComplex, ch::Chain{PID}) where {PID}
     d = dim(ch)
-    cc = Chain(d-1, R)
+    cc = Chain(d-1, PID)
     for (coef,elem) in ch
-        append!(cc, coef * boundary(cplx, elem, d, R))
+        append!(cc, coef * boundary(cplx, elem, d, PID))
     end
     return cc
 end
 
-function coboundary(cplx::AbstractComplex, ch::Chain{R}) where {R}
+function coboundary(cplx::AbstractComplex, ch::Chain{PID}) where {PID}
     d = dim(ch)
-    cc = Chain(d+1,R)
+    cc = Chain(d+1, PID)
     for (coef,elem) in ch
-        append!(cc, coef * coboundary(cplx, elem, d, R))
+        append!(cc, coef * coboundary(cplx, elem, d, PID))
     end
     return cc
 end
@@ -26,21 +26,15 @@ end
 # AbstractComplex Public Interface
 #
 """Return a complex boundary given element and dimension"""
-boundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{R}) where {R} = throw(MethodError(boundary, (typeof(cplx),Int,Int,R)))
+boundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,R)))
 boundary(cplx::AbstractComplex, i::Int, d::Int) = boundary(cplx, i, d, Int)
 
 """Return a complex coboundary given element and dimension"""
-coboundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{R}) where {R} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,R)))
+coboundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,R)))
 coboundary(cplx::AbstractComplex, i::Int, d::Int) = coboundary(cplx, i, d, Int)
 
 """Return a complex cell type"""
 celltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
-
-"""Return a dimension of the complex"""
-dim(cplx::AbstractComplex) = throw(MethodError(dim,(typeof(cplx),)))
-
-"""Set dimension of the complex"""
-setdim!(cplx::AbstractComplex, d::Int) = throw(MethodError(setdim!, (typeof(cplx),Int)))
 
 """Return a cell collection per dimension (increasing)"""
 cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
@@ -58,15 +52,20 @@ Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(Meth
 #
 # Public Methods
 #
-"""Return a size of cell collections per dimension"""
+"""Return a number of cells per dimension"""
 Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...,)
+
+"""Return a dimension of the complex"""
+dim(cplx::AbstractComplex) = length(size(cplx))-1
+
+"""Return a total number of cells in the complex"""
 Base.length(cplx::AbstractComplex) = sum(size(cplx))
 
-"""Return a size of the cell collection for dimension (0-based)"""
+"""Return a number of the cell in the complex of a dimension `d` (0-based)"""
 function Base.size(cplx::AbstractComplex, d::Int)
-    (d < 0 || d > dim(cplx)) && return 0
     sz = size(cplx)
-    d >= length(sz) && return 0
+    szlen = length(sz)
+    (d < 0 || d >= szlen) && return 0
     return sz[d+1]
 end
 
@@ -124,23 +123,13 @@ function Base.in(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
     return cidx !== nothing
 end
 
-#
-# Complex simplex iterator
-#
-Base.length(splxs::Simplices{C}) where C<:AbstractComplex =
-    splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
+"""
+    cochain(cplx, d, coefs)
 
-Base.eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
-
-# State (total id, dim, dim id)
-function Base.iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex
-    tid >= length(iter) && return nothing
-    if d < 0
-        d = 0
-    end
-    if did > size(iter.itr, d)
-        d += 1
-        did = 1
-    end
-    return iter.itr[did, d], (tid+1, d, did+1)
+Return cochain of the dimension `d` for the complex `cplx` with PID coefficients `coefs`
+"""
+function cochain(cplx::AbstractComplex, d::Int, coefs::Vector{PID}) where {PID}
+    cs = cells(cplx, d)
+    @assert length(cs) == length(coefs) "Number of coefficients must match number of cells of dimension $d"
+    return Chain(d, coefs, map(c->hash(c), cs))
 end
