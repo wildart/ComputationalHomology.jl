@@ -1,6 +1,6 @@
 @testset "Filtration" begin
     # create empty filtration
-    flt = Filtration(SimplicialComplex{Int}, Int)
+    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
 
     # fill it with (cell, 'filtration value') pairs
     push!(flt, Simplex(1), 1)
@@ -26,7 +26,7 @@
         write(io, flt)
         @test String(take!(copy(io))) == "1,1\n2,2\n2,1,3\n3,4\n3,1,4\n"
         seekstart(io)
-        tmp = read(io, Filtration{SimplicialComplex{Int}, Int})
+        tmp = read(io, Filtration{SimplicialComplex{Simplex{Int}}, Int})
         @testset for ((f1,ss1),(f2,ss2)) in zip(flt, tmp)
             @test f1 == f2
             for (s1, s2) in zip(ss1, ss2)
@@ -41,7 +41,7 @@
     @test count(!iszero, sparse(∂)) == 4
 
     # create filtration from an existed complex
-    cplx = SimplicialComplex(Char)
+    cplx = SimplicialComplex(Simplex{Char})
     push!(cplx, Simplex('a','b','c'), recursive=true)
     flt = filtration(cplx)
     @test order(flt)[end] == (2, 1, 7)

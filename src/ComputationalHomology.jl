@@ -13,6 +13,7 @@ import Base.Iterators: pairs
 
 export AbstractCell,
        dim, faces, volume,
+       AbstractSimplex,
        Simplex, Cube,
 
        AbstractChain,

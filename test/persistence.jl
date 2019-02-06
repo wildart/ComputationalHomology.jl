@@ -15,7 +15,7 @@
     #######
     # from "Computational Topology - An Introduction" by Edelsbrunner & Harer, p. 184
     #######
-    flt = Filtration(SimplicialComplex{Int}, Int)
+    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
     splxs=[ Simplex(1) => 1,
             Simplex(2) => 2,
             Simplex(3) => 3,
@@ -43,7 +43,7 @@
     #######
     # from "Topology for Computing" by Zomorodian, pp.138-145
     #######
-    flt = Filtration(SimplicialComplex{Char}, Int)
+    flt = Filtration(SimplicialComplex{Simplex{Char}}, Int)
     splxs=[ Simplex('a') => 0,
             Simplex('b') => 0,
             Simplex('c') => 1,
@@ -69,7 +69,7 @@
     #######
     # Ex.1
     #######
-    flt = Filtration(SimplicialComplex{Int}, Int)
+    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
     splxs=[ Simplex(1) => 0,
             Simplex(2) => 0,
             Simplex(3) => 0,
@@ -99,7 +99,7 @@
     #######
     # Ex.2
     #######
-    flt = Filtration(SimplicialComplex{Int}, Float64)
+    flt = Filtration(SimplicialComplex{Simplex{Int}}, Float64)
     splxs=[ Simplex(1) => 1.0,
             Simplex(2) => 2.0,
             Simplex(3) => 3.0,

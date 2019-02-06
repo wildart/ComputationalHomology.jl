@@ -9,6 +9,7 @@
     cs = cells(cplx,3)
     @test cs === nothing
     @test size(cplx) == (4,4,1)
+    @test size(cplx,-1) == 0
     @test size(cplx,0) == 4
     @test size(cplx,1) == 4
     @test size(cplx,2) == 1
@@ -44,7 +45,7 @@
 
     @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
 
-    cplx = SimplicialComplex(Int)
+    cplx = SimplicialComplex(Simplex{Int})
 
     splx = push!(cplx, Simplex(1))
     @test splx[1].index == 1
@@ -58,7 +59,7 @@
     @test sum(size(cplx)) == 2
     @test cells(cplx, 1)[1].values == Set([1,2])
 
-    cplx = SimplicialComplex(Int)
+    cplx = SimplicialComplex(Simplex{Int})
     splxs = push!(cplx, Simplex(1,2), recursive=true)
     @test splxs[1].index == 1
     @test splxs[1].values == Set([1,2])
@@ -87,7 +88,7 @@
     io = IOBuffer()
     write(io, cplx)
     seekstart(io)
-    cplx2 = read(io, SimplicialComplex{Int})
+    cplx2 = read(io, SimplicialComplex{Simplex{Int}})
     @test size(cplx2, 0) == 3
     @test size(cplx2, 1) == 2
 

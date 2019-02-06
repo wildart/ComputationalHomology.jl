@@ -71,11 +71,43 @@ Base.show(io::IO, splxs::Simplices{T}) where T = print(io, "Simplex Iterator", s
 
 Create a simplicial complex with simplices with a value type `P`.
 """
-mutable struct SimplicialComplex{P} <: AbstractComplex
-    cells::Dict{Int,Vector{Simplex{P}}}   # cells per dimension
+mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex
+    cells::Dict{Int,Vector{S}}   # cells per dimension
     # order::Dict{Pair{Int,Int},Int}      # order of cells
 end
 Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
+
+#
+# Constructors
+#
+
+SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} = SimplicialComplex(Dict{Int,Vector{S}}())
+(::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
+
+
+function SimplicialComplex(splxs::Simplex...)
+    S = eltype(splxs)
+    cplx = SimplicialComplex(S)
+    added = Set{S}()
+    toprocess = Vector{S}()
+    for splx in splxs
+        push!(toprocess, splx) # add simplex to process its faces
+        while(length(toprocess) > 0)
+            tmp = pop!(toprocess) # processing simplex faces
+            tmp in added && continue # skip if already processed
+            addsimplex!(cplx, tmp) # add simples to complex
+            push!(added, tmp) # mark as processed
+            for f in faces(tmp) # add simplex faces for processing
+                push!(toprocess, f)
+            end
+        end
+    end
+
+    return cplx
+end
+
+SimplicialComplex(splxs::Vector{<:AbstractSimplex}) = SimplicialComplex(splxs...)
+
 Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
 # ---------------
@@ -195,40 +227,12 @@ Base.push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
 #
-# Constructors
-#
-
-SimplicialComplex(::Type{P}) where P = SimplicialComplex(Dict{Int,Vector{Simplex{P}}}())
-(::Type{SimplicialComplex{P}})() where P = SimplicialComplex(P)
-
-function SimplicialComplex(splxs::Simplex{P}...) where {P}
-    cplx = SimplicialComplex(P)
-    added = Set{Simplex}()
-    toprocess = Vector{Simplex}()
-    for splx in splxs
-        push!(toprocess, splx) # add simplex to process its faces
-        while(length(toprocess) > 0)
-            tmp = pop!(toprocess) # processing simplex faces
-            tmp in added && continue # skip if already processed
-            addsimplex!(cplx, tmp) # add simples to complex
-            push!(added, tmp) # mark as processed
-            for f in faces(tmp) # add simplex faces for processing
-                push!(toprocess, f)
-            end
-        end
-    end
-
-    return cplx
-end
-
-SimplicialComplex(splxs::Vector{Simplex}) = SimplicialComplex(splxs...)
-
-#
 # Miscellaneous
 #
 
-function Base.read(io::IO, ::Type{SimplicialComplex{P}}) where {P}
-    splxs = Simplex[]
+function Base.read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
+    splxs = S[]
+    P = eltype(S())
     while !eof(io)
         l = chomp(readline(io))
         si = map(e->parse(P, e), split(l, ' '))

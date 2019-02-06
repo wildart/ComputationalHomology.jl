@@ -48,7 +48,7 @@
         @test w === nothing
     end
 
-    @testset "Vietoris–Rips Complex" begin
+    @testset "Vietoris-Rips Complex" begin
 
         cplx, w = vietorisrips(Y', 12.; maxoutdim = 1)
         @test size(cplx, 0) == 7
