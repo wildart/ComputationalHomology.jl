@@ -2,8 +2,6 @@
     s = Simplex(1, 2, 3)
     @test s.index == 0
     @test s.values == Set([1,2,3])
-    s.index = 1
-    @test s.index == 1
 
     s = Simplex([1,2,3])
     @test dim(s) == 2

@@ -1,15 +1,81 @@
+abstract type AbstractSimplex <: AbstractCell end
+
+#=== Simplex ===#
+mutable struct Simplex{P} <: AbstractSimplex
+    idx::Int
+    vs::Set{P}
+    hash::UInt64
+    Simplex{P}(idx, vals) where {P} = new(idx, vals, hash(vals))
+    Simplex{P}() where {P} = new(0, Set{P}())
+end
+Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, Set(splx))
+Simplex(splx::P...) where {P} = Simplex(P[splx...])
+
+# Private methods
+
+Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
+Base.hash(splx::Simplex) = splx.hash
+Base.show(io::IO, splx::Simplex) = show(io, "σ$(splx.idx)$(collect(splx.vs))")
+Base.eltype(splx::Simplex{P}) where {P} = P
+
+# Public methods
+
+dim(splx::Simplex) = length(splx.vs)-1
+
+function Base.getproperty(splx::Simplex, name::Symbol)
+    if name == :index
+        return splx.idx
+    elseif name == :values
+        return splx.vs
+    else
+        return getfield(splx, name)
+    end
+end
+
+==(a::Simplex, b::Simplex) = a.hash == b.hash
+
+function faces(splx::Simplex)
+    faces = typeof(splx)[]
+    for i in 1:dim(splx)+1
+        face = collect(splx.values)
+        deleteat!(face,i)
+        push!(faces, Simplex(face))
+    end
+    return faces
+end
+
+# Misc. methods
+
+function volume(S::AbstractMatrix)
+    d, vc = size(S)
+    @assert d == vc-1 "Number of vertexes in simplex should be dim+1"
+    v0 = S[:,1]
+    return abs(det(S[:,2:end] .- v0))/prod(1:d)
+end
+volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,collect(s.values)])
+
+
+# iterator
+
+struct Simplices{T}
+    itr::T
+    dim::Int
+end
+simplices(itr::T, dim::Int=-1) where T = Simplices{T}(itr, dim)
+Base.show(io::IO, splxs::Simplices{T}) where T = print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
+
+
 # Simplicial Complex
 
 """Simplicial Complex Type
 
-Simplex parameter type `P` must have implemented total order function `isless`.
+Create a simplicial complex with simplices with a value type `P`.
 """
 mutable struct SimplicialComplex{P} <: AbstractComplex
     cells::Dict{Int,Vector{Simplex{P}}}   # cells per dimension
     # order::Dict{Pair{Int,Int},Int}      # order of cells
 end
 Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
-Base.copy(cplx::SimplicialComplex) = SimplicialComplex(deepcopy(cplx.cells))
 Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
 # ---------------
@@ -20,24 +86,25 @@ Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx))
 
 This function **doesn't** add missing faces of the simplex to the complex. Use `addsimplices!` function for instead.
 """
-function addsimplex!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
+function addsimplex!(cplx::SimplicialComplex, splx::AbstractSimplex)
     d = dim(splx)
-    d < 0 && return (0,d,0)
-    !haskey(cplx.cells, d) && setindex!(cplx.cells, Simplex{P}[], d)
+    d < 0 && return nothing
+    !haskey(cplx.cells, d) && setindex!(cplx.cells, celltype(cplx)[], d)
     i = length(cplx.cells[d])+1
-    splx.index = i
+    splx.idx = i
     push!(cplx.cells[d], splx)
     # cplx.order[d=>i] = length(cplx.order)+1
     return splx
 end
 
 """Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"""
-function addsimplices!(cplx::SimplicialComplex{P}, splx::Simplex{P}) where {P}
+function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
+    CT = celltype(cplx)
     # cache already
-    added = Set{Simplex{P}}()
+    added = Set{CT}()
 
-    toprocess = Simplex{P}[]
-    ret = Simplex{P}[]
+    toprocess = CT[]
+    ret = CT[]
     addedidxs = NTuple{3,Int}[]
 
     # add simplex to complex
@@ -73,8 +140,7 @@ end
 #
 # Public Interface
 #
-celltype(::Type{SimplicialComplex{P}}) where {P} = Simplex{P}
-celltype(cplx::SimplicialComplex{P}) where {P} = celltype(typeof(cplx))
+celltype(cplx::SimplicialComplex) = eltype(valtype(cplx.cells))
 
 function cells(cplx::SimplicialComplex)
     CCT = valtype(cplx.cells)
@@ -83,9 +149,7 @@ function cells(cplx::SimplicialComplex)
     CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
 end
 
-cells(cplx::SimplicialComplex{P}, d::Int) where {P} = get(cplx.cells, d,  nothing)
-
-dim(cplx::SimplicialComplex) = length(size(cplx))-1
+cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  nothing)
 
 function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{PID}) where {PID}
     ch = Chain(d-1, PID)
@@ -127,7 +191,7 @@ function coboundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where 
     return cbd[idx]
 end
 
-Base.push!(cplx::SimplicialComplex{P}, splx::Simplex{P}; recursive=false) where {P} =
+Base.push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
 #
@@ -193,4 +257,25 @@ function Base.write(io::IO, cplx::SimplicialComplex)
         end
     end
     return
+end
+
+#
+# Complex simplex iterator
+#
+Base.length(splxs::Simplices{C}) where C<:AbstractComplex =
+    splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
+
+Base.eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
+
+# State (total id, dim, dim id)
+function Base.iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex
+    tid >= length(iter) && return nothing
+    if d < 0
+        d = 0
+    end
+    if did > size(iter.itr, d)
+        d += 1
+        did = 1
+    end
+    return iter.itr[did, d], (tid+1, d, did+1)
 end
