@@ -21,13 +21,14 @@ Base.length(ch::EmptyChain) = 0
 
     where the a_i ∈ R.
 """
-mutable struct Chain{PID} <: AbstractChain
+mutable struct Chain{PID, IX<:Integer} <: AbstractChain
     dim::Int
     coefs::Vector{PID} # coefficients from PID
-    elems::Vector{Int} # indexes to elements of E
+    elems::Vector{IX}  # indexes to elements of E
 end
-Chain(coefs::Vector{PID}, elems::Vector{Int}) where {PID} = Chain{PID}(0, coefs, elems)
-Chain(dim::Int, ::Type{PID}) where {PID} = Chain{PID}(dim, PID[], Int[])
+Chain(coefs::Vector{PID}, elems::Vector{IX}) where {PID, IX<:Integer} = Chain{PID, IX}(0, coefs, elems)
+Chain(dim::Int, ::Type{PID}, ::Type{IX}) where {PID, IX<:Integer} = Chain{PID, IX}(dim, PID[], IX[])
+Chain(dim::Int, ::Type{PID}) where {PID} = Chain(dim, PID, Int)
 Chain(::Type{PID}) where {PID} = Chain(0,PID)
 dim(ch::Chain) = ch.dim
 setdim!(ch::Chain, dim::Int) = (ch.dim = dim)
@@ -62,10 +63,10 @@ function Base.append!(a::Chain, b::Chain)
 end
 +(ch::Chain{PID}, e::Tuple{PID,Int}) where {PID} = push!(ch, e[1], e[2])
 
-+(a::Chain{PID}, b::Chain{PID}) where {PID} = Chain{PID}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
--(a::Chain{PID}, b::Chain{PID}) where {PID} = Chain{PID}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
++(a::Chain{PID, IX}, b::Chain{PID, IX}) where {PID, IX<:Integer} = Chain{PID, IX}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
+-(a::Chain{PID, IX}, b::Chain{PID, IX}) where {PID, IX<:Integer} = Chain{PID, IX}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
 
-*(ch::Chain{PID}, r::PID) where {PID} = Chain{PID}(dim(ch), ch.coefs*r, ch.elems)
+*(ch::Chain{PID, IX}, r::PID) where {PID, IX<:Integer} = Chain{PID, IX}(dim(ch), ch.coefs*r, ch.elems)
 *(r::PID, c::Chain{PID}) where {PID} = c*r
 
 function simplify(ch::Chain)
