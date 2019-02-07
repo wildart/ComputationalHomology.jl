@@ -49,19 +49,19 @@ function Base.show(io::IO, ch::Chain)
     end
 end
 
-function Base.push!(ch::Chain{PID}, coef::PID, idx::Int) where {PID}
+function Base.push!(ch::Chain{PID, IX}, coef::PID, idx::IX) where {PID, IX<:Integer}
     push!(ch.coefs, coef)
     push!(ch.elems, idx)
     return ch
 end
-Base.push!(ch::Chain{PID}, e::Tuple{PID,Int}) where {PID} = push!(ch, e[1], e[2])
-Base.push!(ch::Chain{PID}, e::Pair{PID,Int}) where {PID}  = push!(ch, e[1], e[2])
+Base.push!(ch::Chain{PID, IX}, e::Tuple{PID,IX}) where {PID, IX<:Integer} = push!(ch, e[1], e[2])
+Base.push!(ch::Chain{PID, IX}, e::Pair{PID,IX}) where {PID, IX<:Integer}  = push!(ch, e[1], e[2])
 function Base.append!(a::Chain, b::Chain)
     append!(a.coefs, b.coefs)
     append!(a.elems, b.elems)
     return a
 end
-+(ch::Chain{PID}, e::Tuple{PID,Int}) where {PID} = push!(ch, e[1], e[2])
++(ch::Chain{PID}, e::Tuple{PID,Integer}) where {PID} = push!(ch, e[1], e[2])
 
 +(a::Chain{PID, IX}, b::Chain{PID, IX}) where {PID, IX<:Integer} = Chain{PID, IX}(dim(a), vcat(a.coefs, b.coefs), vcat(a.elems, b.elems))
 -(a::Chain{PID, IX}, b::Chain{PID, IX}) where {PID, IX<:Integer} = Chain{PID, IX}(dim(a), vcat(a.coefs, -b.coefs), vcat(a.elems, b.elems))
