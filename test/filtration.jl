@@ -13,8 +13,14 @@
     @test size(complex(flt)) == (3,2)
 
     # test iterator
+    dimhash(s) = (dim(s), hash(s))
     @testset "Iterator" for ((f1,ss1),(f2,ss2)) in zip(flt,
-            enumerate([[(0, 1)], [(0, 2)], [(1, 1)], [(0, 3), (1, 2)]]))
+            enumerate([
+                [dimhash(Simplex(1))],
+                [dimhash(Simplex(2))],
+                [dimhash(Simplex(1,2))],
+                [dimhash(Simplex(3)), dimhash(Simplex(1,3))]
+            ]))
         @test f1 == f2
         for (s1, s2) in zip(ss1, ss2)
             @test s1 == s2
@@ -44,7 +50,7 @@
     cplx = SimplicialComplex(Simplex{Char})
     push!(cplx, Simplex('a','b','c'), recursive=true)
     flt = filtration(cplx)
-    @test order(flt)[end] == (2, 1, 7)
+    @test order(flt)[end] == (2, hash(Simplex('a','b','c')), 7)
 
     # compute boundary matrix
     ∂ = boundary(flt)

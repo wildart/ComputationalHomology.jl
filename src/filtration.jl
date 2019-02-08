@@ -8,7 +8,7 @@ mutable struct Filtration{C<:AbstractComplex, FI}
     # underlying abstract cell complex
     complex::C
     # total order of simplices as array of (dim, simplex id, filtation value)
-    total::Vector{Tuple{Int,Int,FI}}
+    total::Vector{Tuple{Int,Integer,FI}}
     divisions::Number
 end
 
@@ -23,16 +23,16 @@ Base.length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], ord
 # Constructors
 #
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
-    Filtration(C(), Vector{Tuple{Int,Int,FI}}(), Inf)
+    Filtration(C(), Vector{Tuple{Int,Integer,FI}}(), Inf)
 Base.similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, FI)
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
 function filtration(cplx::AbstractComplex)
-    idx = Vector{Tuple{Int,Int,Int}}()
+    idx = Vector{Tuple{Int,Integer,Int}}()
     i = 1
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
-            push!(idx, (dim(c), c.index, i))
+            push!(idx, (dim(c), hash(c), i))
             i += 1
         end
     end
@@ -41,11 +41,11 @@ end
 
 """Construct filtration from a cell complex and a complex weight function"""
 function filtration(cplx::C, w::Dict{Int,Vector{FI}}; divisions::Number=Inf) where {C<:AbstractComplex, FI}
-    idx = Vector{Tuple{Int,Int,FI}}()
+    idx = Vector{Tuple{Int,Integer,FI}}()
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
-            ci = c.index
-            push!(idx, (d, ci, w[d][ci]))
+            ci = position(cplx, c)
+            push!(idx, (d, hash(c), w[d][ci]))
         end
     end
     sort!(idx, by=x->(x[3], x[1])) # sort by dimension & filtration value
@@ -60,9 +60,9 @@ function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=fa
     idx = length(ord) == 0 ? 1 : findlast(e->e[3]<=v, ord)
     for c in sort!(cls, by=s->dim(s))
         if idx == length(ord)
-            push!(ord, (dim(c), c.index, v))
+            push!(ord, (dim(c), hash(c), v))
         else
-            insert!(ord, idx, (dim(c), c.index, v))
+            insert!(ord, idx, (dim(c), hash(c), v))
         end
         idx += 1
     end
@@ -107,7 +107,7 @@ function boundary(flt::Filtration; reduced=false)
         if d > 0
             splx = cplx[ci, d]
             for face in faces(splx)
-                fi = cplx[face, d-1]
+                fi = cplx[face]
                 push!(bm[i+ridx], revidx[(fi, d-1)]+ridx)
             end
         elseif reduced
@@ -185,7 +185,7 @@ function Base.iterate(flt::Filtration, state=nothing)
         idx, fval, incr = state
     end
     idx > length(ord) && return nothing # done
-    splxs = Tuple{Int,Int}[] #simplex dim & index
+    splxs = Tuple{Int,Integer}[] #simplex dim & index
     while idx <= length(ord) && (fval+incr) >= ord[idx][3]
         push!(splxs, ord[idx][1:2])
         idx += 1

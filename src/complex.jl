@@ -91,15 +91,6 @@ function Base.position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
     return position(cplx, hash(c), dim(c))
 end
 
-function Base.findfirst(c::C, cells::Vector{C}) where {C<:AbstractCell}
-    if c.index > 0 # fast search (usually cells are ordered)
-        cidx = searchsortedfirst(cells, c, by=s->s.index)
-        return cidx > length(cells) ? nothing : cidx
-    else # slow search
-        return findfirst(s->s==c, cells)
-    end
-end
-
 """
     cplx[cell]
 

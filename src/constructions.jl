@@ -2,10 +2,10 @@
 function lowernbrs(cplx, u, E)
     # get all edges of u
     uval = first(u.values)
-    uidx = u.index
+    uidx = hash(u)
     # select {v} s.t. u > v for all edges {u,v}
     !any(E[:,uval]) && return celltype(cplx)[]
-    return filter(v->v.index < uidx && E[first(v.values),uval], cells(cplx,0))
+    return filter(v->hash(v) < uidx && E[first(v.values), uval], cells(cplx,0))
 end
 
 """Inductive construction of VR complex from neighborhood graph"""
@@ -17,14 +17,14 @@ function inductive!(cplx, k, E)
             N = celltype(cplx)[]
             τvals = τ.values
             for (j, uval) in enumerate(τvals)
-                uidx = cplx[Simplex(uval), 0]
+                uidx = cplx[Simplex(uval)]
                 u = cplx[uidx, 0]
                 N = j == 1 ? lowernbrs(cplx, u, E) : intersect(N, lowernbrs(cplx, u, E))
             end
             for v in N
                 first(v.values) in τvals && continue
                 σ = Simplex(τvals..., v.values...)
-                cplx[σ] > size(cplx, i+1) && push!(cplx, σ)
+                cplx[σ] === nothing && push!(cplx, σ)
             end
         end
     end
@@ -33,7 +33,7 @@ end
 """Add all simplices of the `k`-skeleton whose maximal vertex is `τ`"""
 function addcofaces!(cplx, k, τ, N, E)
     # V ← V ∪ {τ}
-    !in(cplx, τ) && addsimplex!(cplx, τ)
+    τ ∉ cplx && addsimplex!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
     τvals = τ.values
@@ -59,8 +59,8 @@ end
 function weight(σ, w, cplx)
     k = dim(σ)
     k == 0 && return 0.
-    k == 1 && return w[1][cplx[σ, 1]]
-    return maximum([w[k-1][cplx[τ, k-1]] for τ in faces(σ)])
+    k == 1 && return w[1][cplx[σ]]
+    return maximum([w[k-1][position(cplx, τ)] for τ in faces(σ)])
 end
 
 function expand(method, cplx, w, kmax, E)
@@ -77,7 +77,7 @@ function expand(method, cplx, w, kmax, E)
         for k in 2:dim(cplx)
             w[k] = zeros(size(cplx,k))
             for σ in cells(cplx,k)
-                w[k][σ.index] = weight(σ, w, cplx)
+                w[k][position(cplx, σ)] = weight(σ, w, cplx)
             end
         end
     end
@@ -118,7 +118,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
         for j in findall(d-> 0 < d <= ɛ, view(D, :, i))
             s = Simplex(i,j)
             # check if simplex is already added
-            in(cplx, s) && continue
+            s in cplx && continue
             # add simplex to complex
             push!(cplx, s)
             # fill adjacency matrix
@@ -138,7 +138,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
         if size(cplx, 1) > 0
             w[1] = zeros(size(cplx,1))
             for e in cells(cplx,1)
-                w[1][e.index] = D[e.values...]
+                w[1][position(cplx, e)] = D[e.values...]
             end
         end
     end
