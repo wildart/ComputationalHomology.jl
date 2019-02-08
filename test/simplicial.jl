@@ -14,9 +14,10 @@
     @test size(cplx,1) == 4
     @test size(cplx,2) == 1
     @test size(cplx,3) == 0
-    @test cplx[Simplex(4), 0] == 4
-    @test cplx[Simplex(10), 0] > size(cplx,0)
-    @test cplx[Simplex(10), 0] == 5
+    @test cplx[Simplex(4)] == hash(Simplex(4))
+    @test position(cplx, Simplex(4)) == 4
+    @test cplx[Simplex(10)] === nothing
+    @test position(cplx, Simplex(10)) === nothing
 
     @test length(simplices(cplx)) == 9
     scitr = simplices(cplx, 1)
@@ -31,59 +32,70 @@
                        Simplex(5,4),
                        Simplex(6))
 
-    qch = Chain(2, [1], [1])
-    resch = Chain(1, [1, -1, 1], [3, 2, 1])
+    # boundary
+    qch = Chain(2, [1], [hash(Simplex(1,2,3))])
+    resch = Chain(1, [-1, 1, 1], map(hash, [Simplex(1,2), Simplex(2,3), Simplex(1,3)]))
     @testset "Complex boundary chain" for (a,b) in zip(boundary(cplx, qch), resch)
         @test a == b
     end
 
-    qch = Chain(1, [1], [1])
-    resch = Chain(2, [-1, -1], [1, 2])
+    # ∂∘∂(c) == 0
+    @test iszero(boundary(cplx, boundary(cplx, hash(Simplex(1,2,3)), 2)))
+
+    @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
+
+    # coboundary
+    push!(cplx, Simplex(1,3,5), recursive=true)
+    push!(cplx, Simplex(1,2,3,5), recursive=true)
+
+    qch = Chain(1, [1], [hash(Simplex(1,3))])
+    resch = Chain(2, [-1, 1], map(hash,[Simplex(1,3,5), Simplex(1,2,3)]))
     @testset "Complex coboundary chain" for (a,b) in zip(coboundary(cplx, qch), resch)
         @test a == b
     end
 
-    @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
+    # δ∘δ(c) == 0
+    @test iszero(coboundary(cplx, coboundary(cplx, hash(Simplex(1,3)), 1)))
 
     cplx = SimplicialComplex(Simplex{Int})
 
     splx = push!(cplx, Simplex(1))
-    @test splx[1].index == 1
+    @test position(cplx, splx[1]) == 1
     @test dim(splx[1]) == 0
     @test sum(size(cplx)) == 1
     @test cells(cplx, 0)[1].values == Set([1])
 
     splx = push!(cplx, Simplex(1,2))
-    @test splx[1].index == 1
+    @test splx[1].index == 0xb612ae5b24500075
     @test dim(splx[1]) == 1
     @test sum(size(cplx)) == 2
     @test cells(cplx, 1)[1].values == Set([1,2])
 
     cplx = SimplicialComplex(Simplex{Int})
     splxs = push!(cplx, Simplex(1,2), recursive=true)
-    @test splxs[1].index == 1
+    @test splxs[1].index == 0xb612ae5b24500075
     @test splxs[1].values == Set([1,2])
-    @test splxs[2].index == 1
+    @test splxs[2].index == 0x901a78de5b70ee8d
     @test splxs[2].values == Set([2])
-    @test splxs[3].index == 2
+    @test splxs[3].index == 0x05951e2fa2dc52cd
     @test splxs[3].values == Set([1])
     @test sum(size(cplx)) == 3
     @test size(cplx, 0) == 2
     @test size(cplx, 1) == 1
 
     splxs = push!(cplx, Simplex(1,3), recursive=true)
-    @test splxs[1].index == 2
+    @test splxs[1].index == 0xd116cd48b015e963
     @test splxs[1].values == Set([1,3])
-    @test splxs[2].index == 3
+    @test splxs[2].index == 0x7ec75dfb20660a43
     @test splxs[2].values == Set([3])
     @test sum(size(cplx)) == 5
     @test size(cplx, 0) == 3
     @test size(cplx, 1) == 2
 
-    @test in(cplx, Simplex(1,3))
-    @test in(cplx, first(cells(cplx,1)))
-    @test !in(cplx, Simplex(2,3))
-    @test !in(cplx, Simplex(2,3,3))
+    @test Simplex(1,3) in cplx
+    @test first(cells(cplx,1)) in cplx
+    @test !(Simplex(2,3) in cplx)
+    @test !(Simplex(2,3,3) in cplx)
 
     io = IOBuffer()
     write(io, cplx)

@@ -4,34 +4,34 @@ Each complex should have collection of cells per dimension:
 =#
 abstract type AbstractComplex end
 
-function boundary(cplx::AbstractComplex, ch::Chain{PID}) where {PID}
+function boundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
     d = dim(ch)
-    cc = Chain(d-1, PID)
+    cc = Chain(d-1, PID, IX)
     for (coef,elem) in ch
         append!(cc, coef * boundary(cplx, elem, d, PID))
     end
-    return cc
+    return simplify(cc)
 end
 
-function coboundary(cplx::AbstractComplex, ch::Chain{PID}) where {PID}
+function coboundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
     d = dim(ch)
-    cc = Chain(d+1, PID)
+    cc = Chain(d+1, PID, IX)
     for (coef,elem) in ch
         append!(cc, coef * coboundary(cplx, elem, d, PID))
     end
-    return cc
+    return simplify(cc)
 end
 
 #
 # AbstractComplex Public Interface
 #
 """Return a complex boundary given element and dimension"""
-boundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,R)))
-boundary(cplx::AbstractComplex, i::Int, d::Int) = boundary(cplx, i, d, Int)
+boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
+boundary(cplx::AbstractComplex, i::Integer, d::Int) = boundary(cplx, i, d, Int)
 
 """Return a complex coboundary given element and dimension"""
-coboundary(cplx::AbstractComplex, i::Int, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,R)))
-coboundary(cplx::AbstractComplex, i::Int, d::Int) = coboundary(cplx, i, d, Int)
+coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
+coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
 
 """Return a complex cell type"""
 celltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
@@ -69,6 +69,28 @@ function Base.size(cplx::AbstractComplex, d::Int)
     return sz[d+1]
 end
 
+"""
+    position(complex, index, dimenion)
+
+Return a position of the cell in an order of cells of the same dimenion of the `complex` given its `index` and `dimenion`.
+"""
+function Base.position(cplx::AbstractComplex, idx::Integer, d::Int)
+    dcells = cells(cplx, d)
+    dcells === nothing && return nothing
+    cidx = findfirst(c->hash(c) == idx, dcells)
+    return cidx
+end
+
+"""
+    position(complex, cell)
+
+Return a position of the `cell` in an order of cells of the same dimenion of the `complex`.
+"""
+function Base.position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
+    @assert celltype(cplx) == C "Incorrect cell type"
+    return position(cplx, hash(c), dim(c))
+end
+
 function Base.findfirst(c::C, cells::Vector{C}) where {C<:AbstractCell}
     if c.index > 0 # fast search (usually cells are ordered)
         cidx = searchsortedfirst(cells, c, by=s->s.index)
@@ -78,55 +100,64 @@ function Base.findfirst(c::C, cells::Vector{C}) where {C<:AbstractCell}
     end
 end
 
-"""Return an index of the k-dimensional cell in the complex.
-
-**Note:** If returned index is larger than the number of cells of this dimension, then the cell is not in complex and the returned index will be assigned to the cell when it's added to the complex.
 """
-function Base.getindex(cplx::AbstractComplex, c::C, d::Int) where {C <: AbstractCell}
-    @assert celltype(cplx) == C "Incorrect cell type"
-    dcells = cells(cplx, dim(c))
-    dcells === nothing && return 1
-    cidx = findfirst(c, dcells)
-    cidx === nothing && return size(cplx, d)+1
-    return dcells[cidx].index
-end
-Base.getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell} =  cplx[c, dim(c)]
+    cplx[cell]
 
-"""Return a `d`-dimensional cell given its index `idx`."""
-function Base.getindex(cplx::AbstractComplex, idx::Int, d::Int)
-    cs = cells(cplx, d)
-    cs === nothing && return nothing
-    return cs[idx]
+Return an identifier of the k-dimensional `cell` in the complex `cplx`. If the cell is not in the complex, `nothing` is returned.
+"""
+function Base.getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
+    cidx = position(cplx, c)
+    cidx === nothing && return nothing #size(cplx, d)+1
+    return hash(cells(cplx, dim(c))[cidx])
 end
 
-"""Generate a boundary matrix from the cell complex of the dimension `d`."""
+"""
+    cplx[idx, d]
+
+Return a `d`-dimensional cell given its index `idx` and dimenion `d`.
+"""
+function Base.getindex(cplx::AbstractComplex, idx::Integer, d::Int)
+    cidx = position(cplx, idx, d)
+    cidx === nothing && return nothing
+    return cells(cplx, d)[cidx]
+end
+
+"""
+    boundary(complex, d, PID)
+
+Generate a boundary matrix from the cell `complex` of the dimension `d` in using coefficients of `PID`.
+"""
 function boundary(cplx::AbstractComplex, d::Int, ::Type{PID}) where {PID}
     csize = size(cplx)
     rows = d > 0 ? csize[d] : 0
     cols = d <= dim(cplx) ? csize[d+1] : 0
     bm = spzeros(PID, rows, cols)
     if d>=0 && d <= dim(cplx)
-        for i in 1:csize[d+1]
-            for (coef,elem) in boundary(cplx, i, d, PID)
-                bm[elem, i] = coef
+        for c in cells(cplx, d)
+            idx = hash(c)
+            i = position(cplx, idx, d)
+            for (coef,elem) in boundary(cplx, idx, d, PID)
+                j = position(cplx, elem, d-1)
+                bm[j, i] = coef
             end
         end
     end
     return bm
 end
 
-function Base.in(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
-    sdim = dim(c)
-    dcells = cells(cplx, sdim)
-    dcells === nothing && return false
-    cidx = findfirst(c, dcells)
-    return cidx !== nothing
+"""
+    cell in cplx
+
+Checks if the `cell` is in the complex `cplx`
+"""
+function Base.in(c::C, cplx::AbstractComplex) where {C <: AbstractCell}
+    return position(cplx, c) !== nothing
 end
 
 """
-    cochain(cplx, d, coefs)
+    cochain(complex, d, coefficients)
 
-Return cochain of the dimension `d` for the complex `cplx` with PID coefficients `coefs`
+Return a cochain of the dimension `d` for the `complex` with PID `coefficients`.
 """
 function cochain(cplx::AbstractComplex, d::Int, coefs::Vector{PID}) where {PID}
     cs = cells(cplx, d)

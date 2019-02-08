@@ -1,21 +1,18 @@
-abstract type AbstractSimplex <: AbstractCell end
-
 #=== Simplex ===#
-mutable struct Simplex{P} <: AbstractSimplex
-    idx::Int
+struct Simplex{P} <: AbstractSimplex
     vs::Set{P}
     hash::UInt64
-    Simplex{P}(idx, vals) where {P} = new(idx, vals, hash(vals))
-    Simplex{P}() where {P} = new(0, Set{P}())
+    Simplex{P}(vals) where {P} = new(vals, hash(vals))
+    Simplex{P}() where {P} = new(Set{P}())
 end
-Simplex(splx::Vector{P}) where {P} = Simplex{P}(0, Set(splx))
+Simplex(splx::Vector{P}) where {P} = Simplex{P}(Set(splx))
 Simplex(splx::P...) where {P} = Simplex(P[splx...])
 
 # Private methods
 
 Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
 Base.hash(splx::Simplex) = splx.hash
-Base.show(io::IO, splx::Simplex) = show(io, "σ$(splx.idx)$(collect(splx.vs))")
+Base.show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
 Base.eltype(splx::Simplex{P}) where {P} = P
 
 # Public methods
@@ -24,7 +21,7 @@ dim(splx::Simplex) = length(splx.vs)-1
 
 function Base.getproperty(splx::Simplex, name::Symbol)
     if name == :index
-        return splx.idx
+        return hash(splx)
     elseif name == :values
         return splx.vs
     else
@@ -73,7 +70,7 @@ Create a simplicial complex with simplices with a value type `P`.
 """
 mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex
     cells::Dict{Int,Vector{S}}   # cells per dimension
-    # order::Dict{Pair{Int,Int},Int}      # order of cells
+    order::Dict{UInt64,Int}      # total order of cells per dimension
 end
 Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
 
@@ -81,7 +78,7 @@ Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size
 # Constructors
 #
 
-SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} = SimplicialComplex(Dict{Int,Vector{S}}())
+SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} = SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}())
 (::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
 
 
@@ -122,10 +119,8 @@ function addsimplex!(cplx::SimplicialComplex, splx::AbstractSimplex)
     d = dim(splx)
     d < 0 && return nothing
     !haskey(cplx.cells, d) && setindex!(cplx.cells, celltype(cplx)[], d)
-    i = length(cplx.cells[d])+1
-    splx.idx = i
     push!(cplx.cells[d], splx)
-    # cplx.order[d=>i] = length(cplx.order)+1
+    cplx.order[hash(splx)] = length(cplx.cells[d]) # length(cplx.order)+1
     return splx
 end
 
@@ -137,7 +132,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
 
     toprocess = CT[]
     ret = CT[]
-    addedidxs = NTuple{3,Int}[]
+    addedidxs = NTuple{3,Integer}[]
 
     # add simplex to complex
     s = addsimplex!(cplx, splx)
@@ -152,7 +147,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
         tmp = pop!(toprocess) # processing simplex faces
         d = dim(tmp)
 
-        cplx[tmp, d] <= size(cplx, d) && continue # skip if already in complex
+        cplx[tmp] !== nothing && continue # skip if already in complex
         tmp in added && continue # skip if already processed
 
         s = addsimplex!(cplx, tmp) # add simples to the complex
@@ -178,17 +173,15 @@ function cells(cplx::SimplicialComplex)
     CCT = valtype(cplx.cells)
     length(cplx.cells) == 0 && return CCT[] # no cell in complex
     dims = maximum(keys(cplx.cells))
-    CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
+    return CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
 end
 
 cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  nothing)
 
-function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{PID}) where {PID}
-    ch = Chain(d-1, PID)
-    if d == 0
-        setdim!(ch, -1)
-        return ch
-    end
+function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
+    ch = Chain(d-1, PID, IX)
+    d == 0 && return ch
+
     pos = one(PID)
     neg = -one(PID)
 
@@ -197,7 +190,7 @@ function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{PID}) where 
 
     sgn = true
     for face in faces(splx)
-        fidx = cplx[face, d-1]
+        fidx = cplx[face]
         push!(ch, (sgn ? pos : neg), fidx)
         sgn = !sgn
     end
@@ -205,26 +198,25 @@ function boundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{PID}) where 
     return ch
 end
 
-function coboundary(cplx::SimplicialComplex, idx::Int, d::Int, ::Type{R}) where {R}
-    d == 0 && return Chain(d+1, R)
+function coboundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
+    ch = Chain(d+1, PID, IX)
+    d == 0 && return ch
 
-    cbd = Dict{Int,Chain{R}}()
-    for i in 1:size(cplx,d-1)
-        cbd[i] = Chain(d+1, R)
-    end
-
-    for i in 1:size(cplx,d)
-        bd = boundary(cplx, i, d, R)
-        for (c, el) in bd
-            push!(cbd[el], c, i)
+    # (δϕ)(c) = ϕ(∂c)
+    for c in cells(cplx, d+1)
+        i = hash(c)
+        for (coef, elem) in boundary(cplx, i, d+1, PID)
+            elem == idx && push!(ch, coef, i)
         end
     end
 
-    return cbd[idx]
+    return ch
 end
 
 Base.push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
+
+Base.position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractCell} = get(cplx.order, idx, nothing)
 
 #
 # Miscellaneous
@@ -242,10 +234,11 @@ function Base.read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimpl
 end
 
 function Base.write(io::IO, cplx::SimplicialComplex)
-    zsplxs = Dict{Int,Int}()
+    zsplxs = Dict{Int,UInt}()
     for s in cplx.cells[0]
-        zsplxs[first(s.values)] = s.idx
-        write(io, "$(s.idx)")
+        idx = cplx.order[hash(s)]
+        zsplxs[first(s.values)] = idx
+        write(io, "$idx")
         write(io, 0x0A)
     end
     for d in 1:dim(cplx)
@@ -281,5 +274,5 @@ function Base.iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where 
         d += 1
         did = 1
     end
-    return iter.itr[did, d], (tid+1, d, did+1)
+    return cells(iter.itr, d)[did], (tid+1, d, did+1)
 end

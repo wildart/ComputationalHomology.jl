@@ -1,8 +1,8 @@
 @testset "Chain" begin
-    a = Chain(0, Int)
-    @test dim(a) == 0
-    setdim!(a,1)
+    a = Chain(1, Int, Int)
     @test dim(a) == 1
+    @test iszero(a)
+    @test eltype(a) == (Int, Int)
 
     b = Chain(Int[],Int[])
     c = Chain(Int)

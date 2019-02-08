@@ -31,15 +31,15 @@ Chain(dim::Int, ::Type{PID}, ::Type{IX}) where {PID, IX<:Integer} = Chain{PID, I
 Chain(dim::Int, ::Type{PID}) where {PID} = Chain(dim, PID, Int)
 Chain(::Type{PID}) where {PID} = Chain(0,PID)
 dim(ch::Chain) = ch.dim
-setdim!(ch::Chain, dim::Int) = (ch.dim = dim)
 
 # implement interface
 Base.getindex(ch::Chain, i::Integer) = (ch.coefs[i], ch.elems[i])
 Base.length(ch::Chain) = length(ch.coefs)
-Base.eltype(ch::Chain{PID}) where {PID} = PID
+Base.eltype(ch::Chain{PID, IX}) where {PID, IX<:Integer} = (PID, IX)
+Base.iszero(ch::Chain) = length(ch.elems) == 0
 
 function Base.show(io::IO, ch::Chain)
-    if length(ch.elems) == 0
+    if iszero(ch)
         print(io, "0")
     else
         for (i,(c,el)) in enumerate(zip(ch.coefs, ch.elems))
@@ -70,8 +70,8 @@ end
 *(r::PID, c::Chain{PID}) where {PID} = c*r
 
 function simplify(ch::Chain)
-    PID = eltype(ch)
-    tmpChain = Dict{Int,PID}()
+    PID, IX = eltype(ch)
+    tmpChain = Dict{Integer,PID}()
     for (c,el) in ch
         if haskey(tmpChain, el)
             tmpChain[el] += c
@@ -79,7 +79,7 @@ function simplify(ch::Chain)
             tmpChain[el] = c
         end
     end
-    cc = Chain(dim(ch), PID)
+    cc = Chain(dim(ch), PID, IX)
     for (el,c) in tmpChain
         c != zero(PID) && push!(cc, (c,el))
     end
