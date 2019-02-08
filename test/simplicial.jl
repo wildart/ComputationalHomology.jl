@@ -66,27 +66,27 @@
     @test cells(cplx, 0)[1].values == Set([1])
 
     splx = push!(cplx, Simplex(1,2))
-    @test splx[1].index == hash(Simplex(1,2))
+    @test splx[1] == Simplex(1,2)
     @test dim(splx[1]) == 1
     @test sum(size(cplx)) == 2
     @test cells(cplx, 1)[1].values == Set([1,2])
 
     cplx = SimplicialComplex(Simplex{Int})
     splxs = push!(cplx, Simplex(1,2), recursive=true)
-    @test splxs[1].index == hash(Simplex(1,2))
+    @test splxs[1] == Simplex(1,2)
     @test splxs[1].values == Set([1,2])
-    @test splxs[2].index == hash(Simplex(2))
+    @test splxs[2] == Simplex(2)
     @test splxs[2].values == Set([2])
-    @test splxs[3].index == hash(Simplex(1))
+    @test splxs[3] == Simplex(1)
     @test splxs[3].values == Set([1])
     @test sum(size(cplx)) == 3
     @test size(cplx, 0) == 2
     @test size(cplx, 1) == 1
 
     splxs = push!(cplx, Simplex(1,3), recursive=true)
-    @test splxs[1].index == hash(Simplex(1,3))
+    @test splxs[1] == Simplex(1,3)
     @test splxs[1].values == Set([1,3])
-    @test splxs[2].index == hash(Simplex(3))
+    @test splxs[2] == Simplex(3)
     @test splxs[2].values == Set([3])
     @test sum(size(cplx)) == 5
     @test size(cplx, 0) == 3

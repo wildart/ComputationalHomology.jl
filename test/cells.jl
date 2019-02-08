@@ -1,6 +1,6 @@
 @testset "Simplex" begin
     s = Simplex(1, 2, 3)
-    @test s.index == hash(Simplex(1, 2, 3))
+    @test s == Simplex(1, 2, 3)
     @test s.values == Set([1,2,3])
 
     s = Simplex([1,2,3])

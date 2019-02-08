@@ -136,7 +136,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
 
     # add simplex to complex
     s = addsimplex!(cplx, splx)
-    push!(addedidxs, (sum(size(cplx)), dim(s), s.index))
+    push!(addedidxs, (sum(size(cplx)), dim(s), hash(s)))
     push!(ret, s)
     for f in faces(splx) # add simplex faces for processing
         push!(toprocess, f)
@@ -151,7 +151,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
         tmp in added && continue # skip if already processed
 
         s = addsimplex!(cplx, tmp) # add simples to the complex
-        push!(addedidxs, (sum(size(cplx)), dim(s), s.index))
+        push!(addedidxs, (sum(size(cplx)), dim(s), hash(s)))
         push!(added, tmp) # mark as processed
         push!(ret, s)
 
