@@ -41,6 +41,16 @@ function faces(splx::Simplex)
     return faces
 end
 
+function vertecies(splx::Simplex)
+    vertecies = typeof(hash(splx))[]
+    for v in splx.values
+        push!(vertecies, hash(Simplex(v)))
+    end
+    return vertecies
+end
+
+union(u::Simplex, v::Simplex) = Simplex(collect(u.values ∪ v.values))
+
 # Misc. methods
 
 function volume(S::AbstractMatrix)

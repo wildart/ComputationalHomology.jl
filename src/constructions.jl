@@ -1,11 +1,14 @@
 """Find all neighbors of vertex `u`` within `G` that precede it in the given ordering"""
-function lowernbrs(cplx, u, E)
-    # get all edges of u
-    uval = first(u.values)
-    uidx = hash(u)
-    # select {v} s.t. u > v for all edges {u,v}
-    !any(E[:,uval]) && return celltype(cplx)[]
-    return filter(v->hash(v) < uidx && E[first(v.values), uval], cells(cplx,0))
+function lowernbrs(G::AbstractComplex, uidx::IX, E) where {IX <: Integer}
+    upos = position(G, uidx, 0)
+    nbrs = Set{IX}()
+    # get all edges of u: select {v} s.t. u > v for all edges {u,v}
+    for v in cells(G,0)
+        vidx = hash(v)
+        vpos = position(G, vidx, 0)
+        upos > vpos && E[vpos, upos] && push!(nbrs, vidx)
+    end
+    return nbrs
 end
 
 """Inductive construction of VR complex from neighborhood graph"""
@@ -13,18 +16,18 @@ function inductive!(cplx, k, E)
     for i in 1:k-1
         cls = cells(cplx, i)
         cls === nothing && continue
-        for τ in cells(cplx, i)
-            N = celltype(cplx)[]
-            τvals = τ.values
-            for (j, uval) in enumerate(τvals)
-                uidx = cplx[Simplex(uval)]
-                u = cplx[uidx, 0]
-                N = j == 1 ? lowernbrs(cplx, u, E) : intersect(N, lowernbrs(cplx, u, E))
+        for τ in cls
+            # N = ∩ᵤₜlowernbrs(G,u)
+            V = vertecies(τ)
+            N = lowernbrs(cplx, V[1], E)
+            for i in 2:length(V)
+                intersect!(N, lowernbrs(cplx, V[i], E))
             end
-            for v in N
-                first(v.values) in τvals && continue
-                σ = Simplex(τvals..., v.values...)
-                cplx[σ] === nothing && push!(cplx, σ)
+            #K ⟵ K ∪ {τ ∪ {v}}
+            for vidx in N
+                vpos = position(cplx, vidx, 0)
+                σ = τ ∪ cells(cplx, 0)[vpos]
+                push!(cplx, σ)
             end
         end
     end
@@ -36,12 +39,12 @@ function addcofaces!(cplx, k, τ, N, E)
     τ ∉ cplx && addsimplex!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
-    τvals = τ.values
-    for v in N
-        first(v.values) in τvals && continue
+    for vidx in N
         # σ ← τ ∪ {v}
-        σ = Simplex(τvals..., v.values...)
-        M = intersect(N, lowernbrs(cplx, v, E))
+        vpos = position(cplx, vidx, 0)
+        σ = τ ∪ cells(cplx, 0)[vpos]
+        # M ← N ∩ lowernbrs(G, v)
+        M = intersect(N, lowernbrs(cplx, vidx, E))
         addcofaces!(cplx, k, σ, M, E)
     end
 end
@@ -50,7 +53,7 @@ end
 function incremental!(cplx, k, E)
     # construct VR complex
     for u in cells(cplx, 0)
-        N = lowernbrs(cplx, u, E)
+        N = lowernbrs(cplx, hash(u), E)
         addcofaces!(cplx, k, u, N, E)
     end
 end
@@ -138,7 +141,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
         if size(cplx, 1) > 0
             w[1] = zeros(size(cplx,1))
             for e in cells(cplx,1)
-                w[1][position(cplx, e)] = D[e.values...]
+                w[1][position(cplx, e)] = D[map(v->position(cplx, v), faces(e))...]
             end
         end
     end
@@ -198,7 +201,7 @@ For parameter ν = 0, 1, 2 determines size of landmark radius.
 """
 function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
                  landmark = :minmax, distance = Distances.Euclidean(),
-                 expansion = :incremental, ν::Int = 2, maxoutdim = size(X,2)-1,
+                 expansion = :incremental, ν::Int = 2, maxoutdim = size(X,1)-1,
                  firstpoint = 0) where T <: Real
 
     # get landmarks

@@ -8,7 +8,7 @@ import Random
 import BoundingSphere
 import Statistics: mean
 
-import Base: ==, -, +, *
+import Base: ==, -, +, *, union
 import Base.Iterators: pairs
 
 export AbstractCell,
@@ -17,8 +17,7 @@ export AbstractCell,
        Simplex, Cube,
 
        AbstractChain,
-       setdim!, simplify,
-       Chain,
+       Chain, simplify,
 
        AbstractComplex,
        boundary, coboundary, celltype, cells,
