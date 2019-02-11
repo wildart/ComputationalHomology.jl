@@ -9,7 +9,7 @@ dim(c::AbstractCell) = throw(MethodError(dim,(typeof(c),)))
 
 Get an array of `cell` values.
 """
-values(c::AbstractCell) = throw(MethodError(values,(typeof(c),)))
+values(c::AbstractCell) = throw(MethodError(values,(typeof(c),))) #TODO: consider to move to AbstractSimplex
 
 """Cell comparison"""
 ==(a::AbstractCell, b::AbstractCell) = throw(MethodError(==,(typeof(a), typeof(b))))
@@ -38,5 +38,3 @@ Create a new cell from a combination of vertices of cells `u` and `v`.
 union(u::C, v::C) where{C<:AbstractCell} = throw(MethodError(union,(C,C)))
 
 abstract type AbstractSimplex <: AbstractCell end
-
-abstract type AbstractHashSimplex <: AbstractSimplex end

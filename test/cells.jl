@@ -45,3 +45,26 @@ end
     c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.5,.5]) # 2-cube
     @test volume(c) == 0.5^3
 end
+
+@testset "CW" begin
+    a = Cell()
+    @test hash(a) == hash(Cell[])
+    @test a == Cell()
+    @test dim(a) == 0
+    @test_throws MethodError values(a)
+
+    b = Cell()
+    c = Cell(1, a, b)
+    @test dim(c) == 1
+    d = Cell(1, a, b, a, b)
+    e = c ∪ d
+    @test dim(e) == 2
+
+    @testset for (f1, f2) in zip(faces(c), [a, b])
+        @test f1 == f2
+    end
+
+    @testset for (f1, f2) in zip(faces(e), [c, d])
+        @test f1 == f2
+    end
+end
