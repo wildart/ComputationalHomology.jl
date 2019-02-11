@@ -11,7 +11,6 @@ Simplex(splx::P...) where {P} = Simplex(P[splx...])
 # Private methods
 
 Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
-Base.hash(splx::Simplex) = splx.hash
 Base.show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
 Base.eltype(splx::Simplex{P}) where {P} = P
 
@@ -20,6 +19,8 @@ Base.eltype(splx::Simplex{P}) where {P} = P
 dim(splx::Simplex) = length(splx.vs)-1
 
 values(splx::Simplex) = collect(splx.vs)
+
+hash(splx::Simplex) = splx.hash
 
 ==(a::Simplex, b::Simplex) = a.hash == b.hash
 

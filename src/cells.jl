@@ -28,14 +28,14 @@ Get a collection of `cell` vertecies"""
 vertecies(c::AbstractCell) = throw(MethodError(vertecies,(typeof(c),)))
 
 """Get a unique identifier of the cell"""
-Base.hash(c::AbstractCell) = throw(MethodError(hash,(typeof(c),)))
+hash(c::AbstractCell) = throw(MethodError(hash,(typeof(c),)))
 
 """
     union(u, v)
 
 Create a new cell from a combination of vertices of cells `u` and `v`.
 """
-Base.union(u::C, v::C) where{C<:AbstractCell} = throw(MethodError(union,(C,C)))
+union(u::C, v::C) where{C<:AbstractCell} = throw(MethodError(union,(C,C)))
 
 abstract type AbstractSimplex <: AbstractCell end
 
