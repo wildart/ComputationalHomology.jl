@@ -13,6 +13,7 @@ end
 
 """Inductive construction of VR complex from neighborhood graph"""
 function inductive!(cplx, k, E)
+    C0 = cells(cplx, 0)
     for i in 1:k-1
         cls = cells(cplx, i)
         cls === nothing && continue
@@ -26,7 +27,7 @@ function inductive!(cplx, k, E)
             #K ⟵ K ∪ {τ ∪ {v}}
             for vidx in N
                 vpos = position(cplx, vidx, 0)
-                σ = τ ∪ cells(cplx, 0)[vpos]
+                σ = τ ∪ C0[vpos]
                 push!(cplx, σ)
             end
         end

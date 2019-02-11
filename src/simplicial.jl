@@ -36,13 +36,13 @@ end
 
 function vertecies(splx::Simplex)
     vtxs = typeof(hash(splx))[]
-    for v in values(splx)
+    for v in splx.vs
         push!(vtxs, hash(Simplex(v)))
     end
     return vtxs
 end
 
-union(u::Simplex, v::Simplex) = Simplex(collect(values(u) ∪ values(v)))
+union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
 
 # Misc. methods
 
@@ -52,7 +52,7 @@ function volume(S::AbstractMatrix)
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
-volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,values(s)])
+volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,collect(s.vs)])
 
 
 # iterator
