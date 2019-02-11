@@ -136,7 +136,7 @@ end
 function Base.write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
-        for k in cplx[ci,d].values
+        for k in values(cplx[ci,d])
             write(io, "$k,")
         end
         write(io, "$fv\n")

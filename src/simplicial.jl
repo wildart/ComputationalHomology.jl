@@ -19,22 +19,14 @@ Base.eltype(splx::Simplex{P}) where {P} = P
 
 dim(splx::Simplex) = length(splx.vs)-1
 
-function Base.getproperty(splx::Simplex, name::Symbol)
-    if name == :index
-        return hash(splx)
-    elseif name == :values
-        return splx.vs
-    else
-        return getfield(splx, name)
-    end
-end
+values(splx::Simplex) = collect(splx.vs)
 
 ==(a::Simplex, b::Simplex) = a.hash == b.hash
 
 function faces(splx::Simplex)
     faces = typeof(splx)[]
     for i in 1:dim(splx)+1
-        face = collect(splx.values)
+        face = collect(splx.vs)
         deleteat!(face,i)
         push!(faces, Simplex(face))
     end
@@ -42,14 +34,14 @@ function faces(splx::Simplex)
 end
 
 function vertecies(splx::Simplex)
-    vertecies = typeof(hash(splx))[]
-    for v in splx.values
-        push!(vertecies, hash(Simplex(v)))
+    vtxs = typeof(hash(splx))[]
+    for v in values(splx)
+        push!(vtxs, hash(Simplex(v)))
     end
-    return vertecies
+    return vtxs
 end
 
-union(u::Simplex, v::Simplex) = Simplex(collect(u.values ∪ v.values))
+union(u::Simplex, v::Simplex) = Simplex(collect(values(u) ∪ values(v)))
 
 # Misc. methods
 
@@ -59,7 +51,7 @@ function volume(S::AbstractMatrix)
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
-volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,collect(s.values)])
+volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,values(s)])
 
 
 # iterator
@@ -247,13 +239,13 @@ function Base.write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,UInt}()
     for s in cplx.cells[0]
         idx = cplx.order[hash(s)]
-        zsplxs[first(s.values)] = idx
+        zsplxs[first(values(s))] = idx
         write(io, "$idx")
         write(io, 0x0A)
     end
     for d in 1:dim(cplx)
         for s in cplx.cells[d]
-            for (j,i) in enumerate(s.values)
+            for (j,i) in enumerate(values(s))
                 write(io, "$(zsplxs[i])")
                 if j>d
                     write(io, 0x0A)

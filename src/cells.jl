@@ -4,21 +4,37 @@ abstract type AbstractCell end
 """Dimension of the cell"""
 dim(c::AbstractCell) = throw(MethodError(dim,(typeof(c),)))
 
-"""Get cell properties: `index` & `values`"""
-Base.getproperty(c::AbstractCell, k::Symbol) = throw(MethodError(getproperty,(typeof(c),)))
+"""
+    values(cell)
+
+Get an array of `cell` values.
+"""
+values(c::AbstractCell) = throw(MethodError(values,(typeof(c),)))
 
 """Cell comparison"""
 ==(a::AbstractCell, b::AbstractCell) = throw(MethodError(==,(typeof(a), typeof(b))))
 
-"""Get cell faces"""
+"""
+    faces(cell)
+
+Get a collection of `cell` faces.
+"""
 faces(c::AbstractCell) = throw(MethodError(faces,(typeof(c),)))
 
-"""Get cell faces"""
+"""
+    vertecies(cell)
+
+Get a collection of `cell` vertecies"""
 vertecies(c::AbstractCell) = throw(MethodError(vertecies,(typeof(c),)))
 
 """Get a unique identifier of the cell"""
 Base.hash(c::AbstractCell) = throw(MethodError(hash,(typeof(c),)))
 
+"""
+    union(u, v)
+
+Create a new cell from a combination of vertices of cells `u` and `v`.
+"""
 Base.union(u::C, v::C) where{C<:AbstractCell} = throw(MethodError(union,(C,C)))
 
 abstract type AbstractSimplex <: AbstractCell end

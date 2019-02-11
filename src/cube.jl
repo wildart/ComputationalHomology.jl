@@ -14,13 +14,7 @@ Base.show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
 
 dim(c::Cube) = length(findall(!iszero, c.extent))
 
-function Base.getproperty(c::Cube, name::Symbol)
-    if name == :index || name == :values
-        return (c.origin, c.extent)
-    else
-        return getfield(c, name)
-    end
-end
+values(c::Cube) = [c.origin, c.extent]
 
 ==(a::Cube, b::Cube) = a.hash == b.hash
 
