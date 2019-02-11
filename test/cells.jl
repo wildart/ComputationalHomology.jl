@@ -38,12 +38,14 @@ end
     @test dim(c) == 2
     c = Cube{Vector{Int}}([0,0,0],[1,1,1]) # 3-cube
     @test dim(c) == 3
-    @test values(c) == [[0,0,0],[1,1,1]]
+    @test hash(c) == hash([0,0,0,1,1,1])
+    @test c == Cube{Vector{Int}}([0,0,0],[1,1,1])
 
     c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.0,.5]) # 2-cube
     @test volume(c) == 0.5^2
     c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.5,.5]) # 2-cube
     @test volume(c) == 0.5^3
+
 end
 
 @testset "CW" begin
@@ -51,7 +53,6 @@ end
     @test hash(a) == hash(Cell[])
     @test a == Cell()
     @test dim(a) == 0
-    @test_throws MethodError values(a)
 
     b = Cell()
     c = Cell(1, a, b)

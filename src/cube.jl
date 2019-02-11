@@ -14,9 +14,9 @@ Base.show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
 
 dim(c::Cube) = length(findall(!iszero, c.extent))
 
-values(c::Cube) = [c.origin, c.extent]
+==(a::Cube, b::Cube) = hash(a) == hash(b)
 
-==(a::Cube, b::Cube) = a.hash == b.hash
+hash(c::Cube) = hash(vcat(c.origin, c.extent))
 
 # Misc. methods
 
