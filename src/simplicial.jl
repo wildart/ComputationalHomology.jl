@@ -84,7 +84,6 @@ Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size
 SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} = SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}())
 (::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
 
-
 function SimplicialComplex(splxs::Simplex...)
     S = eltype(splxs)
     cplx = SimplicialComplex(S)
@@ -107,8 +106,6 @@ function SimplicialComplex(splxs::Simplex...)
 end
 
 SimplicialComplex(splxs::Vector{<:AbstractSimplex}) = SimplicialComplex(splxs...)
-
-Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
 # ---------------
 # Private Methods
@@ -168,7 +165,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
 end
 
 #
-# Public Interface
+# AbstractComplex Interface
 #
 celltype(cplx::SimplicialComplex) = eltype(valtype(cplx.cells))
 
@@ -224,6 +221,8 @@ Base.position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractC
 #
 # Miscellaneous
 #
+
+Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
 function Base.read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
     splxs = S[]
