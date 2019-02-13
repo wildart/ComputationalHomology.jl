@@ -91,7 +91,7 @@ function Base.complex(flt::Filtration{C,FI}, val::FI) where {C <: AbstractComple
 end
 
 """
-    boundary(flt::Filtration) -> Vector{BitSet}
+    boundary(flt::Filtration) -> Vector{<:AbsrtactSet}
 
 Generate a boundary matrix from the filtration `flt` for the persistent homology calculations.
 """
@@ -99,7 +99,16 @@ function boundary(flt::Filtration; reduced=false)
     ridx = reduced ? 1 : 0
     # initialize boundary matrix
     cplx = complex(flt)
-    bm = map(i->BitSet(), 1:sum(size(cplx))+ridx)
+    sz = sum(size(cplx))+ridx
+
+    # find suitable type for BM storage
+    STs = [Int8, Int16, Int32, Int64]
+    STi = findfirst(i->i>sz, map(typemax, STs))
+    BT = STi == 1 ? BitSet : Set{STs[STi]}
+
+    # create empty BM
+    bm = map(i->BT(), 1:sz)
+
     # fill boundary matrix
     ord = order(flt)
     revidx = Dict((ci, d) => i for (i, (d, ci, fv)) in enumerate(ord))
@@ -117,7 +126,7 @@ function boundary(flt::Filtration; reduced=false)
     return bm
 end
 
-function SparseArrays.sparse(∂::Vector{BitSet})
+function SparseArrays.sparse(∂::Vector{<:AbstractSet})
     m = length(∂)
     ret = spzeros(Int, m, m)
     for i in 1:m

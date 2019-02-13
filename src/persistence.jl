@@ -23,10 +23,10 @@ pair(i::Interval) = i.b => i.d
 intervals(d::Int, ps::Pair...) = [Interval(d, p) for p in ps]
 
 # Boundary matrix reduction algorithms
-lastindex(col::BitSet) = length(col) == 0 ? -1 : last(col)
+lastindex(col::AbstractSet) = length(col) == 0 ? -1 : maximum(col)
 
 """Standart reduction"""
-function reduce!(::Type{StandardReduction}, ∂::Vector{BitSet})
+function reduce!(::Type{StandardReduction}, ∂::Vector{<:AbstractSet})
     lowest_one_lookup = fill(-1, length(∂))
     for col in eachindex(∂)
         lowest_one = lastindex(∂[col])
@@ -43,7 +43,7 @@ function reduce!(::Type{StandardReduction}, ∂::Vector{BitSet})
 end
 
 """Twist reduction"""
-function reduce!(::Type{TwistReduction}, ∂::Vector{BitSet})
+function reduce!(::Type{TwistReduction}, ∂::Vector{<:AbstractSet})
     lowest_one_lookup = fill(-1, length(∂))
 
     for dim in maximum(map(length, ∂)):-1:1
@@ -64,11 +64,11 @@ function reduce!(::Type{TwistReduction}, ∂::Vector{BitSet})
     return ∂
 end
 
-Base.reduce(::Type{R}, ∂::Vector{BitSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
+Base.reduce(::Type{R}, ∂::Vector{<:AbstractSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
 
-function generate_pairs(∂::Vector{BitSet}; reduced = false)
+function generate_pairs(∂::Vector{<:AbstractSet}; reduced = false)
     ridx = reduced ? 1 : 0
-    births = BitSet()
+    births = eltype(∂)()
     ps = Pair[]
     for i in eachindex(∂)
         if length(∂[i]) > 0
@@ -88,7 +88,7 @@ function generate_pairs(∂::Vector{BitSet}; reduced = false)
 end
 
 "Compute raw persistence pairs (boundary matrix is reduced in a process)"
-function pairs(::Type{R}, ∂::Vector{BitSet}; reduced = false) where {R <: AbstractPersistenceReduction}
+function pairs(::Type{R}, ∂::Vector{<:AbstractSet}; reduced = false) where {R <: AbstractPersistenceReduction}
     reduce!(R, ∂) # reduce  boundary matrix
     return generate_pairs(∂, reduced=reduced), ∂  # generate pairs
 end
@@ -101,7 +101,7 @@ function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
     intrs = Dict{Int,Vector{Interval}}()
 
     # compute intervals
-    births = BitSet()
+    births = Set{Int}()
     ord = order(flt)
     for (i, (sdim, si, fv)) in enumerate(ord)
         col = R[i]
@@ -161,7 +161,7 @@ Persistent homology group iterator for a filtration
 mutable struct PersistentHomology <: AbstractHomology
     filtration::Filtration
     reduction::DataType
-    R::Vector{BitSet}
+    R::Vector{<:AbstractSet}
 end
 function persistenthomology(::Type{R}, flt::Filtration;
                             reduced::Bool=false) where R<:AbstractPersistenceReduction
