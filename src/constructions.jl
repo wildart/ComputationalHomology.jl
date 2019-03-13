@@ -113,7 +113,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
     cplx = SimplicialComplex(splxs...)
 
     # calculate cross distances for each point in dataset
-    D = Distances.pairwise(distance, X)
+    D = Distances.pairwise(distance, X, dims=2)
 
     # build 1-skeleton (neighborhood graph)
     E = spzeros(Bool, n, n) # adjacency matrix
@@ -209,7 +209,7 @@ function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
     L = landmarks(X, l, method = landmark, distance = distance, firstpoint=firstpoint)
 
     # get distances to landmarks
-    D = Distances.pairwise(distance, X[:,L], X)
+    D = Distances.pairwise(distance, X[:,L], X, dims=2)
 
     # simplexes contain indexes to landamarks
     cplx, w = witness(D, ɛ, weights, expansion=expansion, ν=ν, maxoutdim=maxoutdim, firstpoint=firstpoint)
