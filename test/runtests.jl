@@ -12,3 +12,5 @@ include("constructions.jl")
 include("homology.jl")
 include("persistence.jl")
 include("landscape.jl")
+include("pimage.jl")
+
