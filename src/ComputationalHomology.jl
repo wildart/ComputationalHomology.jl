@@ -34,7 +34,8 @@ export AbstractCell,
        pairs, intervals, reduce!, reduce,
        PersistentHomology, persistenthomology,
 
-       Interval, Landscape, landscape, mean
+       Interval, Landscape, landscape, mean,
+       PersistentImage
 
 include("cells.jl")
 include("chain.jl")
@@ -47,5 +48,6 @@ include("filtration.jl")
 include("homology.jl")
 include("persistence.jl")
 include("landscape.jl")
+include("pimage.jl")
 
 end # module
