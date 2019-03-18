@@ -51,8 +51,9 @@ pkg> add ComputationalHomology
 
 - Persistence
 
-    - Barcodes
-    - Landscapes
+    - Barcode
+    - Persistence Landscape
+    - Persistence Image
 
 
 ## Example
