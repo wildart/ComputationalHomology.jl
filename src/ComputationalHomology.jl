@@ -21,7 +21,7 @@ export AbstractCell,
 
        AbstractComplex,
        boundary, coboundary, celltype, cells,
-       SimplicialComplex,
+       SimplicialComplex, addsimplex!, addsimplices!,
        vietorisrips, witness, cech, čech,
 
        AbstractHomology, grouptype, group,
@@ -49,5 +49,6 @@ include("homology.jl")
 include("persistence.jl")
 include("landscape.jl")
 include("pimage.jl")
+include("examples.jl")
 
 end # module

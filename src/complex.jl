@@ -87,7 +87,7 @@ end
 Return a position of the `cell` in an order of cells of the same dimenion of the `complex`.
 """
 function Base.position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
-    @assert celltype(cplx) == C "Incorrect cell type"
+    @assert celltype(cplx) == C "Incorrect cell type: $(celltype(cplx)) ≠ $C "
     return position(cplx, hash(c), dim(c))
 end
 
