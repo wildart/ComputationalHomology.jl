@@ -1,7 +1,7 @@
 module ComputationalHomology
 
 using LinearAlgebra
-using SparseArrays
+import SparseArrays: SparseMatrixCSC, spzeros, sparse, findnz
 import SmithNormalForm: smith
 import Distances
 import Random
@@ -14,13 +14,14 @@ import Base.Iterators: pairs
 export AbstractCell,
        dim, faces, volume,
        AbstractSimplex,
+       values, vertecies,
        Simplex, Cube, Cell,
 
        AbstractChain,
        Chain, simplify,
 
        AbstractComplex,
-       boundary, coboundary, celltype, cells,
+       boundary, coboundary, celltype, cells, vertecies,
        SimplicialComplex, addsimplex!, addsimplices!,
        vietorisrips, witness, cech, čech,
 

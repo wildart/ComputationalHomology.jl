@@ -126,7 +126,7 @@ function boundary(flt::Filtration; reduced=false)
     return bm
 end
 
-function SparseArrays.sparse(∂::Vector{<:AbstractSet})
+function sparse(∂::Vector{<:AbstractSet})
     m = length(∂)
     ret = spzeros(Int, m, m)
     for i in 1:m

@@ -48,7 +48,7 @@ union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
 
 function volume(S::AbstractMatrix)
     d, vc = size(S)
-    @assert d == vc-1 "Number of vertexes in simplex should be dim+1"
+    @assert d == vc-1 "Number of vertecies in simplex should be dim+1"
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
@@ -257,6 +257,23 @@ function Base.write(io::IO, cplx::SimplicialComplex)
     end
     return
 end
+
+"""
+    adjacency_matrix(cplx, [T=Int])
+
+Construct an adjacency matrix of type `T` from a 1-skeleton (1D subcomplex) of the complex `cplx`.
+"""
+function adjacency_matrix(cplx::SimplicialComplex, ::Type{T}) where {T<:Integer}
+    C0 = map(hash, cells(cplx, 0))
+    N = length(C0)
+    adj = spzeros(T,N,N)
+    for c in cells(cplx, 1)
+        idxs = map(h->findfirst(isequal(h), C0), vertecies(c))
+        adj[idxs, idxs] .= one(T)
+    end
+    return adj
+end
+adjacency_matrix(cplx::SimplicialComplex) = adjacency_matrix(cplx, Int)
 
 #
 # Complex simplex iterator

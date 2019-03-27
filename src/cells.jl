@@ -36,7 +36,7 @@ abstract type AbstractSimplex <: AbstractCell end
 
 Get an array of `cell` values.
 """
-values(c::AbstractSimplex) = throw(MethodError(values,(typeof(c),))) #TODO: consider to move to AbstractSimplex
+values(c::AbstractSimplex) = throw(MethodError(values,(typeof(c),)))
 
 """
     vertecies(cell)

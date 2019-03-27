@@ -106,4 +106,8 @@
 
     ch = boundary(cplx2, 1, 0, Int)
     @test dim(ch) == -1
+
+    A = ComputationalHomology.adjacency_matrix(ComputationalHomology.sphere(1), UInt8)
+    @test collect(A) == fill(0x01,2,2)
+    @test eltype(A) == UInt8
 end
