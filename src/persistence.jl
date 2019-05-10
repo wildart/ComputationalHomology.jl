@@ -108,7 +108,7 @@ function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
         if length(col) == 0
             push!(births, i)
         else
-            b = last(col)
+            b = lastindex(col)
             d = i
             delete!(births, b)
             delete!(births, d)
