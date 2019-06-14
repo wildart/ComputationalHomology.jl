@@ -39,7 +39,7 @@ Get an array of `cell` values.
 values(c::AbstractSimplex) = throw(MethodError(values,(typeof(c),)))
 
 """
-    vertecies(cell)
+    vertices(cell)
 
-Get a collection of `cell` vertecies"""
-vertecies(c::AbstractSimplex) = throw(MethodError(vertecies,(typeof(c),)))
+Get a collection of `cell` vertices"""
+vertices(c::AbstractSimplex) = throw(MethodError(vertices,(typeof(c),)))

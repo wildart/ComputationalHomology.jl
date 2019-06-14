@@ -14,14 +14,14 @@ import Base.Iterators: pairs
 export AbstractCell,
        dim, faces, volume,
        AbstractSimplex,
-       values, vertecies,
+       values, vertices,
        Simplex, Cube, Cell,
 
        AbstractChain,
        Chain, simplify,
 
        AbstractComplex,
-       boundary, coboundary, celltype, cells, vertecies,
+       boundary, coboundary, celltype, cells,
        SimplicialComplex, addsimplex!, addsimplices!,
        vietorisrips, witness, cech, čech,
 

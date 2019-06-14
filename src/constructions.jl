@@ -19,7 +19,7 @@ function inductive!(cplx, k, E)
         cls === nothing && continue
         for τ in cls
             # N = ∩ᵤₜlowernbrs(G,u)
-            V = vertecies(τ)
+            V = vertices(τ)
             N = lowernbrs(cplx, V[1], E)
             for i in 2:length(V)
                 intersect!(N, lowernbrs(cplx, V[i], E))

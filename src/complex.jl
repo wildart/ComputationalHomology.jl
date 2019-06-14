@@ -155,3 +155,20 @@ function cochain(cplx::AbstractComplex, d::Int, coefs::Vector{PID}) where {PID}
     @assert length(cs) == length(coefs) "Number of coefficients must match number of cells of dimension $d"
     return Chain(d, coefs, map(c->hash(c), cs))
 end
+
+"""
+    adjacency_matrix(cplx, [T=Int])
+
+Construct an adjacency matrix of type `T` from a 1-skeleton (1D subcomplex) of the complex `cplx`.
+"""
+function adjacency_matrix(cplx::AbstractComplex, ::Type{T}) where {T<:Integer}
+    C0 = map(hash, cells(cplx, 0))
+    N = length(C0)
+    adj = spzeros(T,N,N)
+    for c in cells(cplx, 1)
+        i, j = map(h->findfirst(isequal(h), C0), vertices(c))
+        adj[i, j] = adj[j, i] = one(T)
+    end
+    return adj
+end
+adjacency_matrix(cplx::AbstractComplex) = adjacency_matrix(cplx, Int)
