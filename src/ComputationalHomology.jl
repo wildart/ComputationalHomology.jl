@@ -23,6 +23,7 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, celltype, cells,
        SimplicialComplex, addsimplex!, addsimplices!,
+       CWComplex,
        vietorisrips, witness, cech, čech,
 
        AbstractHomology, grouptype, group,

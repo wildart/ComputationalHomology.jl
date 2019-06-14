@@ -50,22 +50,42 @@ end
 
 @testset "CW" begin
     a = Cell()
-    @test hash(a) == hash(Cell[])
-    @test a == Cell()
-    @test dim(a) == 0
-
     b = Cell()
+    @test dim(a) == 0
+    @test hash(a) == 0x02011ce34bce797f
+    @test a == a
+
+    @test_throws AssertionError Cell(0, a)
+
     c = Cell(1, a, b)
     @test dim(c) == 1
-    d = Cell(1, a, b, a, b)
+    @test vertices(c)[1] == b
+    @test vertices(c)[2] == a
+    cb = boundary(c)
+    @test cb[1][1] == -1
+    @test cb[1][2] == hash(b)
+    @test cb[2][1] == 1
+    @test cb[2][2] == hash(a)
+
+    c2 = Cell()
+    d = Cell(1, a, b, c2)
     e = c ∪ d
     @test dim(e) == 2
 
-    @testset for (f1, f2) in zip(faces(c), [a, b])
+    @testset for (f1, f2) in zip(vertices(c), [b, a])
         @test f1 == f2
     end
 
     @testset for (f1, f2) in zip(faces(e), [c, d])
         @test f1 == f2
     end
+
+    @test vertices(e)[1] == c2
+    @test vertices(e)[2] == b
+    @test vertices(e)[3] == a
+
+    f = Cell(1, [a, b], [1, 1])
+    cb = boundary(f)
+    @test cb[1][1] == 1
+    @test cb[2][1] == 1
 end

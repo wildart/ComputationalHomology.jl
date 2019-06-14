@@ -18,11 +18,21 @@ Base.eltype(splx::Simplex{P}) where {P} = P
 
 dim(splx::Simplex) = length(splx.vs)-1
 
-values(splx::Simplex) = collect(splx.vs)
-
 hash(splx::Simplex) = splx.hash
 
 ==(a::Simplex, b::Simplex) = a.hash == b.hash
+
+function vertices(splx::Simplex)
+    vtxs = typeof(hash(splx))[]
+    for v in splx.vs
+        push!(vtxs, hash(Simplex(v)))
+    end
+    return vtxs
+end
+
+union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
+
+# Public methods for Simplex
 
 function faces(splx::Simplex)
     faces = typeof(splx)[]
@@ -34,15 +44,7 @@ function faces(splx::Simplex)
     return faces
 end
 
-function vertices(splx::Simplex)
-    vtxs = typeof(hash(splx))[]
-    for v in splx.vs
-        push!(vtxs, hash(Simplex(v)))
-    end
-    return vtxs
-end
-
-union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
+values(splx::Simplex) = collect(splx.vs)
 
 # Misc. methods
 
@@ -62,7 +64,8 @@ struct Simplices{T}
     dim::Int
 end
 simplices(itr::T, dim::Int=-1) where T = Simplices{T}(itr, dim)
-Base.show(io::IO, splxs::Simplices{T}) where T = print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
+Base.show(io::IO, splxs::Simplices{T}) where T =
+    print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
 
 
 # Simplicial Complex

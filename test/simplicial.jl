@@ -108,6 +108,6 @@
     @test dim(ch) == -1
 
     A = ComputationalHomology.adjacency_matrix(ComputationalHomology.sphere(1), UInt8)
-    @test collect(A) == fill(0x01,2,2)
+    @test collect(A) == UInt8[0x00 0x01; 0x01 0x00]
     @test eltype(A) == UInt8
 end
