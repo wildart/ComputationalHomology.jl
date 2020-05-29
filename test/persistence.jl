@@ -91,7 +91,7 @@
     @test Interval(1=>2) ∈ itr[0]
     @test Interval(1, 3=>7) ∈ itr[1]
 
-    itr = intervals(flt, reduction = StandardReduction)
+    itr = intervals(StandardReduction, flt)
     @test Interval(1=>2) ∈ itr[0]
     @test Interval(1, 3=>7) ∈ itr[1]
     @test Interval(1, 0=>Inf) ∈ itr[1]

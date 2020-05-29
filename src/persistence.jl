@@ -1,26 +1,73 @@
 import LinearAlgebra: diag
 
-abstract type AbstractPersistenceReduction end
-mutable struct StandardReduction <: AbstractPersistenceReduction end
-mutable struct TwistReduction <: AbstractPersistenceReduction end
+# INTERVAL TYPES
 
-struct Interval
+"""
+Abstract interval type
+"""
+abstract type AbstractInterval end
+
+"""
+    first(i::AbstractInterval)
+
+Return a birth value of the interval `i`.
+"""
+
+first(i::AbstractInterval) = error("`first` is not implemented ")
+"""
+    last(i::AbstractInterval)
+
+Return a death value of the interval `i`.
+"""
+last(i::AbstractInterval) = error("`last` is not implemented ")
+
+"""
+    last(i::AbstractInterval)
+
+Return a death value of the interval `i`.
+"""
+dim(i::AbstractInterval) = error("`dim` is not implemented ")
+
+# auxilary methods
+show(io::IO, i::AbstractInterval) = print(io, "[$(first(i)),$(last(i)))")
+isless(i1::AbstractInterval, i2::AbstractInterval) = first(i1) < first(i2) ? true : ( first(i1) == first(i2) ? last(i1) < last(i2) : false )
+birth(i::AbstractInterval) = first(i) - last(i)
+death(i::AbstractInterval) = first(i) + last(i)
+pair(i::AbstractInterval) = first(i) => last(i)
+
+"""
+Simple implementation of the `AbstractInterval` type
+"""
+struct Interval <: AbstractInterval
     dim::Int
-    generator::AbstractChain
     b::Number
     d::Number
 end
-Interval(dim::Int, b::Number, d::Number) = Interval(dim, EmptyChain(), b, d)
-Interval(dim::Int, p::Pair) = Interval(dim, p.first, p.second)
+Interval(dim::Int, p::Pair) = Interval(dim, first(p), last(p))
 Interval(p::Pair) = Interval(0, p)
-Base.show(io::IO, intr::Interval) = print(io, "[$(intr.b),$(intr.d))")
-Base.isless(i1::Interval, i2::Interval) = i1.b < i2.b ? true : ( i1.b == i2.b ? i1.d < i2.d : false )
-birth(i::Interval) = i.b - i.d
-death(i::Interval) = i.b + i.d
-diag(i::Interval) = let c = death(i)/2.0; Interval(i.dim, i.generator, c, c) end
-
-pair(i::Interval) = i.b => i.d
 intervals(d::Int, ps::Pair...) = [Interval(d, p) for p in ps]
+
+dim(i::Interval) = i.dim
+first(i::Interval) = i.b
+last(i::Interval) = i.d
+diag(i::Interval) = let c = death(i)/2.0; Interval(dim(i), c, c) end
+
+"""
+Interval annotated with a generator
+"""
+struct AnnotatedInterval <: AbstractInterval
+    dim::Int
+    b::Number
+    d::Number
+    generator::AbstractChain
+end
+AnnotatedInterval(dim::Int, b::Number, d::Number) = AnnotatedInterval(dim, b, d, EmptyChain())
+
+# REDUCTION ALGORITHMS
+
+abstract type AbstractPersistenceReduction end
+struct StandardReduction <: AbstractPersistenceReduction end
+struct TwistReduction <: AbstractPersistenceReduction end
 
 # Boundary matrix reduction algorithms
 lastindex(col::AbstractSet) = length(col) == 0 ? -1 : maximum(col)
@@ -57,6 +104,7 @@ function reduce!(::Type{TwistReduction}, ∂::Vector{<:AbstractSet})
                 end
                 if lowest_one != -1
                     lowest_one_lookup[lowest_one] = col
+                    empty!(∂[lowest_one])
                 end
             end
         end
@@ -132,8 +180,9 @@ function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
     return intrs
 end
 
-intervals(flt::Filtration; reduction=TwistReduction, length0=false, absolute=true) =
-    intervals(flt, reduce!(reduction, boundary(flt)), length0, absolute)
+intervals(::Type{R}, flt::Filtration; length0=false, absolute=true) where {R <: AbstractPersistenceReduction} =
+    intervals(flt, reduce!(R, boundary(flt)), length0, absolute)
+intervals(flt::Filtration; kwargs...) = intervals(TwistReduction, flt; kwargs...)
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
 function betti(flt::Filtration, R::Vector, p::Int)
@@ -152,32 +201,33 @@ function betti(flt::Filtration, R::Vector, p::Int)
     β = z - l
     return β < 0 ? 0 : β
 end
-betti(flt::Filtration, p::Int; reduction=TwistReduction) =
-    betti(flt, reduce!(reduction, boundary(flt)), p)
+betti(::Type{R}, flt::Filtration, p::Int) where {R <: AbstractPersistenceReduction} =
+    betti(flt, reduce!(R, boundary(flt)), p)
+betti(flt::Filtration, p::Int) = betti(TwistReduction, flt, p)
 
 """
 Persistent homology group iterator for a filtration
 """
-mutable struct PersistentHomology <: AbstractHomology
+mutable struct PersistentHomology{R <: AbstractPersistenceReduction} <: AbstractHomology
     filtration::Filtration
-    reduction::DataType
-    R::Vector{<:AbstractSet}
+    ∂::Vector{<:AbstractSet}
 end
 function persistenthomology(::Type{R}, flt::Filtration;
-                            reduced::Bool=false) where R<:AbstractPersistenceReduction
+                            reduced::Bool=false) where {R <: AbstractPersistenceReduction}
     RM = reduce!(R, boundary(flt, reduced = reduced))
-    return PersistentHomology(flt, R, RM)
+    return PersistentHomology{R}(flt, RM)
 end
 persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
 
-Base.show(io::IO, h::PersistentHomology) = print(io, "PersistentHomology[$(h.filtration) with $(h.reduction)]")
+Base.show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
+    print(io, "PersistentHomology[$(h.filtration) with $R]")
 
 #
 # Interface methods
 #
 
-group(h::PersistentHomology, p::Int) = betti(h.filtration, h.R, p)
-intervals(h::PersistentHomology) = intervals(h.filtration, reduction=h.reduction)
+group(h::PersistentHomology, p::Int) = betti(h.filtration, h.∂, p)
+intervals(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = intervals(R, h.filtration)
 
 #
 # Iterator methods
