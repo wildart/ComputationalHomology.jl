@@ -1,5 +1,10 @@
 global cellId = 0
 
+function resetCellId!(id=0)
+    global cellId
+    cellId = id
+end
+
 """CW cell type"""
 struct Cell{PID} <: AbstractCell
     d::Int

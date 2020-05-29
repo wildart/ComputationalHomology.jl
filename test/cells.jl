@@ -49,6 +49,7 @@ end
 end
 
 @testset "CW" begin
+    ComputationalHomology.resetCellId!()
     a = Cell()
     b = Cell()
     @test dim(a) == 0
