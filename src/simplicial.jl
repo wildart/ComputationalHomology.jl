@@ -11,8 +11,8 @@ Simplex(splx::P...) where {P} = Simplex(P[splx...])
 # Private methods
 
 Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
-Base.show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
-Base.eltype(splx::Simplex{P}) where {P} = P
+show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
+eltype(splx::Simplex{P}) where {P} = P
 
 # Public methods
 
@@ -64,7 +64,7 @@ struct Simplices{T}
     dim::Int
 end
 simplices(itr::T, dim::Int=-1) where T = Simplices{T}(itr, dim)
-Base.show(io::IO, splxs::Simplices{T}) where T =
+show(io::IO, splxs::Simplices{T}) where T =
     print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
 
 
@@ -78,7 +78,7 @@ mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex
     cells::Dict{Int,Vector{S}}   # cells per dimension
     order::Dict{UInt64,Int}      # total order of cells per dimension
 end
-Base.show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
+show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
 
 #
 # Constructors
@@ -216,7 +216,7 @@ function coboundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where
     return ch
 end
 
-Base.push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
+push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
 Base.position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractCell} = get(cplx.order, idx, nothing)
@@ -227,7 +227,7 @@ Base.position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractC
 
 Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
 
-function Base.read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
+function read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
     splxs = S[]
     P = eltype(S())
     while !eof(io)
@@ -238,7 +238,7 @@ function Base.read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimpl
     return SimplicialComplex(splxs)
 end
 
-function Base.write(io::IO, cplx::SimplicialComplex)
+function write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,UInt}()
     for s in cplx.cells[0]
         idx = cplx.order[hash(s)]
@@ -264,13 +264,13 @@ end
 #
 # Complex simplex iterator
 #
-Base.length(splxs::Simplices{C}) where C<:AbstractComplex =
+length(splxs::Simplices{C}) where C<:AbstractComplex =
     splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
 
-Base.eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
+eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
 
 # State (total id, dim, dim id)
-function Base.iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex
+function iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex
     tid >= length(iter) && return nothing
     if d < 0
         d = 0

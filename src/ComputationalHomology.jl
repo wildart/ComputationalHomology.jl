@@ -8,7 +8,9 @@ import Random
 import BoundingSphere
 import Statistics: mean
 
-import Base: ==, -, +, *, union, values, hash
+import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
+             eltype, getindex, size, iterate, push!, append!, in, read, write,
+             vec, complex
 import Base.Iterators: pairs
 
 export AbstractCell,

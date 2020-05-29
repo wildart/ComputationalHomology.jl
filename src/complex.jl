@@ -47,22 +47,22 @@ cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),In
 
 Insert a `cell` to a complex `cplx`, and returns an array of inserted cell(s). If `recursive=true` is passed then all faces of the `cell` are also added to the complex `cplx`.
 """
-Base.push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
+push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
 
 #
 # Public Methods
 #
 """Return a number of cells per dimension"""
-Base.size(cplx::AbstractComplex) = (map(length, cells(cplx))...,)
+size(cplx::AbstractComplex) = (map(length, cells(cplx))...,)
 
 """Return a dimension of the complex"""
 dim(cplx::AbstractComplex) = length(size(cplx))-1
 
 """Return a total number of cells in the complex"""
-Base.length(cplx::AbstractComplex) = sum(size(cplx))
+length(cplx::AbstractComplex) = sum(size(cplx))
 
 """Return a number of the cell in the complex of a dimension `d` (0-based)"""
-function Base.size(cplx::AbstractComplex, d::Int)
+function size(cplx::AbstractComplex, d::Int)
     sz = size(cplx)
     szlen = length(sz)
     (d < 0 || d >= szlen) && return 0
@@ -96,7 +96,7 @@ end
 
 Return an identifier of the k-dimensional `cell` in the complex `cplx`. If the cell is not in the complex, `nothing` is returned.
 """
-function Base.getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
+function getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
     cidx = position(cplx, c)
     cidx === nothing && return nothing #size(cplx, d)+1
     return hash(cells(cplx, dim(c))[cidx])
@@ -107,7 +107,7 @@ end
 
 Return a `d`-dimensional cell given its index `idx` and dimenion `d`.
 """
-function Base.getindex(cplx::AbstractComplex, idx::Integer, d::Int)
+function getindex(cplx::AbstractComplex, idx::Integer, d::Int)
     cidx = position(cplx, idx, d)
     cidx === nothing && return nothing
     return cells(cplx, d)[cidx]
@@ -141,7 +141,7 @@ end
 
 Checks if the `cell` is in the complex `cplx`
 """
-function Base.in(c::C, cplx::AbstractComplex) where {C <: AbstractCell}
+function in(c::C, cplx::AbstractComplex) where {C <: AbstractCell}
     return position(cplx, c) !== nothing
 end
 

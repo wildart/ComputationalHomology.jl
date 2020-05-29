@@ -37,7 +37,7 @@ end
 
 # Private methods
 
-function Base.show(io::IO, c::Cell)
+function show(io::IO, c::Cell)
     vstr = ""
     print(io, "C$(c.d)")
     if length(c.boundary) > 0
@@ -45,7 +45,7 @@ function Base.show(io::IO, c::Cell)
         print(io, "[$vstr]")
     end
 end
-Base.eltype(c::Cell{PID}) where {PID} = Cell{PID}
+eltype(c::Cell{PID}) where {PID} = Cell{PID}
 
 # Public methods
 
@@ -87,7 +87,7 @@ boundary(c::Cell) = Chain(dim(c), collect(values(c.boundarymap)), collect(keys(c
 mutable struct CWComplex{S<:AbstractCell} <: AbstractComplex
     cells::Dict{Int,Vector{S}}   # cells per dimension
 end
-Base.show(io::IO, cplx::CWComplex) = print(io, "CWComplex($(size(cplx)))")
+show(io::IO, cplx::CWComplex) = print(io, "CWComplex($(size(cplx)))")
 
 (::Type{CWComplex{S}})() where {S<:AbstractCell} = CWComplex{S}(Dict{Int,Vector{S}}())
 CWComplex() = CWComplex{Cell{Int}}()
@@ -124,7 +124,7 @@ end
 
 Attach a new `cell` to to a `complex`.
 """
-function Base.push!(cplx::CWComplex, c::Cell; recursive=false)
+function push!(cplx::CWComplex, c::Cell; recursive=false)
     cdim = dim(c)
     !haskey(cplx.cells, cdim) && setindex!(cplx.cells, Cell[], cdim)
     push!(cplx.cells[cdim], c)

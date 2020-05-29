@@ -1,17 +1,17 @@
 abstract type AbstractChain end
 
 # Chain interface
-Base.getindex(ch::AbstractChain, i::Integer) = throw(MethodError(getindex, (typeof(ch),Integer)))
-Base.length(ch::AbstractChain) = throw(MethodError(length, (typeof(ch),)))
-Base.eltype(ch::AbstractChain) = throw(MethodError(eltype, (typeof(ch),)))
-function Base.iterate(ch::AbstractChain, state=1)
+getindex(ch::AbstractChain, i::Integer) = throw(MethodError(getindex, (typeof(ch),Integer)))
+length(ch::AbstractChain) = throw(MethodError(length, (typeof(ch),)))
+eltype(ch::AbstractChain) = throw(MethodError(eltype, (typeof(ch),)))
+function iterate(ch::AbstractChain, state=1)
     state > length(ch) && return nothing
     return (ch[state], state+1)
 end
 
 """Empty Chain"""
 struct EmptyChain <: AbstractChain end
-Base.length(ch::EmptyChain) = 0
+length(ch::EmptyChain) = 0
 
 """ k-Chain is a formal linear combination of k-cells.
 
@@ -33,12 +33,12 @@ Chain(::Type{PID}) where {PID} = Chain(0,PID)
 dim(ch::Chain) = ch.dim
 
 # implement interface
-Base.getindex(ch::Chain, i::Integer) = (ch.coefs[i], ch.elems[i])
-Base.length(ch::Chain) = length(ch.coefs)
-Base.eltype(ch::Chain{PID, IX}) where {PID, IX<:Integer} = (PID, IX)
-Base.iszero(ch::Chain) = length(ch.elems) == 0
+getindex(ch::Chain, i::Integer) = (ch.coefs[i], ch.elems[i])
+length(ch::Chain) = length(ch.coefs)
+eltype(ch::Chain{PID, IX}) where {PID, IX<:Integer} = (PID, IX)
+iszero(ch::Chain) = length(ch.elems) == 0
 
-function Base.show(io::IO, ch::Chain)
+function show(io::IO, ch::Chain)
     if iszero(ch)
         print(io, "0")
     else
@@ -49,14 +49,14 @@ function Base.show(io::IO, ch::Chain)
     end
 end
 
-function Base.push!(ch::Chain{PID, IX}, coef::PID, idx::IX) where {PID, IX<:Integer}
+function push!(ch::Chain{PID, IX}, coef::PID, idx::IX) where {PID, IX<:Integer}
     push!(ch.coefs, coef)
     push!(ch.elems, idx)
     return ch
 end
-Base.push!(ch::Chain{PID, IX}, e::Tuple{PID,IX}) where {PID, IX<:Integer} = push!(ch, e[1], e[2])
-Base.push!(ch::Chain{PID, IX}, e::Pair{PID,IX}) where {PID, IX<:Integer}  = push!(ch, e[1], e[2])
-function Base.append!(a::Chain, b::Chain)
+push!(ch::Chain{PID, IX}, e::Tuple{PID,IX}) where {PID, IX<:Integer} = push!(ch, e[1], e[2])
+push!(ch::Chain{PID, IX}, e::Pair{PID,IX}) where {PID, IX<:Integer}  = push!(ch, e[1], e[2])
+function append!(a::Chain, b::Chain)
     append!(a.coefs, b.coefs)
     append!(a.elems, b.elems)
     return a

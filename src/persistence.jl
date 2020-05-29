@@ -219,7 +219,7 @@ function persistenthomology(::Type{R}, flt::Filtration;
 end
 persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
 
-Base.show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
+show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
     print(io, "PersistentHomology[$(h.filtration) with $R]")
 
 #
@@ -233,12 +233,12 @@ intervals(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = 
 # Iterator methods
 #
 
-Base.length(h::PersistentHomology) = dim(h.filtration.complex)+1
+length(h::PersistentHomology) = dim(h.filtration.complex)+1
 
 """Return homology group type: dimension & Betti numbers."""
-Base.eltype(h::PersistentHomology) = Tuple{Int, Int}
+eltype(h::PersistentHomology) = Tuple{Int, Int}
 
-function Base.iterate(h::PersistentHomology, p=0)
+function iterate(h::PersistentHomology, p=0)
     p > dim(h.filtration.complex) && return nothing
     βₚ = group(h, p)
     return (p, βₚ), p+1

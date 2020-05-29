@@ -13,7 +13,7 @@ struct Homology{C<:AbstractComplex, PID} <: AbstractHomology
 end
 homology(c::C, ::Type{PID}) where {C<:AbstractComplex, PID} = Homology{C, PID}(c)
 
-Base.show(io::IO, h::Homology{C, PID}) where {C<:AbstractComplex, PID} = print(io, "Homology($PID)[$(h.complex)]")
+show(io::IO, h::Homology{C, PID}) where {C<:AbstractComplex, PID} = print(io, "Homology($PID)[$(h.complex)]")
 
 #
 # Interface methods
@@ -59,11 +59,11 @@ end
 # Iterator methods
 #
 """Return homology group type: dimension, Betti & torsion numbers."""
-Base.eltype(h::Homology) = Tuple{Int, Int, Int}
+eltype(h::Homology) = Tuple{Int, Int, Int}
 
-Base.length(h::Homology) = dim(h.complex)+1
+length(h::Homology) = dim(h.complex)+1
 
-function Base.iterate(h::Homology{C, PID}, state=nothing) where {C<:AbstractComplex, PID}
+function iterate(h::Homology{C, PID}, state=nothing) where {C<:AbstractComplex, PID}
     if state === nothing
         Z = zeros(PID,0,0)
         snfstate = (Z,Z,Z,Z,Z,0)
@@ -97,10 +97,10 @@ withgenerators(h::H) where {H <: AbstractHomology} = WithGenerators{H}(h)
 #
 # Iterator methods
 #
-Base.length(g::WithGenerators) = length(g.homology)
-Base.eltype(g::WithGenerators) = Tuple{Int,Int,Int,Dict{Chain, grouptype(typeof(g.homology))}}
+length(g::WithGenerators) = length(g.homology)
+eltype(g::WithGenerators) = Tuple{Int,Int,Int,Dict{Chain, grouptype(typeof(g.homology))}}
 
-function Base.iterate(g::WithGenerators, state=nothing)
+function iterate(g::WithGenerators, state=nothing)
     h = g.homology
 
     # calculate betti, torsion & SNF

@@ -7,9 +7,9 @@ struct Landscape
     levels::Vector{Vector{<:Pair}}
 end
 Landscape(ints::Vector{<:Pair}...) = Landscape([ints...])
-Base.getindex(ls::Landscape, i::Integer) = ls.levels[i]
-Base.length(ls::Landscape) = length(ls.levels)
-Base.show(io::IO, ls::Landscape) = print(io, "λ[k = $(length(ls.levels))]")
+getindex(ls::Landscape, i::Integer) = ls.levels[i]
+length(ls::Landscape) = length(ls.levels)
+show(io::IO, ls::Landscape) = print(io, "λ[k = $(length(ls.levels))]")
 function Base.dump(io::IOContext, ls::Landscape; kwargs...)
     print(io, "Landscape:")
     for (i, l) in enumerate(ls.levels)
@@ -19,7 +19,7 @@ function Base.dump(io::IOContext, ls::Landscape; kwargs...)
         end
     end
 end
-function Base.iterate(ls::Landscape, state=nothing)
+function iterate(ls::Landscape, state=nothing)
     state === nothing && return iterate(ls, 1)
     state > length(ls) && return nothing
     return ls[state], state+1

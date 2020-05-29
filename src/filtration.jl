@@ -13,11 +13,11 @@ mutable struct Filtration{C<:AbstractComplex, FI}
 end
 
 order(flt::Filtration) = flt.total
-Base.complex(flt::Filtration) = flt.complex
-Base.show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
+complex(flt::Filtration) = flt.complex
+show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
 Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
-Base.eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
-Base.length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
+eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
+length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
 
 #
 # Constructors
@@ -52,7 +52,7 @@ function filtration(cplx::C, w::Dict{Int,Vector{FI}}; divisions::Number=Inf) whe
     return Filtration(cplx, idx, divisions)
 end
 
-function Base.push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
+function push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
     cplx = complex(flt)
     @assert isa(cl, celltype(cplx)) "Complex $(cplx) does not accept $(typeof(cl))"
     cls = push!(cplx, cl, recursive=recursive)
@@ -80,7 +80,7 @@ Base.maximum(flt::Filtration) = order(flt)[end][3]
 
 Return a complex from the filtration `flt` at the filtration value `val`
 """
-function Base.complex(flt::Filtration{C,FI}, val::FI) where {C <: AbstractComplex, FI}
+function complex(flt::Filtration{C,FI}, val::FI) where {C <: AbstractComplex, FI}
     cplx = complex(flt)
     res = eltype(flt)()
     for (d,si,fv) in order(flt)
@@ -160,7 +160,7 @@ end
 #
 # I/O
 #
-function Base.write(io::IO, flt::Filtration)
+function write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
         for k in values(cplx[ci,d])
@@ -170,7 +170,7 @@ function Base.write(io::IO, flt::Filtration)
     end
 end
 
-function Base.read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
+function read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
     flt = Filtration(C,FI)
     ET = eltype(celltype(complex(flt))())
     while !eof(io)
@@ -202,7 +202,7 @@ end
 # Iterators
 #
 """Loop through the filtration `flt` producing growing simplicial complexes on every iteration"""
-function Base.iterate(flt::Filtration, state=nothing)
+function iterate(flt::Filtration, state=nothing)
     ord = order(flt)
     if state === nothing # calculate initial state
         idx = 1
@@ -225,10 +225,10 @@ function Base.iterate(flt::Filtration, state=nothing)
 end
 
 # Filtration simplex iterator
-Base.length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
-Base.eltype(splxs::Simplices{<:Filtration}) = eltype(splxs.itr)
+length(splxs::Simplices{<:Filtration}) = length(splxs.itr)
+eltype(splxs::Simplices{<:Filtration}) = eltype(splxs.itr)
 
-function Base.iterate(splxs::Simplices{<:Filtration}, state=nothing)
+function iterate(splxs::Simplices{<:Filtration}, state=nothing)
     # call underlying iterator
     res = iterate(splxs.itr, state)
     # final state

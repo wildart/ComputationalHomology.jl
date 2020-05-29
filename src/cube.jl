@@ -8,7 +8,7 @@ mutable struct Cube{P<:Vector} <: AbstractCell
         new(o, x)
     end
 end
-Base.show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
+show(io::IO, c::Cube) = show(io, "Cube[$(c.origin) + $(c.extent)]")
 
 # Public methods
 
