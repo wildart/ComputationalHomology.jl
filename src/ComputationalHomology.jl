@@ -3,17 +3,18 @@ module ComputationalHomology
 using LinearAlgebra
 using Hungarian: hungarian
 using SmithNormalForm: smith
-using Distances: Euclidean, pairwise, colwise
+using Distances: Euclidean, pairwise, colwise, pairwise!
 using Random: shuffle!, randperm
 using BoundingSphere: boundingsphere
 using SparseArrays: SparseMatrixCSC, spzeros, findnz
 
 import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
              eltype, getindex, size, iterate, push!, append!, in, read, write,
-             vec, complex, iszero
+             vec, complex, iszero, convert
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean
+import LinearAlgebra: diag
 
 export AbstractCell,
        dim, faces, volume,
@@ -42,7 +43,8 @@ export AbstractCell,
 
        Interval, PersistentDiagram, birth, death,
        Landscape, landscape, mean,
-       PersistentImage
+       PersistentImage,
+       wasserstein
 
 include("cells.jl")
 include("chain.jl")
@@ -53,9 +55,11 @@ include("cube.jl")
 include("constructions.jl")
 include("filtration.jl")
 include("homology.jl")
+include("intervals.jl")
 include("persistence.jl")
 include("landscape.jl")
 include("pimage.jl")
 include("examples.jl")
+include("distances.jl")
 
 end # module
