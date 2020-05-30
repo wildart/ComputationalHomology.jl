@@ -79,9 +79,10 @@ pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersisten
     pairs(R, boundary(flt, reduced = reduced), reduced = reduced)
 
 """Return persistent diagram (birth-death pairs) per dimension."""
-function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
+function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
+                 absolute=true) where {C <: AbstractComplex, FI <: AbstractFloat}
     # resulting intervals
-    intrs = Dict{Int,Vector{Interval}}()
+    intrs = Dict{Int,Vector{Interval{FI}}}()
 
     # compute intervals
     births = Set{Int}()
@@ -115,9 +116,9 @@ function intervals(flt::Filtration, R::Vector, length0=false, absolute=true)
     return intrs
 end
 
-intervals(::Type{R}, flt::Filtration; length0=false, absolute=true) where {R <: AbstractPersistenceReduction} =
-    intervals(flt, reduce!(R, boundary(flt)), length0, absolute)
-intervals(flt::Filtration; kwargs...) = intervals(TwistReduction, flt; kwargs...)
+diagram(::Type{R}, flt::Filtration; length0=false, absolute=true) where {R <: AbstractPersistenceReduction} =
+    diagram(flt, reduce!(R, boundary(flt)), length0, absolute)
+diagram(flt::Filtration; kwargs...) = diagram(TwistReduction, flt; kwargs...)
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
 function betti(flt::Filtration, R::Vector, p::Int)
@@ -162,7 +163,7 @@ show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction}
 #
 
 group(h::PersistentHomology, p::Int) = betti(h.filtration, h.∂, p)
-intervals(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = intervals(R, h.filtration)
+diagram(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = diagram(R, h.filtration)
 
 #
 # Iterator methods

@@ -5,7 +5,7 @@ Abstract interval type
 """
 abstract type AbstractInterval{T<:AbstractFloat} end
 
-const PersistentDiagram{T} = AbstractVector{<:AbstractInterval{T}}
+const PersistenceDiagram{T} = AbstractVector{<:AbstractInterval{T}}
 
 """
     first(i::AbstractInterval)
@@ -45,7 +45,6 @@ struct Interval{T<:AbstractFloat} <: AbstractInterval{T}
 end
 Interval(dim::Int, p::Pair{T,T}) where {T<:AbstractFloat} = Interval(dim, first(p), last(p))
 Interval(p::Pair) = Interval(0, p)
-intervals(d::Int, ps::Pair...) = [Interval(d, p) for p in ps]
 
 dim(i::Interval) = i.dim
 first(i::Interval) = i.b
@@ -62,3 +61,10 @@ struct AnnotatedInterval{T<:AbstractFloat} <: AbstractInterval{T}
     generator::AbstractChain
 end
 AnnotatedInterval(dim::Int, b::T, d::T) where {T<:AbstractFloat} = AnnotatedInterval(dim, b, d, EmptyChain())
+
+"""
+    diagram(d, pts)
+
+Construct persistence diagram of dimension `d` from point pairs `pts`.
+"""
+diagram(d::Int, pts::Pair...) = [Interval(d, p) for p in pts]

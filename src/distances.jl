@@ -1,6 +1,6 @@
 rot(θ) = [cos(θ) -sin(θ); sin(θ) cos(θ)]
 
-convert(::Type{Matrix}, dgm::PersistentDiagram; skipinf=true) =
+convert(::Type{Matrix}, dgm::PersistenceDiagram; skipinf=true) =
     hcat(( [first(i), last(i)] for i in dgm if !skipinf || !isinf(birth(i)) )...)
 
 """
@@ -8,7 +8,7 @@ convert(::Type{Matrix}, dgm::PersistentDiagram; skipinf=true) =
 
 Calculate Wasserstein distance between persistent diagrams `dgm1` and `dgm2`.
 """
-function wasserstein(dgm1::PersistentDiagram{T}, dgm2::PersistentDiagram{T}) where {T}
+function wasserstein(dgm1::PersistenceDiagram{T}, dgm2::PersistenceDiagram{T}) where {T}
     m1 = convert(Matrix, dgm1)
     m2 = convert(Matrix, dgm2)
     m, n = min(size(m1)...), min(size(m2)...)
@@ -45,6 +45,6 @@ end
 
 Calculate bottleneck distance between persistent diagrams `dgm1` and `dgm2`.
 """
-function bottleneck(dgm1::PersistentDiagram{T}, dgm2::PersistentDiagram{T}) where {T}
+function bottleneck(dgm1::PersistenceDiagram{T}, dgm2::PersistenceDiagram{T}) where {T}
     return zero(T)
 end

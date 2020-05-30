@@ -38,10 +38,11 @@ export AbstractCell,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
-       pairs, intervals, reduce!, reduce,
+       pairs, reduce!, reduce,
        PersistentHomology, persistenthomology,
 
-       Interval, PersistentDiagram, birth, death,
+       Interval, birth, death,
+       PersistenceDiagram, diagram,
        Landscape, landscape, mean,
        PersistentImage,
        wasserstein
@@ -61,5 +62,7 @@ include("landscape.jl")
 include("pimage.jl")
 include("examples.jl")
 include("distances.jl")
+
+@deprecate intervals(d, ps...) diagram(d, ps...)
 
 end # module

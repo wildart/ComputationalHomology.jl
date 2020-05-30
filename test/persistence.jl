@@ -59,8 +59,8 @@
         push!(flt, s...)
     end
 
-    @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
-        titrs = d == 0 ? intervals(0, 0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : intervals(1, 3.0=>4.0, 2.0=>5.0)
+    @testset "Intervals " for (d, itrs) in diagram(flt, length0=true)
+        titrs = d == 0 ? diagram(0, 0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : diagram(1, 3.0=>4.0, 2.0=>5.0)
         for itr in itrs
             @test itr ∈ titrs
         end
@@ -86,12 +86,12 @@
         push!(flt, s...)
     end
 
-    itr = intervals(flt, length0=true)
+    itr = diagram(flt, length0=true)
     @test Interval(0.0=>0.0) ∈ itr[0]
     @test Interval(1.0=>2.0) ∈ itr[0]
     @test Interval(1, 3.0=>7.0) ∈ itr[1]
 
-    itr = intervals(StandardReduction, flt)
+    itr = diagram(StandardReduction, flt)
     @test Interval(1.0=>2.0) ∈ itr[0]
     @test Interval(1, 3.0=>7.0) ∈ itr[1]
     @test Interval(1, 0.0=>Inf) ∈ itr[1]
