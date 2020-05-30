@@ -5,7 +5,9 @@ import LinearAlgebra: diag
 """
 Abstract interval type
 """
-abstract type AbstractInterval end
+abstract type AbstractInterval{T<:AbstractFloat} end
+
+const PersistentDiagram{T} = AbstractVector{AbstractInterval{T}}
 
 """
     first(i::AbstractInterval)
@@ -38,12 +40,12 @@ pair(i::AbstractInterval) = first(i) => last(i)
 """
 Simple implementation of the `AbstractInterval` type
 """
-struct Interval <: AbstractInterval
+struct Interval{T<:AbstractFloat} <: AbstractInterval{T}
     dim::Int
-    b::Number
-    d::Number
+    b::T
+    d::T
 end
-Interval(dim::Int, p::Pair) = Interval(dim, first(p), last(p))
+Interval(dim::Int, p::Pair{T,T}) where {T<:AbstractFloat} = Interval(dim, first(p), last(p))
 Interval(p::Pair) = Interval(0, p)
 intervals(d::Int, ps::Pair...) = [Interval(d, p) for p in ps]
 
@@ -55,13 +57,13 @@ diag(i::Interval) = let c = death(i)/2.0; Interval(dim(i), c, c) end
 """
 Interval annotated with a generator
 """
-struct AnnotatedInterval <: AbstractInterval
+struct AnnotatedInterval{T<:AbstractFloat} <: AbstractInterval{T}
     dim::Int
-    b::Number
-    d::Number
+    b::T
+    d::T
     generator::AbstractChain
 end
-AnnotatedInterval(dim::Int, b::Number, d::Number) = AnnotatedInterval(dim, b, d, EmptyChain())
+AnnotatedInterval(dim::Int, b::T, d::T) where {T<:AbstractFloat} = AnnotatedInterval(dim, b, d, EmptyChain())
 
 # REDUCTION ALGORITHMS
 

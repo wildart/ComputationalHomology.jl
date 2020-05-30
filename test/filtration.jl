@@ -1,15 +1,15 @@
 @testset "Filtration" begin
     # create empty filtration
-    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
+    flt = Filtration(SimplicialComplex{Simplex{Int}})
 
     # fill it with (cell, 'filtration value') pairs
-    push!(flt, Simplex(1), 1)
+    push!(flt, Simplex(1), 1.0)
     @test size(complex(flt)) == (1,)
-    push!(flt, Simplex(2), 2)
+    push!(flt, Simplex(2), 2.0)
     @test size(complex(flt)) == (2,)
-    push!(flt, Simplex(1,2), 3, recursive=true)
+    push!(flt, Simplex(1,2), 3.0, recursive=true)
     @test size(complex(flt)) == (2,1)
-    push!(flt, Simplex(1,3), 4, recursive=true)
+    push!(flt, Simplex(1,3), 4.0, recursive=true)
     @test size(complex(flt)) == (3,2)
 
     # test iterator
@@ -30,9 +30,9 @@
     # test io
     let io = IOBuffer()
         write(io, flt)
-        @test String(take!(copy(io))) == "1,1\n2,2\n2,1,3\n3,4\n3,1,4\n"
+        @test String(take!(copy(io))) == "1,1.0\n2,2.0\n2,1,3.0\n3,4.0\n3,1,4.0\n"
         seekstart(io)
-        tmp = read(io, Filtration{SimplicialComplex{Simplex{Int}}, Int})
+        tmp = read(io, Filtration{SimplicialComplex{Simplex{Int}}, Float64})
         @testset for ((f1,ss1),(f2,ss2)) in zip(flt, tmp)
             @test f1 == f2
             for (s1, s2) in zip(ss1, ss2)

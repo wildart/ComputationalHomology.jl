@@ -15,14 +15,14 @@
     #######
     # from "Computational Topology - An Introduction" by Edelsbrunner & Harer, p. 184
     #######
-    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
-    splxs=[ Simplex(1) => 1,
-            Simplex(2) => 2,
-            Simplex(3) => 3,
-            Simplex(1,2) => 4,
-            Simplex(2,3) => 5,
-            Simplex(3,1) => 6,
-            Simplex(1,2,3) => 7]
+    flt = Filtration(SimplicialComplex{Simplex{Int}}, Float64)
+    splxs=[ Simplex(1) => 1.0,
+            Simplex(2) => 2.0,
+            Simplex(3) => 3.0,
+            Simplex(1,2) => 4.0,
+            Simplex(2,3) => 5.0,
+            Simplex(3,1) => 6.0,
+            Simplex(1,2,3) => 7.0]
     for s in splxs
         push!(flt, s...)
     end
@@ -43,24 +43,24 @@
     #######
     # from "Topology for Computing" by Zomorodian, pp.138-145
     #######
-    flt = Filtration(SimplicialComplex{Simplex{Char}}, Int)
-    splxs=[ Simplex('a') => 0,
-            Simplex('b') => 0,
-            Simplex('c') => 1,
-            Simplex('d') => 1,
-            Simplex('a', 'b') => 1,
-            Simplex('b', 'c') => 1,
-            Simplex('c', 'd') => 2,
-            Simplex('a', 'd') => 2,
-            Simplex('a', 'c') => 3,
-            Simplex('a', 'b', 'c') => 4,
-            Simplex('a', 'c', 'd') => 5]
+    flt = Filtration(SimplicialComplex{Simplex{Char}})
+    splxs=[ Simplex('a') => 0.0,
+            Simplex('b') => 0.0,
+            Simplex('c') => 1.0,
+            Simplex('d') => 1.0,
+            Simplex('a', 'b') => 1.0,
+            Simplex('b', 'c') => 1.0,
+            Simplex('c', 'd') => 2.0,
+            Simplex('a', 'd') => 2.0,
+            Simplex('a', 'c') => 3.0,
+            Simplex('a', 'b', 'c') => 4.0,
+            Simplex('a', 'c', 'd') => 5.0]
     for s in splxs
         push!(flt, s...)
     end
 
     @testset "Intervals " for (d, itrs) in intervals(flt, length0=true)
-        titrs = d == 0 ? intervals(0, 0=>Inf, 0=>1, 1=>1, 1=>2) : intervals(1, 3=>4, 2=>5)
+        titrs = d == 0 ? intervals(0, 0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : intervals(1, 3.0=>4.0, 2.0=>5.0)
         for itr in itrs
             @test itr ∈ titrs
         end
@@ -69,37 +69,37 @@
     #######
     # Ex.1
     #######
-    flt = Filtration(SimplicialComplex{Simplex{Int}}, Int)
-    splxs=[ Simplex(1) => 0,
-            Simplex(2) => 0,
-            Simplex(3) => 0,
-            Simplex(4) => 0,
-            Simplex(5) => 1,
-            Simplex(1,2) => 0,
-            Simplex(2,3) => 0,
-            Simplex(3,4) => 0,
-            Simplex(4,1) => 0,
-            Simplex(3,5) => 2,
-            Simplex(4,5) => 3,
-            Simplex(3,4,5) => 7]
+    flt = Filtration(SimplicialComplex{Simplex{Int}})
+    splxs=[ Simplex(1) => 0.0,
+            Simplex(2) => 0.0,
+            Simplex(3) => 0.0,
+            Simplex(4) => 0.0,
+            Simplex(5) => 1.0,
+            Simplex(1,2) => 0.0,
+            Simplex(2,3) => 0.0,
+            Simplex(3,4) => 0.0,
+            Simplex(4,1) => 0.0,
+            Simplex(3,5) => 2.0,
+            Simplex(4,5) => 3.0,
+            Simplex(3,4,5) => 7.0]
     for s in splxs
         push!(flt, s...)
     end
 
     itr = intervals(flt, length0=true)
-    @test Interval(0=>0) ∈ itr[0]
-    @test Interval(1=>2) ∈ itr[0]
-    @test Interval(1, 3=>7) ∈ itr[1]
+    @test Interval(0.0=>0.0) ∈ itr[0]
+    @test Interval(1.0=>2.0) ∈ itr[0]
+    @test Interval(1, 3.0=>7.0) ∈ itr[1]
 
     itr = intervals(StandardReduction, flt)
-    @test Interval(1=>2) ∈ itr[0]
-    @test Interval(1, 3=>7) ∈ itr[1]
-    @test Interval(1, 0=>Inf) ∈ itr[1]
+    @test Interval(1.0=>2.0) ∈ itr[0]
+    @test Interval(1, 3.0=>7.0) ∈ itr[1]
+    @test Interval(1, 0.0=>Inf) ∈ itr[1]
 
     #######
     # Ex.2
     #######
-    flt = Filtration(SimplicialComplex{Simplex{Int}}, Float64)
+    flt = Filtration(SimplicialComplex{Simplex{Int}})
     splxs=[ Simplex(1) => 1.0,
             Simplex(2) => 2.0,
             Simplex(3) => 3.0,
