@@ -10,7 +10,7 @@ import Statistics: mean
 
 import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
              eltype, getindex, size, iterate, push!, append!, in, read, write,
-             vec, complex
+             vec, complex, iszero
 import Base.Iterators: pairs
 
 export AbstractCell,
@@ -38,7 +38,8 @@ export AbstractCell,
        pairs, intervals, reduce!, reduce,
        PersistentHomology, persistenthomology,
 
-       Interval, Landscape, landscape, mean,
+       Interval, PersistentDiagram, birth, death,
+       Landscape, landscape, mean,
        PersistentImage
 
 include("cells.jl")
