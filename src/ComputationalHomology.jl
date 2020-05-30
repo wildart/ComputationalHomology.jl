@@ -1,17 +1,19 @@
 module ComputationalHomology
 
 using LinearAlgebra
-import SparseArrays: SparseMatrixCSC, spzeros, sparse, findnz
-import SmithNormalForm: smith
-import Distances
-import Random
-import BoundingSphere
-import Statistics: mean
+using Hungarian: hungarian
+using SmithNormalForm: smith
+using Distances: Euclidean, pairwise, colwise
+using Random: shuffle!, randperm
+using BoundingSphere: boundingsphere
+using SparseArrays: SparseMatrixCSC, spzeros, findnz
 
 import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
              eltype, getindex, size, iterate, push!, append!, in, read, write,
              vec, complex, iszero
 import Base.Iterators: pairs
+import SparseArrays: sparse
+import Statistics: mean
 
 export AbstractCell,
        dim, faces, volume,

@@ -104,7 +104,7 @@ This is an inefficient implementation (based on distance matrix) of the VRC algo
 """
 function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
                       expansion = :incremental,
-                      distance  = Distances.Euclidean(),
+                      distance  = Euclidean(),
                       maxoutdim = size(X,2)-1) where T <: Real
     d, n = size(X)
 
@@ -113,7 +113,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
     cplx = SimplicialComplex(splxs...)
 
     # calculate cross distances for each point in dataset
-    D = Distances.pairwise(distance, X, dims=2)
+    D = pairwise(distance, X, dims=2)
 
     # build 1-skeleton (neighborhood graph)
     E = spzeros(Bool, n, n) # adjacency matrix
@@ -157,10 +157,10 @@ end
 Landmark selection for witness complex
 """
 function landmarks(X::AbstractMatrix, l::Int; method = :minmax,
-                   distance = Distances.Euclidean(), firstpoint = 0)
+                   distance = Euclidean(), firstpoint = 0)
     d, n = size(X)
     if method == :random
-        return Random.randperm(n)[1:l]
+        return randperm(n)[1:l]
     elseif method == :minmax
         idxs = firstpoint > 0 ? [firstpoint] : rand(1:n, 1)
         Z = view(X, :, idxs)
@@ -169,7 +169,7 @@ function landmarks(X::AbstractMatrix, l::Int; method = :minmax,
             maxvidx = 0
             for j in 1:n
                 if j ∉ idxs
-                    v, _ = findmin(Distances.colwise(distance, X[:,j], Z))
+                    v, _ = findmin(colwise(distance, X[:,j], Z))
 					if v > maxv
 					    maxv = v
                         maxvidx = j
@@ -201,7 +201,7 @@ For parameter ν = 0, 1, 2 determines size of landmark radius.
 - If ν > 0, then for i = 1, 2, . . . , N define m_i to be the ν-th smallest entry of the i-th column of D.
 """
 function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
-                 landmark = :minmax, distance = Distances.Euclidean(),
+                 landmark = :minmax, distance = Euclidean(),
                  expansion = :incremental, ν::Int = 2, maxoutdim = size(X,1)-1,
                  firstpoint = 0) where T <: Real
 
@@ -209,7 +209,7 @@ function witness(X::AbstractMatrix{T}, l::Int, ɛ::Real, weights = true;
     L = landmarks(X, l, method = landmark, distance = distance, firstpoint=firstpoint)
 
     # get distances to landmarks
-    D = Distances.pairwise(distance, X[:,L], X, dims=2)
+    D = pairwise(distance, X[:,L], X, dims=2)
 
     # simplexes contain indexes to landamarks
     cplx, w = witness(D, ɛ, weights, expansion=expansion, ν=ν, maxoutdim=maxoutdim, firstpoint=firstpoint)
@@ -331,7 +331,7 @@ Construction of a Čeck complex.
 
 """
 function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
-              distance  = Distances.Euclidean(),
+              distance  = Euclidean(),
               maxoutdim = size(X,2)-1) where T <: Real
 
     d, n = size(X)
@@ -351,7 +351,7 @@ function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
 
         while idx[end] <= n-h
             # find radius of bounding sphere
-            c, r = BoundingSphere.boundingsphere([X[:, i] for i in idx])
+            c, r = boundingsphere([X[:, i] for i in idx])
 
             # add simplex in radius less then maximal filtration value
             if r <= ε

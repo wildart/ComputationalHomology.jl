@@ -72,7 +72,7 @@ function randomcomplex(n, d)
         pts = collect(1:n)
         simsset = Set{Set{Int}}()
         while length(simsset) < n
-            Random.shuffle!(pts)
+            shuffle!(pts)
             push!(simsset, Set(pts[1:d+1]))
         end
         for s in simsset
