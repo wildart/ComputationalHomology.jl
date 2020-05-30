@@ -14,4 +14,4 @@ include("homology.jl")
 include("persistence.jl")
 include("landscape.jl")
 include("pimage.jl")
-
+include("distances.jl")

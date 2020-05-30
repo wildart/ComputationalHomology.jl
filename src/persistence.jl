@@ -1,5 +1,3 @@
-import LinearAlgebra: diag
-
 # INTERVAL TYPES
 
 """
@@ -7,7 +5,7 @@ Abstract interval type
 """
 abstract type AbstractInterval{T<:AbstractFloat} end
 
-const PersistentDiagram{T} = AbstractVector{AbstractInterval{T}}
+const PersistentDiagram{T} = AbstractVector{<:AbstractInterval{T}}
 
 """
     first(i::AbstractInterval)
