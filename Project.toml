@@ -17,7 +17,10 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 BoundingSphere = "747eb165-47b8-53f2-ad32-9704a7dfc50a"
 
 [compat]
-SmithNormalForm = "0.2.2"
+BoundingSphere = "^0.2.0"
+Distances = "^0.8.2"
+SmithNormalForm = "^0.3.2"
+julia = "^1.1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
