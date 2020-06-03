@@ -51,9 +51,11 @@ pkg> add ComputationalHomology
 
 - Persistence
 
-    - Barcode
+    - Barcodes / Diagrams
     - Persistence Landscape
     - Persistence Image
+    - Distances
+        - Wasserstein
 
 
 ## Example
