@@ -121,7 +121,7 @@ This function **doesn't** add missing faces of the simplex to the complex. Use `
 function addsimplex!(cplx::SimplicialComplex, splx::AbstractSimplex)
     d = dim(splx)
     d < 0 && return nothing
-    !haskey(cplx.cells, d) && setindex!(cplx.cells, celltype(cplx)[], d)
+    !haskey(cplx.cells, d) && setindex!(cplx.cells, eltype(cplx)[], d)
     push!(cplx.cells[d], splx)
     cplx.order[hash(splx)] = length(cplx.cells[d]) # length(cplx.order)+1
     return splx
@@ -129,7 +129,7 @@ end
 
 """Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"""
 function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
-    CT = celltype(cplx)
+    CT = eltype(cplx)
     # cache already
     added = Set{CT}()
 
@@ -170,13 +170,12 @@ end
 #
 # AbstractComplex Interface
 #
-celltype(cplx::SimplicialComplex) = eltype(valtype(cplx.cells))
+eltype(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex} = S
 
-function cells(cplx::SimplicialComplex)
-    CCT = valtype(cplx.cells)
-    length(cplx.cells) == 0 && return CCT[] # no cell in complex
+function cells(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex}
+    length(cplx.cells) == 0 && return Vector{S}[] # no cell in complex
     dims = maximum(keys(cplx.cells))
-    return CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
+    return [haskey(cplx.cells, d) ? cplx.cells[d] : Vector{S}[] for d in 0:dims]
 end
 
 cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  nothing)
@@ -225,7 +224,7 @@ Base.position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractC
 # Miscellaneous
 #
 
-Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(celltype(cplx)))
+Base.similar(cplx::SimplicialComplex) = SimplicialComplex(eltype(eltype(cplx)))
 
 function read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
     splxs = S[]
@@ -267,7 +266,7 @@ end
 length(splxs::Simplices{C}) where C<:AbstractComplex =
     splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
 
-eltype(iter::Simplices{C}) where C<:AbstractComplex = celltype(iter.itr)
+eltype(iter::Simplices{C}) where C<:AbstractComplex = eltype(iter.itr)
 
 # State (total id, dim, dim id)
 function iterate(iter::Simplices{C}, (tid, d, did)=(0, iter.dim, 1)) where C<:AbstractComplex

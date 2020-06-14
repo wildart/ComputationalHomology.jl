@@ -55,7 +55,7 @@ end
 
 function push!(flt::Filtration{C,FI}, cl::AbstractCell, v::FI; recursive=false) where {C<:AbstractComplex, FI}
     cplx = complex(flt)
-    @assert isa(cl, celltype(cplx)) "Complex $(cplx) does not accept $(typeof(cl))"
+    @assert isa(cl, eltype(cplx)) "Complex $(cplx) does not accept $(typeof(cl))"
     cls = push!(cplx, cl, recursive=recursive)
     ord = order(flt)
     idx = length(ord) == 0 ? 1 : findlast(e->e[3]<=v, ord)
@@ -176,7 +176,7 @@ end
 
 function read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
     flt = Filtration(C,FI)
-    ET = eltype(celltype(complex(flt))())
+    ET = eltype(eltype(complex(flt))())
     while !eof(io)
         l = readline(io)
         vals = split(l, ',')

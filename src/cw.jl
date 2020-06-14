@@ -102,7 +102,7 @@ end
 #
 # AbstractComplex Interface
 #
-celltype(cplx::CWComplex{S}) where {S} = S
+eltype(cplx::CWComplex{S}) where {S} = S
 
 function cells(cplx::CWComplex)
     CCT = valtype(cplx.cells)

@@ -1,7 +1,7 @@
 @testset "Simplicial Complex" begin
     cplx = SimplicialComplex(Simplex(1,2,3), Simplex(2,4), Simplex(4))
 
-    @test celltype(cplx) == Simplex{Int}
+    @test eltype(cplx) == Simplex{Int}
     @test length(cells(cplx)) == 3
     cs = cells(cplx,2)
     @test cs !== nothing

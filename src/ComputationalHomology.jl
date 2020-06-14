@@ -26,7 +26,7 @@ export AbstractCell,
        Chain, simplify,
 
        AbstractComplex,
-       boundary, coboundary, celltype, cells,
+       boundary, coboundary, cells,
        SimplicialComplex, addsimplex!, addsimplices!,
        CWComplex,
        vietorisrips, witness, cech, čech,
@@ -64,5 +64,6 @@ include("examples.jl")
 include("distances.jl")
 
 @deprecate intervals(d, ps...) diagram(d, ps...)
+@deprecate celltype(cplx) eltype(cplx)
 
 end # module
