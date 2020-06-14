@@ -1,4 +1,10 @@
 @testset "Simplicial Complex" begin
+    cplx = SimplicialComplex{Simplex{Int64}}()
+    @test eltype(cplx) == Simplex{Int}
+    @test length(cells(cplx)) == 0
+    @test cells(cplx,2) === nothing
+    @test size(cplx) == ()
+
     cplx = SimplicialComplex(Simplex(1,2,3), Simplex(2,4), Simplex(4))
 
     @test eltype(cplx) == Simplex{Int}
@@ -15,9 +21,9 @@
     @test size(cplx,2) == 1
     @test size(cplx,3) == 0
     @test cplx[Simplex(4)] == hash(Simplex(4))
-    @test position(cplx, Simplex(4)) == 4
+    @test ComputationalHomology.position(cplx, Simplex(4)) == 4
     @test cplx[Simplex(10)] === nothing
-    @test position(cplx, Simplex(10)) === nothing
+    @test ComputationalHomology.position(cplx, Simplex(10)) === nothing
 
     @test length(simplices(cplx)) == 9
     scitr = simplices(cplx, 1)
@@ -60,7 +66,7 @@
     cplx = SimplicialComplex(Simplex{Int})
 
     splx = push!(cplx, Simplex(1))
-    @test position(cplx, splx[1]) == 1
+    @test ComputationalHomology.position(cplx, splx[1]) == 1
     @test dim(splx[1]) == 0
     @test sum(size(cplx)) == 1
     @test values(cells(cplx, 0)[1]) == [1]

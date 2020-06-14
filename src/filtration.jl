@@ -15,8 +15,8 @@ end
 order(flt::Filtration) = flt.total
 complex(flt::Filtration) = flt.complex
 show(io::IO, flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = print(io, "Filtration($(complex(flt)), $FI)")
-Base.valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
 eltype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = C
+valtype(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = FI
 length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(flt))) : flt.divisions
 
 #

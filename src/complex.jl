@@ -34,7 +34,7 @@ coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} =
 coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
 
 """Return a complex cell type"""
-eltype(cplx::AbstractComplex) = throw(MethodError(celltype, (typeof(cplx),)))
+eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
 
 """Return a cell collection per dimension (increasing)"""
 cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
@@ -74,7 +74,7 @@ end
 
 Return a position of the cell in an order of cells of the same dimenion of the `complex` given its `index` and `dimenion`.
 """
-function Base.position(cplx::AbstractComplex, idx::Integer, d::Int)
+function position(cplx::AbstractComplex, idx::Integer, d::Int)
     dcells = cells(cplx, d)
     dcells === nothing && return nothing
     cidx = findfirst(c->hash(c) == idx, dcells)
@@ -86,7 +86,7 @@ end
 
 Return a position of the `cell` in an order of cells of the same dimenion of the `complex`.
 """
-function Base.position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
+function position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
     @assert eltype(cplx) == C "Incorrect cell type: $(eltype(cplx)) ≠ $C "
     return position(cplx, hash(c), dim(c))
 end

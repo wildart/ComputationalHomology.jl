@@ -1,4 +1,4 @@
-"""Cell complex type"""
+"""CW complex type"""
 mutable struct CWComplex{S<:AbstractCell} <: AbstractComplex
     cells::Dict{Int,Vector{S}}   # cells per dimension
 end
@@ -17,13 +17,12 @@ end
 #
 # AbstractComplex Interface
 #
-eltype(cplx::CWComplex{S}) where {S} = S
+eltype(cplx::CWComplex{S}) where {S<:AbstractCell} = S
 
-function cells(cplx::CWComplex)
-    CCT = valtype(cplx.cells)
-    length(cplx.cells) == 0 && return CCT[] # no cell in complex
+function cells(cplx::CWComplex{S}) where {S<:AbstractCell}
+    length(cplx.cells) == 0 && return Vector{S}[] # no cell in complex
     dims = maximum(keys(cplx.cells))
-    return CCT[haskey(cplx.cells, d) ? cplx.cells[d] : CCT() for d in 0:dims]
+    return [haskey(cplx.cells, d) ? cplx.cells[d] : S[] for d in 0:dims]
 end
 
 cells(cplx::CWComplex, d::Int) = get(cplx.cells, d,  nothing)
