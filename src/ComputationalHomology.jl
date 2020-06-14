@@ -47,12 +47,14 @@ export AbstractCell,
        PersistentImage,
        wasserstein
 
-include("cells.jl")
+include("abstractcell.jl")
 include("chain.jl")
-include("complex.jl")
-include("simplicial.jl")
-include("cw.jl")
+include("simplex.jl")
 include("cube.jl")
+include("cwcell.jl")
+include("complex.jl")
+include("simplicialcomplex.jl")
+include("cwcomplex.jl")
 include("constructions.jl")
 include("filtration.jl")
 include("homology.jl")
