@@ -1,12 +1,11 @@
 """Find all neighbors of vertex `u`` within `G` that precede it in the given ordering"""
-function lowernbrs(G::AbstractComplex, uidx::IX, E) where {IX <: Integer}
-    upos = position(G, uidx, 0)
-    nbrs = Set{IX}()
+function lowernbrs(G::AbstractComplex, upos::Int, E)
+    nbrs = Set{Int}()
     # get all edges of u: select {v} s.t. u > v for all edges {u,v}
-    for v in cells(G,0)
-        vidx = hash(v)
-        vpos = position(G, vidx, 0)
-        upos > vpos && E[vpos, upos] && push!(nbrs, vidx)
+    for vpos in 1:size(G,0)
+        if upos > vpos && E[vpos, upos]
+            push!(nbrs, vpos)
+        end
     end
     return nbrs
 end
@@ -15,18 +14,17 @@ end
 function inductive!(cplx, k, E)
     C0 = cells(cplx, 0)
     for i in 1:k-1
-        cls = cells(cplx, i)
-        cls === nothing && continue
-        for τ in cls
+        for τ in cells(cplx, i)
             # N = ∩ᵤₜlowernbrs(G,u)
             V = vertices(τ)
-            N = lowernbrs(cplx, V[1], E)
+            vpos = position(cplx, V[1], 0)
+            N = lowernbrs(cplx, vpos, E)
             for i in 2:length(V)
-                intersect!(N, lowernbrs(cplx, V[i], E))
+                vpos = position(cplx, V[i], 0)
+                intersect!(N, lowernbrs(cplx, vpos, E))
             end
-            #K ⟵ K ∪ {τ ∪ {v}}
-            for vidx in N
-                vpos = position(cplx, vidx, 0)
+            # K ⟵ K ∪ {τ ∪ {v}}
+            for vpos in N
                 σ = τ ∪ C0[vpos]
                 push!(cplx, σ)
             end
@@ -40,12 +38,11 @@ function addcofaces!(cplx, k, τ, N, E)
     τ ∉ cplx && addsimplex!(cplx, τ)
     # stop recursion
     dim(τ) >= k && return
-    for vidx in N
+    for vpos in N
         # σ ← τ ∪ {v}
-        vpos = position(cplx, vidx, 0)
         σ = τ ∪ cells(cplx, 0)[vpos]
         # M ← N ∩ lowernbrs(G, v)
-        M = intersect(N, lowernbrs(cplx, vidx, E))
+        M = intersect(N, lowernbrs(cplx, vpos, E))
         addcofaces!(cplx, k, σ, M, E)
     end
 end
@@ -53,8 +50,9 @@ end
 """Incremental construction of VR complex from neighborhood graph"""
 function incremental!(cplx, k, E)
     # construct VR complex
-    for u in cells(cplx, 0)
-        N = lowernbrs(cplx, hash(u), E)
+    for upos in 1:size(cplx,0)
+        u = cells(cplx,0)[upos]
+        N = lowernbrs(cplx, upos, E)
         addcofaces!(cplx, k, u, N, E)
     end
 end

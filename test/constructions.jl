@@ -133,7 +133,7 @@
         @test size(cplx, 2) == 4
         @test w[0][1] == 0.
         @test w[1][1] ≈ 0.22805075942971
-        @test w[2][end] ≈ 0.0782128253900049
+        @test w[2][end-1] ≈ 0.0782128253900049
 
         cplx2, w2 = witness(X, l, 0.5, expansion=:inductive, firstpoint = 1)
         @test size(cplx2, 0) == l
@@ -141,7 +141,7 @@
         @test size(cplx2, 2) == 4
         @test w2[0][1] == 0.
         @test w2[1][1] ≈ 0.22805075942971
-        @test w2[2][end] ≈ 0.0782128253900049
+        @test w2[2][end-1] ≈ 0.0782128253900049
 
         @test_throws ArgumentError witness(X, l, 0.4, expansion=:a)
     end

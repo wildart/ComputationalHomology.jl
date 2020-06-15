@@ -143,7 +143,7 @@ end
 push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
-# position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractCell} = get(cplx.order, idx, nothing)
+position(cplx::SimplicialComplex, idx::Integer, d::Int) = get(cplx.order, idx, 0)
 
 
 #
