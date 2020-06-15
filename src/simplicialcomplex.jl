@@ -103,7 +103,8 @@ function cells(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex}
     return [haskey(cplx.cells, d) ? cplx.cells[d] : S[] for d in 0:dims]
 end
 
-cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  nothing)
+cells(cplx::SimplicialComplex{S}, d::Int) where {S<:AbstractSimplex} = get(cplx.cells, d,  S[])
+
 
 function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
     ch = Chain(d-1, PID, IX)
@@ -142,7 +143,7 @@ end
 push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
-position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractCell} = get(cplx.order, idx, nothing)
+# position(cplx::SimplicialComplex, idx::Integer, d::Int) where {C<:AbstractCell} = get(cplx.order, idx, nothing)
 
 
 #

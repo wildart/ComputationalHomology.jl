@@ -2,18 +2,15 @@
     cplx = SimplicialComplex{Simplex{Int64}}()
     @test eltype(cplx) == Simplex{Int}
     @test length(cells(cplx)) == 0
-    @test cells(cplx,2) === nothing
+    @test length(cells(cplx,2)) == 0
     @test size(cplx) == ()
 
     cplx = SimplicialComplex(Simplex(1,2,3), Simplex(2,4), Simplex(4))
 
     @test eltype(cplx) == Simplex{Int}
     @test length(cells(cplx)) == 3
-    cs = cells(cplx,2)
-    @test cs !== nothing
-    @test length(cs) == 1
-    cs = cells(cplx,3)
-    @test cs === nothing
+    @test length(cells(cplx,2)) == 1
+    @test length(cells(cplx,3)) == 0
     @test size(cplx) == (4,4,1)
     @test size(cplx,-1) == 0
     @test size(cplx,0) == 4
@@ -23,7 +20,6 @@
     @test Simplex(4) ∈ cplx
     @test ComputationalHomology.position(cplx, Simplex(4)) == 4
     @test Simplex(10) ∉ cplx
-    @test ComputationalHomology.position(cplx, Simplex(10)) === nothing
 
     @test length(simplices(cplx)) == 9
     scitr = simplices(cplx, 1)

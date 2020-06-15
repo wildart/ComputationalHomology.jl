@@ -76,9 +76,9 @@ Return a position of the cell in an order of cells of the same dimenion of the `
 """
 function position(cplx::AbstractComplex, idx::Integer, d::Int)
     dcells = cells(cplx, d)
-    dcells === nothing && return nothing
+    length(dcells) == 0 && return 0
     cidx = findfirst(c->hash(c) == idx, dcells)
-    return cidx
+    return cidx === nothing ? 0 : cidx
 end
 
 """
@@ -98,7 +98,7 @@ Return a `d`-dimensional cell given its index `idx` and dimenion `d`.
 """
 function getindex(cplx::AbstractComplex, idx::Integer, d::Int)
     cidx = position(cplx, idx, d)
-    cidx === nothing && return nothing
+    cidx == 0 && return nothing
     return cells(cplx, d)[cidx]
 end
 
@@ -130,9 +130,7 @@ end
 
 Checks if the `cell` is in the complex `cplx`
 """
-function in(c::C, cplx::AbstractComplex) where {C <: AbstractCell}
-    return position(cplx, c) !== nothing
-end
+in(c::AbstractCell, cplx::AbstractComplex) = position(cplx, c) > 0
 
 """
     cochain(complex, d, coefficients)
