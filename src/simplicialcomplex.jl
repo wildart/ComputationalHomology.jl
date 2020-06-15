@@ -16,8 +16,7 @@ SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} =
     SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}())
 (::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
 
-function SimplicialComplex(splxs::Simplex...)
-    S = eltype(splxs)
+function SimplicialComplex(splxs::S...) where {S<:AbstractSimplex}
     cplx = SimplicialComplex(S)
     added = Set{S}()
     toprocess = Vector{S}()
@@ -37,7 +36,7 @@ function SimplicialComplex(splxs::Simplex...)
     return cplx
 end
 
-SimplicialComplex(splxs::Vector{<:AbstractSimplex}) = SimplicialComplex(splxs...)
+SimplicialComplex(splxs::AbstractVector{<:AbstractSimplex}) = SimplicialComplex(splxs...)
 
 # ---------------
 # Private Methods
@@ -76,8 +75,8 @@ function addsimplices!(cplx::SimplicialComplex{S}, splx::S) where {S <: Abstract
         tmp = pop!(toprocess) # processing simplex faces
         d = dim(tmp)
 
-        cplx[tmp] !== nothing && continue # skip if already in complex
-        tmp in added && continue # skip if already processed
+        tmp ∈ cplx  && continue # skip if already in complex
+        tmp ∈ added && continue # skip if already processed
 
         s = addsimplex!(cplx, tmp) # add simples to the complex
         push!(addedidxs, (sum(size(cplx)), dim(s), hash(s)))
@@ -118,8 +117,7 @@ function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {
 
     sgn = true
     for face in faces(splx)
-        fidx = cplx[face]
-        push!(ch, (sgn ? pos : neg), fidx)
+        push!(ch, (sgn ? pos : neg), hash(face))
         sgn = !sgn
     end
 
@@ -166,8 +164,8 @@ end
 
 function write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,UInt}()
-    for s in cplx.cells[0]
-        idx = cplx.order[hash(s)]
+    for s in cells(cplx, 0)
+        idx = position(cplx, s)
         zsplxs[first(values(s))] = idx
         write(io, "$idx")
         write(io, 0x0A)

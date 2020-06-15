@@ -63,7 +63,7 @@ end
 function weight(σ, w, cplx)
     k = dim(σ)
     k == 0 && return 0.
-    k == 1 && return w[1][cplx[σ]]
+    k == 1 && return w[1][position(cplx, σ)]
     return maximum([w[k-1][position(cplx, τ)] for τ in faces(σ)])
 end
 

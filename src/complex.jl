@@ -92,17 +92,6 @@ function position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
 end
 
 """
-    cplx[cell]
-
-Return an identifier of the k-dimensional `cell` in the complex `cplx`. If the cell is not in the complex, `nothing` is returned.
-"""
-function getindex(cplx::AbstractComplex, c::C) where {C <: AbstractCell}
-    cidx = position(cplx, c)
-    cidx === nothing && return nothing #size(cplx, d)+1
-    return hash(cells(cplx, dim(c))[cidx])
-end
-
-"""
     cplx[idx, d]
 
 Return a `d`-dimensional cell given its index `idx` and dimenion `d`.

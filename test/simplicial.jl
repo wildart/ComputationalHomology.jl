@@ -20,9 +20,9 @@
     @test size(cplx,1) == 4
     @test size(cplx,2) == 1
     @test size(cplx,3) == 0
-    @test cplx[Simplex(4)] == hash(Simplex(4))
+    @test Simplex(4) ∈ cplx
     @test ComputationalHomology.position(cplx, Simplex(4)) == 4
-    @test cplx[Simplex(10)] === nothing
+    @test Simplex(10) ∉ cplx
     @test ComputationalHomology.position(cplx, Simplex(10)) === nothing
 
     @test length(simplices(cplx)) == 9

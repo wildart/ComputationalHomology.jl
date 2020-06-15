@@ -117,8 +117,7 @@ function boundary(flt::Filtration; reduced=false)
         if d > 0
             splx = cplx[ci, d]
             for face in faces(splx)
-                fi = cplx[face]
-                push!(bm[i+ridx], revidx[(fi, d-1)]+ridx)
+                push!(bm[i+ridx], revidx[(hash(face), d-1)]+ridx)
             end
         elseif reduced
             push!(bm[i+ridx], 1)
