@@ -1,5 +1,5 @@
 """CW complex type"""
-mutable struct CWComplex{S<:AbstractCell} <: AbstractComplex
+mutable struct CWComplex{S<:AbstractCell} <: AbstractComplex{S}
     cells::Dict{Int,Vector{S}}   # cells per dimension
 end
 show(io::IO, cplx::CWComplex) = print(io, "CWComplex($(size(cplx)))")

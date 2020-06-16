@@ -2,7 +2,7 @@
 
 Create a simplicial complex with simplices with a value type `P`.
 """
-mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex
+mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex{S}
     cells::Dict{Int,Vector{S}}   # cells per dimension
     order::Dict{UInt64,Int}      # total order of cells per dimension
 end

@@ -2,25 +2,7 @@
 Each complex should have collection of cells per dimension:
 - cells::Dict{Int,Vector{C}} or Vector{Vector{C}}
 =#
-abstract type AbstractComplex end
-
-function boundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
-    d = dim(ch)
-    cc = Chain(d-1, PID, IX)
-    for (coef,elem) in ch
-        append!(cc, coef * boundary(cplx, elem, d, PID))
-    end
-    return simplify(cc)
-end
-
-function coboundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
-    d = dim(ch)
-    cc = Chain(d+1, PID, IX)
-    for (coef,elem) in ch
-        append!(cc, coef * coboundary(cplx, elem, d, PID))
-    end
-    return simplify(cc)
-end
+abstract type AbstractComplex{C <: AbstractCell} end
 
 #
 # AbstractComplex Public Interface
@@ -28,10 +10,12 @@ end
 """Return a complex boundary given element and dimension"""
 boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
 boundary(cplx::AbstractComplex, i::Integer, d::Int) = boundary(cplx, i, d, Int)
+boundary(cplx::AbstractComplex{C}, splx::C) where {C<:AbstractCell} = boundary(cplx, hash(splx), dim(splx))
 
 """Return a complex coboundary given element and dimension"""
 coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
 coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
+coboundary(cplx::AbstractComplex{C}, splx::C) where {C<:AbstractCell} = coboundary(cplx, hash(splx), dim(splx))
 
 """Return a complex cell type"""
 eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
@@ -47,7 +31,7 @@ cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),In
 
 Insert a `cell` to a complex `cplx`, and returns an array of inserted cell(s). If `recursive=true` is passed then all faces of the `cell` are also added to the complex `cplx`.
 """
-push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
+push!(cplx::AbstractComplex{C}, c::C; recursive=false) where {C<:AbstractCell} = throw(MethodError(push!, (typeof(cplx),typeof(c))))
 
 #
 # Public Methods
@@ -103,6 +87,34 @@ function getindex(cplx::AbstractComplex, idx::Integer, d::Int)
 end
 
 """
+    boundary(cplx, ch)
+
+Return the chain `ch` boundary in the complex `cplx`.
+"""
+function boundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
+    d = dim(ch)
+    cc = Chain(d-1, PID, IX)
+    for (coef,elem) in ch
+        append!(cc, coef * boundary(cplx, elem, d, PID))
+    end
+    return simplify(cc)
+end
+
+"""
+    coboundary(cplx, ch)
+
+Return the chain `ch` coboundary in the complex `cplx`.
+"""
+function coboundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
+    d = dim(ch)
+    cc = Chain(d+1, PID, IX)
+    for (coef,elem) in ch
+        append!(cc, coef * coboundary(cplx, elem, d, PID))
+    end
+    return simplify(cc)
+end
+
+"""
     boundary(complex, d, PID)
 
 Generate a boundary matrix from the cell `complex` of the dimension `d` in using coefficients of `PID`.
@@ -130,7 +142,7 @@ end
 
 Checks if the `cell` is in the complex `cplx`
 """
-in(c::AbstractCell, cplx::AbstractComplex) = position(cplx, c) > 0
+in(c::C, cplx::AbstractComplex{C}) where {C<:AbstractCell} = position(cplx, c) > 0
 
 """
     cochain(complex, d, coefficients)
