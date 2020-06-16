@@ -140,9 +140,12 @@ function sparse(∂::Vector{<:AbstractSet})
 end
 
 
-"""Similarity matrix created from 1-subcomplex of simplicial complex `cplx` and distance weights.
 """
-function similarity_matrix(flt::Filtration)
+    similarity(flt::Filtration)
+
+Returns a similarity matrix created from 1-subcomplex of simplicial complex and distance weights of the filtration `flt`.
+"""
+function similarity(flt::Filtration)
     cplx = complex(flt)
     ord = order(flt)
     C0 = map(hash, cells(cplx, 0))
