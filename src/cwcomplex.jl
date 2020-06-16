@@ -25,7 +25,7 @@ function cells(cplx::CWComplex{S}) where {S<:AbstractCell}
     return [haskey(cplx.cells, d) ? cplx.cells[d] : S[] for d in 0:dims]
 end
 
-cells(cplx::CWComplex, d::Int) = get(cplx.cells, d,  nothing)
+cells(cplx::CWComplex{S}, d::Int) where {S<:AbstractCell} = get(cplx.cells, d,  S[])
 
 function boundary(cplx::CWComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
 end
