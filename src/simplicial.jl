@@ -10,7 +10,7 @@ Simplex(splx::P...) where {P} = Simplex(P[splx...])
 
 # Private methods
 
-Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
+convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
 show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
 eltype(splx::Simplex{P}) where {P} = P
 

@@ -35,7 +35,7 @@ function wasserstein(dgm1::PersistenceDiagram{T}, dgm2::PersistenceDiagram{T}) w
     view(ll, diagind(ll,0)) .= (m2'*rot(π/4))[:,2]
 
     # Run the hungarian algorithm
-    _, dist = ComputationalHomology.hungarian(CSM)
+    _, dist = hungarian(CSM)
 
     return dist
 end

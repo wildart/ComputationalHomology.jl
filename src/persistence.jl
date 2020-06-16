@@ -47,7 +47,7 @@ function reduce!(::Type{TwistReduction}, ∂::Vector{<:AbstractSet})
     return ∂
 end
 
-Base.reduce(::Type{R}, ∂::Vector{<:AbstractSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
+reduce(::Type{R}, ∂::Vector{<:AbstractSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
 
 function generate_pairs(∂::Vector{<:AbstractSet}; reduced = false)
     ridx = reduced ? 1 : 0

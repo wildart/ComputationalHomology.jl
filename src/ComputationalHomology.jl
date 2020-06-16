@@ -10,7 +10,7 @@ using SparseArrays: SparseMatrixCSC, spzeros, findnz
 
 import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
              eltype, getindex, size, iterate, push!, append!, in, read, write,
-             vec, complex, iszero, convert
+             vec, complex, iszero, convert, reduce
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean
@@ -34,11 +34,11 @@ export AbstractCell,
        AbstractHomology, grouptype, group,
        Homology, homology, withgenerators, generators,
 
-       Filtration, filtration, order, simplices,
+       Filtration, filtration, order, simplices, similarity,
 
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
-       pairs, reduce!, reduce,
+       pairs, reduce!,
        PersistentHomology, persistenthomology,
 
        Interval, birth, death,

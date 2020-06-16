@@ -95,7 +95,7 @@ end
 
 Perform a reduction `op` between landscape and number.
 """
-function Base.reduce(op, l::Landscape, x::Number)
+function reduce(op, l::Landscape, x::Number)
     n = length(l)
     L = Vector{Vector{Pair}}(undef, n)
     for i in 1:n
@@ -113,7 +113,7 @@ end
 
 Perform a reduction `op` of two persistence landscapes.
 """
-function Base.reduce(op, l1::Landscape, l2::Landscape)
+function reduce(op, l1::Landscape, l2::Landscape)
     n = min(length(l1), length(l2))
     m = max(length(l1), length(l2))
     L = Vector{Vector{Pair}}(undef, m)
