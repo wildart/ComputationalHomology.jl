@@ -3,8 +3,8 @@
 Create a simplicial complex with simplices with a value type `P`.
 """
 mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex{S}
-    cells::Dict{Int,Vector{S}}   # cells per dimension
-    order::Dict{UInt64,Int}      # total order of cells per dimension
+    cells::Dict{Int,Vector{S}}         # cells per dimension
+    order::Vector{Dict{UInt64,Int}}  # total order of cells per dimension
 end
 show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
 
@@ -13,7 +13,7 @@ show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx
 #
 
 SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} =
-    SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}())
+    SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}[])
 (::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
 
 function SimplicialComplex(splxs::S...) where {S<:AbstractSimplex}
@@ -49,9 +49,17 @@ This function **doesn't** add missing faces of the simplex to the complex. Use `
 function addsimplex!(cplx::SimplicialComplex{S}, splx::S) where {S <: AbstractSimplex}
     d = dim(splx)
     d < 0 && return nothing
-    !haskey(cplx.cells, d) && setindex!(cplx.cells, S[], d)
+    if !haskey(cplx.cells, d)
+        cplx.cells[d] = S[]
+    end
+    if length(cplx.order) <= d
+        # println("Missing dimensions: $(length(cplx.order)) need to be $(d+1)")
+        for i in length(cplx.order):d
+            push!(cplx.order, Dict{UInt64,Int}())
+        end
+    end
     push!(cplx.cells[d], splx)
-    cplx.order[hash(splx)] = length(cplx.cells[d]) # length(cplx.order)+1
+    cplx.order[d+1][hash(splx)] = length(cplx.cells[d]) # length(cplx.order)+1
     return splx
 end
 
@@ -105,17 +113,15 @@ end
 
 cells(cplx::SimplicialComplex{S}, d::Int) where {S<:AbstractSimplex} = get(cplx.cells, d,  S[])
 
-
 function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
     ch = Chain(d-1, PID, IX)
     d == 0 && return ch
 
-    pos = one(PID)
-    neg = -one(PID)
-
     splx = cplx[idx, d]
     splx === nothing && return ch
 
+    pos = one(PID)
+    neg = -one(PID)
     sgn = true
     for face in faces(splx)
         push!(ch, (sgn ? pos : neg), hash(face))
@@ -143,7 +149,10 @@ end
 push!(cplx::SimplicialComplex, splx::AbstractSimplex; recursive=false) =
     recursive ? addsimplices!(cplx, splx) : [addsimplex!(cplx, splx)]
 
-position(cplx::SimplicialComplex, idx::Integer, d::Int) = get(cplx.order, idx, 0)
+function position(cplx::SimplicialComplex, idx::Integer, d::Int)
+    length(cplx.order) <= d && return 0
+    return get(cplx.order[d+1], idx, 0)
+end
 
 
 #
