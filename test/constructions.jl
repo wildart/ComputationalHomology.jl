@@ -71,12 +71,12 @@
             @test w[1][8] == 11.0
         end
 
-        cplx, w = vietorisrips(X, 0.1, false)
+        cplx, w = vietorisrips(X, 0.1, Euclidean(), false)
         @test size(cplx, 0) == N
         @test size(cplx, 1) == 0
         @test w === nothing
 
-        cplx, w = vietorisrips(X, 0.3, false)
+        cplx, w = vietorisrips(X, 0.3, Euclidean(), false)
         @test size(cplx, 0) == N
         @test size(cplx, 1) == 4
         @test cells(cplx, 1)[1] == Simplex(1, 10)

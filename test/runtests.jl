@@ -1,6 +1,7 @@
 using ComputationalHomology
 using LinearAlgebra
 using SparseArrays
+using Distances
 using Test
 import Random
 

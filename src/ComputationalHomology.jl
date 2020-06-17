@@ -3,7 +3,7 @@ module ComputationalHomology
 using LinearAlgebra
 using Hungarian: hungarian
 using SmithNormalForm: smith
-using Distances: Euclidean, pairwise, colwise, pairwise!
+using Distances: Metric, Euclidean, pairwise, colwise, pairwise!
 using Random: shuffle!, randperm
 using BoundingSphere: boundingsphere
 using SparseArrays: SparseMatrixCSC, spzeros, findnz

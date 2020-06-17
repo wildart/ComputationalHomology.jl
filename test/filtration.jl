@@ -60,7 +60,7 @@
     Random.seed!(9236493643764)
     N = 10
     X = rand(3,N)
-    cplx, w = vietorisrips(X, 0.4, true)
+    cplx, w = vietorisrips(X, 0.4)
     flt = filtration(cplx, w)
     ∂ = boundary(flt)
     @test length(∂) == sum(size(cplx))

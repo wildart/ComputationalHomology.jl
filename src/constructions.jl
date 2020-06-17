@@ -87,31 +87,40 @@ function expand(method, cplx, w, kmax, E)
 end
 
 """
-    vietorisrips(X, ɛ[, weights])
+    vietorisrips(X, ɛ[, metric, weights])
 
-Construction of a Vietoris–Rips complex
+Construction of a Vietoris–Rips complex from
 
 # Arguments
 - `X::AbstractMatrix{T}`: the dataset where each column defines a data point.
 - `ɛ::Real`: the maximal scale value.
+- `metric::Metric`: the distance metric.
 - `weights::Bool`: this flag indicates if the filteration weight should be calculated. Default value is `true`.
 
 This is an inefficient implementation (based on distance matrix) of the VRC algorithm from:
 
     Afra Zomorodian, Fast construction of the Vietoris-Rips complex, 2010
 """
-function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
+function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, metric::Metric=Euclidean(), weights=true;
                       expansion = :incremental,
-                      distance  = Euclidean(),
                       maxoutdim = size(X,2)-1) where T <: Real
-    d, n = size(X)
+    # calculate cross distances for each point in dataset
+    D = pairwise(metric, X, dims=2)
+    vietorisrips(D, ɛ, weights; expansion=expansion, maxoutdim=maxoutdim)
+end
 
+"""
+    vietorisrips(D, ɛ[, weights])
+
+Construction of a Vietoris–Rips complex from the distance matrix `D`.
+"""
+function vietorisrips(D::AbstractMatrix{T}, ɛ::Real, weights::Bool;
+                      expansion = :incremental,
+                      maxoutdim = size(D,2)-1) where T <: Real
+    n = size(D,2)
     # add zero-dimensional simplices to complex
     splxs = map(Simplex, 1:n)
     cplx = SimplicialComplex(splxs...)
-
-    # calculate cross distances for each point in dataset
-    D = pairwise(distance, X, dims=2)
 
     # build 1-skeleton (neighborhood graph)
     E = spzeros(Bool, n, n) # adjacency matrix
@@ -124,8 +133,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
             # add simplex to complex
             push!(cplx, s)
             # fill adjacency matrix
-            E[i,j] = true
-            E[j,i] = true
+            E[i,j] = E[j,i] = true
         end
     end
 
@@ -150,6 +158,7 @@ function vietorisrips(X::AbstractMatrix{T}, ɛ::Real, weights = true;
 
     return cplx, w
 end
+
 
 """
 Landmark selection for witness complex
@@ -268,7 +277,7 @@ function witness(D::AbstractMatrix, ɛ::Real, weights = true;
             if e ≤ ɛ
                 push!(cplx, Simplex(i, j))
                 weights && push!(w[1], e)
-                E[i, j] = true
+                E[i, j] = E[j, i] = true
             end
         end
     end
@@ -281,39 +290,6 @@ function witness(D::AbstractMatrix, ɛ::Real, weights = true;
     expand(expansion, cplx, w, kmax, E)
 
     return cplx, w
-end
-
-
-"""
-    welzl(P, R)
-
-Computes the smallest enclosing circle of the union of `P` and `R`.
-"""
-function welzl(P, R)
-    p = length(P)
-    r = length(R)
-    if p == 0 || r >= 3
-        if r == 1
-            return R[1], 0.0
-        elseif r == 2
-            p1 = R[1]
-            p2 = R[2]
-            m = (p1.+p2) ./ 2.
-            d = sqrt(sum(abs2, (x .- y)))
-            return m, d / 2.
-        elseif true
-            @warn "the points of R are cocircular"
-            return [], 0.0
-        else
-            @error "Undefined"
-            return [], -1.0
-       end
-    end
-    i = rand(1:p)
-    x = P[i]
-    c, r = welzl(deleteat!(P, i), R)
-    norm(x - c) <= r && return (c, r)
-    return welzl(P, push!(R, x))
 end
 
 """
@@ -329,7 +305,6 @@ Construction of a Čeck complex.
 
 """
 function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
-              distance  = Euclidean(),
               maxoutdim = size(X,2)-1) where T <: Real
 
     d, n = size(X)
@@ -352,7 +327,7 @@ function čech(X::AbstractMatrix{T}, ɛ::Real, weights = true;
             c, r = boundingsphere([X[:, i] for i in idx])
 
             # add simplex in radius less then maximal filtration value
-            if r <= ε
+            if r <= ɛ
                 s = Simplex(reverse(idx))
                 addsimplex!(cplx, s)
                 weights && push!(w[h], r)
