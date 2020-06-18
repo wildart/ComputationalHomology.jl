@@ -3,3 +3,4 @@
 *.jl.mem
 misc
 *.json
+docs/build

@@ -1,0 +1,6 @@
+[deps]
+ComputationalHomology = "9393a4d0-be1e-45b0-9991-b60434c721e6"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "~0.24"
