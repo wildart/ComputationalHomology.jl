@@ -81,4 +81,4 @@ end
 
 # Private methods
 
-boundary(c::Cell) = Chain(dim(c), collect(values(c.boundarymap)), collect(keys(c.boundarymap)))
+boundary(c::Cell) = Chain(dim(c), copy(c.boundarymap))

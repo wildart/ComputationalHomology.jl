@@ -8,9 +8,9 @@ using Random: shuffle!, randperm
 using BoundingSphere: boundingsphere
 using SparseArrays: SparseMatrixCSC, spzeros, findnz
 
-import Base: ==, -, +, *, union, values, hash, first, last, isless, show, length,
-             eltype, valtype, getindex, size, iterate, push!, append!, in, read, write,
-             vec, complex, iszero, convert, reduce
+import Base: ==, -, +, *, union, keys, values, hash, first, last, isless, show, length,
+             eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in,
+             read, write, vec, complex, iszero, convert, reduce, keytype, copy, map, map!
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean
@@ -48,7 +48,8 @@ export AbstractCell,
        wasserstein
 
 include("abstractcell.jl")
-include("chain.jl")
+include("abstractchain.jl")
+include("chains.jl")
 include("simplex.jl")
 include("cube.jl")
 include("cwcell.jl")

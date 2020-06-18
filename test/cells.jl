@@ -63,10 +63,8 @@ end
     @test vertices(c)[1] == b
     @test vertices(c)[2] == a
     cb = boundary(c)
-    @test cb[1][1] == -1
-    @test cb[1][2] == hash(b)
-    @test cb[2][1] == 1
-    @test cb[2][2] == hash(a)
+    @test cb[hash(b)] == -1
+    @test cb[hash(a)] == 1
 
     c2 = Cell()
     d = Cell(1, a, b, c2)
@@ -87,6 +85,6 @@ end
 
     f = Cell(1, [a, b], [1, 1])
     cb = boundary(f)
-    @test cb[1][1] == 1
-    @test cb[2][1] == 1
+    @test cb[hash(a)] == 1
+    @test cb[hash(b)] == 1
 end
