@@ -113,33 +113,33 @@ end
 
 cells(cplx::SimplicialComplex{S}, d::Int) where {S<:AbstractSimplex} = get(cplx.cells, d,  S[])
 
-function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
-    ch = Chain(d-1, PID, IX)
+function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{R}) where {R, IX<:Integer}
+    ch = Chain(d-1, IX, R)
     d == 0 && return ch
 
     splx = cplx[idx, d]
     splx === nothing && return ch
 
-    pos = one(PID)
-    neg = -one(PID)
+    pos = one(R)
+    neg = -one(R)
     sgn = true
     for face in faces(splx)
-        push!(ch, (sgn ? pos : neg), hash(face))
+        push!(ch, hash(face)=>(sgn ? pos : neg))
         sgn = !sgn
     end
 
     return ch
 end
 
-function coboundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
-    ch = Chain(d+1, PID, IX)
+function coboundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{R}) where {R, IX<:Integer}
+    ch = Chain(d+1, IX, R)
     d == 0 && return ch
 
     # (δϕ)(c) = ϕ(∂c)
     for c in cells(cplx, d+1)
         i = hash(c)
-        for (coef, elem) in boundary(cplx, i, d+1, PID)
-            elem == idx && push!(ch, coef, i)
+        for (elem, coef) in boundary(cplx, i, d+1, R)
+            elem == idx && push!(ch, i=>coef)
         end
     end
 

@@ -91,11 +91,11 @@ end
 
 Return the chain `ch` boundary in the complex `cplx`.
 """
-function boundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
+function boundary(cplx::AbstractComplex, ch::Chain{IX,R}) where {R, IX<:Integer}
     d = dim(ch)
-    cc = Chain(d-1, PID, IX)
-    for (coef,elem) in ch
-        append!(cc, coef * boundary(cplx, elem, d, PID))
+    cc = Chain(d-1, IX, R)
+    for (elem, coef) in ch
+        append!(cc, coef * boundary(cplx, elem, d, R))
     end
     return simplify(cc)
 end
@@ -105,11 +105,11 @@ end
 
 Return the chain `ch` coboundary in the complex `cplx`.
 """
-function coboundary(cplx::AbstractComplex, ch::Chain{PID, IX}) where {PID, IX<:Integer}
+function coboundary(cplx::AbstractComplex, ch::Chain{IX,R}) where {R, IX<:Integer}
     d = dim(ch)
-    cc = Chain(d+1, PID, IX)
-    for (coef,elem) in ch
-        append!(cc, coef * coboundary(cplx, elem, d, PID))
+    cc = Chain(d+1, IX, R)
+    for (elem, coef) in ch
+        append!(cc, coef * coboundary(cplx, elem, d, R))
     end
     return simplify(cc)
 end
@@ -128,7 +128,7 @@ function boundary(cplx::AbstractComplex, d::Int, ::Type{PID}) where {PID}
         for c in cells(cplx, d)
             idx = hash(c)
             i = position(cplx, idx, d)
-            for (coef,elem) in boundary(cplx, idx, d, PID)
+            for (elem, coef) in boundary(cplx, idx, d, PID)
                 j = position(cplx, elem, d-1)
                 bm[j, i] = coef
             end
@@ -154,6 +154,8 @@ function cochain(cplx::AbstractComplex, d::Int, coefs::Vector{PID}) where {PID}
     @assert length(cs) == length(coefs) "Number of coefficients must match number of cells of dimension $d"
     return Chain(d, coefs, map(c->hash(c), cs))
 end
+cochain(cplx::AbstractComplex, d::Int, coef::PID) where {PID} =
+    cochain(cplx, d, fill(coef, size(cplx, d)))
 
 """
     adjacency_matrix(cplx, [T=Int])

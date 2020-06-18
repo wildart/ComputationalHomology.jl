@@ -108,7 +108,7 @@ function iterate(g::WithGenerators, state=nothing)
     result === nothing && return nothing
 
     GT = grouptype(typeof(h))
-    chains = Dict{Chain, GT}()
+    chains = Dict{AbstractChain, GT}()
 
     p, βₚ, τₚ = result[1]
     U, Uinv, V, Vinv, D, t = result[2][2]
@@ -134,19 +134,19 @@ function iterate(g::WithGenerators, state=nothing)
     for j in 1:size(G,2)
         ii, V = findnz(G[:,j])
         length(ii) == 0 && continue
-        ch = Chain(p, GT)
+        ch = Chain(p, Int, GT)
         for (i,v) in zip(ii,V)
-            push!(ch, v=>i)
+            push!(ch, i=>v)
         end
         chains[ch] = 0
     end
 
     # torsion generator
     for j in 1:τₚ
-        ch = Chain(p, GT)
+        ch = Chain(p, Int, GT)
         I, V = findnz(D[:,trivial+j])
         for (i,v) in zip(I,V)
-            push!(ch, v=>i)
+            push!(ch, i=>v)
         end
         chains[ch] = D[trivial+j, trivial+j]
     end

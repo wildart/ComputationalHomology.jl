@@ -23,9 +23,12 @@ mutable struct Chain{IX<:Integer, R} <: AbstractChain{IX,R}
     cells::Dict{IX,R}
 end
 
-Chain(elems::AbstractVector, coefs::AbstractVector) = Chain(0, Dict(zip(elems, coefs)))
-Chain(::Type{IX}, ::Type{R}) where {R, IX<:Integer} = Chain(IX[], R[])
-Chain(::Type{R}) where {R} = Chain(UInt, R)
+Chain(d::Int, elems::AbstractVector, coefs::AbstractVector) = Chain(d, Dict(zip(elems, coefs)))
+Chain(elems::AbstractVector, coefs::AbstractVector) = Chain(0, elems, coefs)
+Chain(d::Int, ::Type{IX}, ::Type{R}) where {R, IX<:Integer} = Chain(d, IX[], R[])
+Chain(::Type{IX}, ::Type{R}) where {R, IX<:Integer} = Chain(0, IX, R)
+Chain(d::Int, ::Type{R}) where {R} = Chain(d, UInt, R)
+Chain(::Type{R}) where {R} = Chain(0, UInt, R)
 
 # implement interface
 dim(ch::Chain) = ch.dim
