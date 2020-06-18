@@ -159,7 +159,7 @@ end
 # Miscellaneous
 #
 
-Base.similar(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex} = SimplicialComplex(S)
+similar(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex} = SimplicialComplex(S)
 
 function read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
     splxs = S[]

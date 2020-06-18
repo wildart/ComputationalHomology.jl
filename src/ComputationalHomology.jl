@@ -9,8 +9,9 @@ using BoundingSphere: boundingsphere
 using SparseArrays: SparseMatrixCSC, spzeros, findnz
 
 import Base: ==, -, +, *, union, keys, values, hash, first, last, isless, show, length,
-             eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in,
-             read, write, vec, complex, iszero, convert, reduce, keytype, copy, map, map!
+             eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in, similar,
+             read, write, vec, complex, iszero, convert, reduce, keytype, copy, map, map!,
+             minimum, maximum
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean

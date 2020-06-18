@@ -25,7 +25,7 @@ length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(fl
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
     Filtration(C(), Vector{Tuple{Int,Integer,FI}}(), Inf)
 Filtration(::Type{C}) where {C <: AbstractComplex} = Filtration(C, Float64)
-Base.similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, FI)
+similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, FI)
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
 function filtration(cplx::AbstractComplex)
@@ -73,8 +73,8 @@ end
 #
 # Auxiliary function
 #
-Base.minimum(flt::Filtration) = order(flt)[1][3]
-Base.maximum(flt::Filtration) = order(flt)[end][3]
+minimum(flt::Filtration) = order(flt)[1][3]
+maximum(flt::Filtration) = order(flt)[end][3]
 
 """
     complex(flt, val)
