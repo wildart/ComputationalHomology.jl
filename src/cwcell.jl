@@ -45,7 +45,8 @@ function show(io::IO, c::Cell)
         print(io, "[$vstr]")
     end
 end
-eltype(c::Cell{PID}) where {PID} = Cell{PID}
+eltype(c::Cell{PID}) where {PID} = PID
+eltype(::Type{Cell{PID}}) where {PID} = PID
 
 # Public methods
 

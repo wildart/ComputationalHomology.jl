@@ -1,13 +1,13 @@
 @testset "Simplicial Complex" begin
-    cplx = SimplicialComplex{Simplex{Int64}}()
-    @test eltype(cplx) == Simplex{Int}
+    cplx = SimplicialComplex()
+    @test eltype(cplx) == Simplex
     @test length(cells(cplx)) == 0
     @test length(cells(cplx,2)) == 0
     @test size(cplx) == ()
 
     cplx = SimplicialComplex(Simplex(1,2,3), Simplex(2,4), Simplex(4))
 
-    @test eltype(cplx) == Simplex{Int}
+    @test eltype(cplx) == Simplex
     @test length(cells(cplx)) == 3
     @test length(cells(cplx,2)) == 1
     @test length(cells(cplx,3)) == 0
@@ -38,9 +38,8 @@
     @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
 
     # boundary
-    qch = Chain(2, [hash(Simplex(1,2,3))], [1])
-    resch = Chain(1, map(hash, [Simplex(1,2), Simplex(2,3), Simplex(1,3)]), [-1, 1, 1])
-    @testset "Complex boundary chain" for (a,b) in zip(boundary(cplx, qch), resch)
+    resch = Chain(1, map(hash, [Simplex(1,2), Simplex(2,3), Simplex(1,3)]), [1, 1, -1])
+    @testset "Complex boundary chain" for (a,b) in zip(boundary(Simplex(1,2,3)), resch)
         @test a == b
     end
 
@@ -50,9 +49,9 @@
     # coboundary
     @test iszero(coboundary(cplx, Simplex(1,2,3)))
     qch = coboundary(cplx, Simplex(1,3))
-    @test qch[hash(Simplex(1,2,3))] == 1
+    @test qch[hash(Simplex(1,2,3))] == -1
 
-    qch = Chain(1, [hash(Simplex(1,2,3))], [1])
+    resch = Chain(1, [hash(Simplex(1,2,3))], [-1])
     @testset "Complex coboundary chain" for (a,b) in zip(coboundary(cplx, Simplex(1,3)), qch)
         @test a == b
     end
@@ -62,7 +61,7 @@
     push!(cplx, Simplex(1,2,3,5), recursive=true)
 
     qch = Chain(1, [hash(Simplex(1,3))], [1])
-    resch = Chain(2, map(hash,[Simplex(1,3,5), Simplex(1,2,3)]), [-1, 1])
+    resch = Chain(2, map(hash,[Simplex(1,3,5), Simplex(1,2,3)]), [1, -1])
     @testset "Complex coboundary chain" for (a,b) in zip(coboundary(cplx, qch), resch)
         @test a == b
     end
@@ -72,7 +71,7 @@
 
 
     # simplex values
-    cplx = SimplicialComplex(Simplex{Int})
+    cplx = SimplicialComplex()
 
     splx = push!(cplx, Simplex(1))
     @test ComputationalHomology.position(cplx, splx[1]) == 1
@@ -86,14 +85,14 @@
     @test sum(size(cplx)) == 2
     @test sort!(values(cells(cplx, 1)[1])) == [1,2]
 
-    cplx = SimplicialComplex(Simplex{Int})
+    cplx = SimplicialComplex()
     splxs = push!(cplx, Simplex(1, 2), recursive=true)
     @test splxs[1] == Simplex(1,2)
     @test sort!(values(splxs[1])) == [1, 2]
-    @test splxs[2] == Simplex(2)
-    @test values(splxs[2]) == [2]
-    @test splxs[3] == Simplex(1)
-    @test values(splxs[3]) == [1]
+    @test splxs[3] == Simplex(2)
+    @test values(splxs[3]) == [2]
+    @test splxs[2] == Simplex(1)
+    @test values(splxs[2]) == [1]
     @test sum(size(cplx)) == 3
     @test size(cplx, 0) == 2
     @test size(cplx, 1) == 1
@@ -115,12 +114,10 @@
     io = IOBuffer()
     write(io, cplx)
     seekstart(io)
-    cplx2 = read(io, SimplicialComplex{Simplex{Int}})
+    cplx2 = read(io, SimplicialComplex(), Simplex{0,Int})
     @test size(cplx2, 0) == 3
     @test size(cplx2, 1) == 2
-
-    ch = boundary(cplx2, 1, 0, Int)
-    @test dim(ch) == -1
+    @test all(cells(cplx2,1) .== cells(cplx,1))
 
     A = ComputationalHomology.adjacency_matrix(ComputationalHomology.sphere(1), UInt8)
     @test collect(A) == UInt8[0x00 0x01; 0x01 0x00]

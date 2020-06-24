@@ -1,6 +1,6 @@
 @testset "Filtration" begin
     # create empty filtration
-    flt = Filtration(SimplicialComplex{Simplex{Int}})
+    flt = Filtration(SimplicialComplex)
 
     # fill it with (cell, 'filtration value') pairs
     push!(flt, Simplex(1), 1.0)
@@ -30,9 +30,9 @@
     # test io
     let io = IOBuffer()
         write(io, flt)
-        @test String(take!(copy(io))) == "1,1.0\n2,2.0\n2,1,3.0\n3,4.0\n3,1,4.0\n"
+        @test String(take!(copy(io))) == "1,1.0\n2,2.0\n1,2,3.0\n3,4.0\n1,3,4.0\n"
         seekstart(io)
-        tmp = read(io, Filtration{SimplicialComplex{Simplex{Int}}, Float64})
+        tmp = read(io, Filtration{SimplicialComplex, Float64}, Simplex{0,Int})
         @testset for ((f1,ss1),(f2,ss2)) in zip(flt, tmp)
             @test f1 == f2
             for (s1, s2) in zip(ss1, ss2)
@@ -47,7 +47,7 @@
     @test count(!iszero, sparse(∂)) == 4
 
     # create filtration from an existed complex
-    cplx = SimplicialComplex(Simplex{Char})
+    cplx = SimplicialComplex()
     push!(cplx, Simplex('a','b','c'), recursive=true)
     flt = filtration(cplx)
     @test order(flt)[end] == (2, hash(Simplex('a','b','c')), 7)

@@ -31,8 +31,29 @@ union(u::C, v::C) where {C<:AbstractCell} = throw(MethodError(union,(C,C)))
 """
     vertices(cell)
 
-Get a collection of `cell` vertices"""
+Get a collection of `cell` vertices.
+"""
 vertices(c::AbstractCell) = throw(MethodError(vertices,(typeof(c),)))
+
+"""
+    boundary(cell)
+
+Calculate boundary chain of the `cell`.
+"""
+function boundary(::Type{R}, σ::AbstractCell) where {R}
+    d = dim(σ)
+    ch = Chain(dim(σ)-1, R)
+    d == 0 && return ch
+    i = one(R)
+    sgn = true
+    for face in faces(σ)
+        push!(ch, hash(face)=>(sgn ? i : -i))
+        sgn = !sgn
+    end
+    return ch
+end
+boundary(σ::AbstractCell) = boundary(Int, σ)
+
 
 """Abstract simplex type"""
 abstract type AbstractSimplex <: AbstractCell end

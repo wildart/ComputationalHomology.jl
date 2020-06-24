@@ -1,25 +1,24 @@
 #=== Simplex ===#
-struct Simplex{P} <: AbstractSimplex
-    vs::Set{P}
+struct Simplex{N, P} <: AbstractSimplex
+    vs::NTuple{N, P}
     hash::UInt64
-    Simplex{P}(vals) where {P} = new(vals, hash(vals))
-    Simplex{P}() where {P} = new(Set{P}())
+    Simplex{N,P}(vals::NTuple{N, P}) where {N, P} = new(vals, hash(Set(vals)))
+    Simplex{0,P}() where {P} = new((), zero(UInt))
 end
-Simplex(splx::Vector{P}) where {P} = Simplex{P}(Set(splx))
-Simplex(splx::P...) where {P} = Simplex(P[splx...])
+Simplex(splx::P...) where {P} = Simplex{length(splx),P}(splx)
+Simplex(splx::Vector{P}) where {P} = Simplex(splx...)
+Simplex(::Type{P}) where {P} = Simplex{0,P}()
 
 # Private methods
 
-Base.convert(::Type{Simplex{P}}, v::Vector{P}) where {P} = Simplex{P}(0, Set(v))
-show(io::IO, splx::Simplex) = show(io, "σ$(collect(splx.vs))")
-eltype(splx::Simplex{P}) where {P} = P
+show(io::IO, splx::Simplex) = show(io, "σ$(splx.vs)")
+eltype(splx::Simplex{N,P}) where {N,P} = P
+eltype(::Type{Simplex{N,P}}) where {N,P} = P
 
 # Public methods
 
-dim(splx::Simplex) = length(splx.vs)-1
-
+dim(splx::Simplex{N,P}) where {N,P} = N-1
 hash(splx::Simplex) = splx.hash
-
 ==(a::Simplex, b::Simplex) = a.hash == b.hash
 
 function vertices(splx::Simplex)
@@ -34,14 +33,10 @@ union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
 
 # Public methods for Simplex
 
-function faces(splx::Simplex)
-    faces = typeof(splx)[]
-    for i in 1:dim(splx)+1
-        face = collect(splx.vs)
-        deleteat!(face,i)
-        push!(faces, Simplex(face))
-    end
-    return faces
+function faces(σ::Simplex)
+    d = dim(σ)
+    d == 0 && return Simplex[]
+    (Simplex([ifelse(j < i, σ.vs[j], σ.vs[j+1]) for j in 1:d]) for i in 1:(d+1))
 end
 
 values(splx::Simplex) = collect(splx.vs)
@@ -54,4 +49,7 @@ function volume(S::AbstractMatrix)
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
-volume(s::Simplex{Int}, X::AbstractMatrix) = volume(X[:,collect(s.vs)])
+volume(s::Simplex{N,Int}, X::AbstractMatrix) where {N}= volume(X[:, values(s)])
+
+parse(::Type{Simplex{N,P}}, str::AbstractString) where {N,P} =
+    Simplex(map(e->parse(P, e), split(str, ' ')))

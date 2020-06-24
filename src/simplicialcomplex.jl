@@ -2,8 +2,8 @@
 
 Create a simplicial complex with simplices with a value type `P`.
 """
-mutable struct SimplicialComplex{S<:AbstractSimplex} <: AbstractComplex{S}
-    cells::Dict{Int,Vector{S}}         # cells per dimension
+mutable struct SimplicialComplex <: AbstractComplex
+    cells::Dict{Int,Vector{AbstractSimplex}}       # cells per dimension
     order::Vector{Dict{UInt64,Int}}  # total order of cells per dimension
 end
 show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx)))")
@@ -11,15 +11,13 @@ show(io::IO, cplx::SimplicialComplex) = print(io, "SimplicialComplex($(size(cplx
 #
 # Constructors
 #
+SimplicialComplex() = SimplicialComplex(Dict{Int,Vector{AbstractSimplex}}(), Dict{UInt64,Int}[])
+# (::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
 
-SimplicialComplex(::Type{S}) where {S<:AbstractSimplex} =
-    SimplicialComplex(Dict{Int,Vector{S}}(), Dict{UInt64,Int}[])
-(::Type{SimplicialComplex{S}})() where {S<:AbstractSimplex} = SimplicialComplex(S)
-
-function SimplicialComplex(splxs::S...) where {S<:AbstractSimplex}
-    cplx = SimplicialComplex(S)
-    added = Set{S}()
-    toprocess = Vector{S}()
+function SimplicialComplex(splxs::AbstractSimplex...)
+    cplx = SimplicialComplex()
+    added = Set{AbstractSimplex}()
+    toprocess = Vector{AbstractSimplex}()
     for splx in splxs
         push!(toprocess, splx) # add simplex to process its faces
         while(length(toprocess) > 0)
@@ -36,7 +34,7 @@ function SimplicialComplex(splxs::S...) where {S<:AbstractSimplex}
     return cplx
 end
 
-SimplicialComplex(splxs::AbstractVector{<:AbstractSimplex}) = SimplicialComplex(splxs...)
+SimplicialComplex(splxs::AbstractVector{AbstractSimplex}) = SimplicialComplex(splxs...)
 
 # ---------------
 # Private Methods
@@ -46,11 +44,11 @@ SimplicialComplex(splxs::AbstractVector{<:AbstractSimplex}) = SimplicialComplex(
 
 This function **doesn't** add missing faces of the simplex to the complex. Use `addsimplices!` function for instead.
 """
-function addsimplex!(cplx::SimplicialComplex{S}, splx::S) where {S <: AbstractSimplex}
+function addsimplex!(cplx::SimplicialComplex, splx::AbstractSimplex)
     d = dim(splx)
     d < 0 && return nothing
     if !haskey(cplx.cells, d)
-        cplx.cells[d] = S[]
+        cplx.cells[d] = AbstractSimplex[]
     end
     if length(cplx.order) <= d
         # println("Missing dimensions: $(length(cplx.order)) need to be $(d+1)")
@@ -64,10 +62,10 @@ function addsimplex!(cplx::SimplicialComplex{S}, splx::S) where {S <: AbstractSi
 end
 
 """Add a simplex to the complex and all of its faces recursivly and return a complex size, a dimension of simplex and its index in it"""
-function addsimplices!(cplx::SimplicialComplex{S}, splx::S) where {S <: AbstractSimplex}
-    added = Set{S}() # already cached
-    toprocess = S[]
-    ret = S[]
+function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
+    added = Set{AbstractSimplex}() # already cached
+    toprocess = AbstractSimplex[]
+    ret = AbstractSimplex[]
     addedidxs = NTuple{3,Integer}[]
 
     # add simplex to complex
@@ -103,15 +101,15 @@ end
 #
 # AbstractComplex Interface
 #
-eltype(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex} = S
+eltype(cplx::SimplicialComplex) = Simplex
 
-function cells(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex}
-    length(cplx.cells) == 0 && return Vector{S}[] # no cell in complex
+function cells(cplx::SimplicialComplex)
+    length(cplx.cells) == 0 && return Vector{AbstractSimplex}[] # no cell in complex
     dims = maximum(keys(cplx.cells))
-    return [haskey(cplx.cells, d) ? cplx.cells[d] : S[] for d in 0:dims]
+    return [haskey(cplx.cells, d) ? cplx.cells[d] : AbstractSimplex[] for d in 0:dims]
 end
 
-cells(cplx::SimplicialComplex{S}, d::Int) where {S<:AbstractSimplex} = get(cplx.cells, d,  S[])
+cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  AbstractSimplex[])
 
 function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{R}) where {R, IX<:Integer}
     ch = Chain(d-1, IX, R)
@@ -159,17 +157,14 @@ end
 # Miscellaneous
 #
 
-similar(cplx::SimplicialComplex{S}) where {S<:AbstractSimplex} = SimplicialComplex(S)
+# similar(cplx::SimplicialComplex) = SimplicialComplex()
 
-function read(io::IO, ::Type{SimplicialComplex{S}}) where {S<:AbstractSimplex}
-    splxs = S[]
-    P = eltype(S())
+function read(io::IO, s::S, ::Type{T}) where {S<:AbstractComplex, T<:AbstractSimplex}
     while !eof(io)
         l = chomp(readline(io))
-        si = map(e->parse(P, e), split(l, ' '))
-        push!(splxs, Simplex(si...))
+        push!(s, parse(T, l), recursive=false)
     end
-    return SimplicialComplex(splxs)
+    return s
 end
 
 function write(io::IO, cplx::SimplicialComplex)

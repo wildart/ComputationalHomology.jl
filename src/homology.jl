@@ -114,6 +114,7 @@ function iterate(g::WithGenerators, state=nothing)
     U, Uinv, V, Vinv, D, t = result[2][2]
     cplx = g.homology.complex
     trivial = t - τₚ
+    cls = cells(h.complex, p)
 
     A = view(U, 1:size(U,1), t+1:size(U,2))
     B = view(Uinv, t+1:size(Uinv,1), 1:size(Uinv,2))
@@ -134,19 +135,19 @@ function iterate(g::WithGenerators, state=nothing)
     for j in 1:size(G,2)
         ii, V = findnz(G[:,j])
         length(ii) == 0 && continue
-        ch = Chain(p, Int, GT)
+        ch = Chain(p, GT)
         for (i,v) in zip(ii,V)
-            push!(ch, i=>v)
+            push!(ch, hash(cls[i])=>v)
         end
         chains[ch] = 0
     end
 
     # torsion generator
     for j in 1:τₚ
-        ch = Chain(p, Int, GT)
+        ch = Chain(p, GT)
         I, V = findnz(D[:,trivial+j])
         for (i,v) in zip(I,V)
-            push!(ch, i=>v)
+            push!(ch, hash(cls[i])=>v)
         end
         chains[ch] = D[trivial+j, trivial+j]
     end

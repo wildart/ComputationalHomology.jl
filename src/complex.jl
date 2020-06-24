@@ -2,7 +2,7 @@
 Each complex should have collection of cells per dimension:
 - cells::Dict{Int,Vector{C}} or Vector{Vector{C}}
 =#
-abstract type AbstractComplex{C <: AbstractCell} end
+abstract type AbstractComplex end
 
 #
 # AbstractComplex Public Interface
@@ -10,12 +10,12 @@ abstract type AbstractComplex{C <: AbstractCell} end
 """Return a complex boundary given element and dimension"""
 boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
 boundary(cplx::AbstractComplex, i::Integer, d::Int) = boundary(cplx, i, d, Int)
-boundary(cplx::AbstractComplex{C}, splx::C) where {C<:AbstractCell} = boundary(cplx, hash(splx), dim(splx))
+boundary(cplx::AbstractComplex, splx::AbstractCell) = boundary(cplx, hash(splx), dim(splx))
 
 """Return a complex coboundary given element and dimension"""
 coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
 coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
-coboundary(cplx::AbstractComplex{C}, splx::C) where {C<:AbstractCell} = coboundary(cplx, hash(splx), dim(splx))
+coboundary(cplx::AbstractComplex, splx::AbstractCell) = coboundary(cplx, hash(splx), dim(splx))
 
 """Return a complex cell type"""
 eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
@@ -31,7 +31,7 @@ cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),In
 
 Insert a `cell` to a complex `cplx`, and returns an array of inserted cell(s). If `recursive=true` is passed then all faces of the `cell` are also added to the complex `cplx`.
 """
-push!(cplx::AbstractComplex{C}, c::C; recursive=false) where {C<:AbstractCell} = throw(MethodError(push!, (typeof(cplx),typeof(c))))
+push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
 
 #
 # Public Methods
@@ -70,10 +70,7 @@ end
 
 Return a position of the `cell` in an order of cells of the same dimenion of the `complex`.
 """
-function position(cplx::AbstractComplex, c::C) where {C<:AbstractCell}
-    @assert eltype(cplx) == C "Incorrect cell type: $(eltype(cplx)) ≠ $C "
-    return position(cplx, hash(c), dim(c))
-end
+position(cplx::AbstractComplex, c::AbstractCell) = position(cplx, hash(c), dim(c))
 
 """
     cplx[idx, d]
@@ -95,7 +92,7 @@ function boundary(cplx::AbstractComplex, ch::Chain{IX,R}) where {R, IX<:Integer}
     d = dim(ch)
     cc = Chain(d-1, IX, R)
     for (elem, coef) in ch
-        append!(cc, coef * boundary(cplx, elem, d, R))
+        append!(cc, coef * boundary(R, cplx[elem, d]))
     end
     return simplify(cc)
 end
@@ -126,9 +123,8 @@ function boundary(cplx::AbstractComplex, d::Int, ::Type{PID}) where {PID}
     bm = spzeros(PID, rows, cols)
     if d>=0 && d <= dim(cplx)
         for c in cells(cplx, d)
-            idx = hash(c)
-            i = position(cplx, idx, d)
-            for (elem, coef) in boundary(cplx, idx, d, PID)
+            i = position(cplx, hash(c), d)
+            for (elem, coef) in boundary(PID, c)
                 j = position(cplx, elem, d-1)
                 bm[j, i] = coef
             end
@@ -142,7 +138,7 @@ end
 
 Checks if the `cell` is in the complex `cplx`
 """
-in(c::C, cplx::AbstractComplex{C}) where {C<:AbstractCell} = position(cplx, c) > 0
+in(c::AbstractCell, cplx::AbstractComplex) = position(cplx, c) > 0
 
 """
     cochain(complex, d, coefficients)

@@ -2,6 +2,8 @@
     s = Simplex(1, 2, 3)
     @test s == Simplex(1, 2, 3)
     @test sort!(values(s)) == [1,2,3]
+    @test eltype(s) == Int
+    @test eltype(Simplex{1,Float64}) == Float64
 
     s = Simplex([1,2,3])
     @test dim(s) == 2
@@ -17,14 +19,17 @@
     push!(ss, s)
     @test length(ss) == 1
 
-    s = Simplex([1,2], [1,3])
-    @test dim(s) == 1
-
     X = hcat(zeros(3), Matrix(I,3,3))
     S = Simplex(1,2,3,4)
     @test volume(S,X) == 1/6
 
-    @test faces(s)[1] ∪ faces(s)[2] == s
+    s = Simplex(1,3)
+    fs = collect(faces(s))
+    @test dim(s) == 1
+    @test all(f -> f ∈ [Simplex(1),Simplex(3)], fs)
+
+    @test fs[2] ∪ fs[1]  == s
+
 end
 
 @testset "Cube" begin
@@ -55,6 +60,8 @@ end
     @test dim(a) == 0
     @test hash(a) == 0x02011ce34bce797f
     @test a == a
+    @test eltype(a) == Int
+    @test eltype(Cell{Float64}) == Float64
 
     @test_throws AssertionError Cell(0, a)
 

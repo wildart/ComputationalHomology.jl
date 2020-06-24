@@ -97,7 +97,7 @@ function show(io::IO, ch::AbstractChain)
     else
         for (i,(id,v)) in enumerate(ch.cells)
             i != 1 && print(io, " + ")
-            print(io, "$v[$id]")
+            print(io, "$v[0x$(lpad(string(id,base=16),16,'0'))]")
         end
     end
 end

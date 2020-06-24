@@ -173,15 +173,14 @@ function write(io::IO, flt::Filtration)
     end
 end
 
-function read(io::IO, ::Type{Filtration{C,FI}}) where {C <: AbstractComplex, FI}
+function read(io::IO, ::Type{Filtration{C,FI}}, ::Type{CL}) where {C <: AbstractComplex, FI, CL<:AbstractCell}
     flt = Filtration(C,FI)
-    ET = eltype(eltype(complex(flt))())
     while !eof(io)
         l = readline(io)
         vals = split(l, ',')
-        svals = map(v->parse(ET, v), vals[1:end-1])
+        sval = parse(CL, join(vals[1:end-1], ' '))
         fval = parse(FI, vals[end])
-        push!(flt, Simplex(svals), fval)
+        push!(flt, sval, fval)
     end
     return flt
 end

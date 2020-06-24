@@ -2,7 +2,7 @@
 
     cplx = CWComplex()
     @test size(cplx) == ()
-    @test eltype(cplx) == Cell{Int}
+    @test eltype(cplx) == Cell
 
     v1 = Cell()
     v2 = Cell()
@@ -10,7 +10,7 @@
     @test size(cplx) == (2,)
     @test cells(cplx) == [[v1, v2]]
     @test cells(cplx, 0) == [v1, v2]
-    @test eltype(cplx) == Cell{Int}
+    @test eltype(cplx) == Cell
 
     cplx = CWComplex()
     push!(cplx, v1)

@@ -9,6 +9,7 @@ makedocs(
         "Home" => "index.md",
         #"Tutorial" => "tutorial.md",
         "Chains" => "chains.md",
+        "Cells" => "cells.md",
     ]
 )
 

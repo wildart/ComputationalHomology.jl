@@ -45,14 +45,15 @@
     @testset for (ch, d) in itm[4]
         @test d == 0
         @test all(k->k == 1, values(ch))
-        @test all(k->k ∈ [5,6], keys(ch))
+        @test all(k->k ∈ map(hash, map(Simplex, [5,6])), keys(ch))
     end
 
     itm, st = iterate(g, st)
     @test itm[1] == 1
     @test itm[2] == 1
     @test first(itm[4])[2] == 0
-    @testset for (a,b) in zip( simplify(first(itm[4])[1]), Chain(1, Int, Int) + (4, 1) + (2, 1) + (3,-1) + (5,-1) )
+    gn =  Chain(1, Int) + (hash(Simplex(3,4)),1) + (hash(Simplex(2,4)),-1) + (hash(Simplex(2,3)),1)
+    @testset for (a,b) in zip( simplify(first(itm[4])[1]), gn)
         @test a == b
     end
 

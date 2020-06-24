@@ -11,7 +11,7 @@ using SparseArrays: SparseMatrixCSC, spzeros, findnz
 import Base: ==, -, +, *, union, keys, values, hash, first, last, isless, show, length,
              eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in, similar,
              read, write, vec, complex, iszero, convert, reduce, keytype, copy, map, map!,
-             minimum, maximum
+             minimum, maximum, parse
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean
@@ -48,9 +48,9 @@ export AbstractCell,
        PersistentImage,
        wasserstein
 
-include("abstractcell.jl")
 include("abstractchain.jl")
 include("chains.jl")
+include("abstractcell.jl")
 include("simplex.jl")
 include("cube.jl")
 include("cwcell.jl")

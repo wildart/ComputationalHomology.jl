@@ -1,13 +1,13 @@
 """CW complex type"""
-mutable struct CWComplex{S<:AbstractCell} <: AbstractComplex{S}
-    cells::Dict{Int,Vector{S}}   # cells per dimension
+mutable struct CWComplex <: AbstractComplex
+    cells::Dict{Int,Vector{Cell}}   # cells per dimension
 end
 show(io::IO, cplx::CWComplex) = print(io, "CWComplex($(size(cplx)))")
 
-(::Type{CWComplex{S}})() where {S<:AbstractCell} = CWComplex{S}(Dict{Int,Vector{S}}())
-CWComplex() = CWComplex{Cell{Int}}()
-function CWComplex(cells::S...) where {S<:AbstractCell}
-    cplx = CWComplex{S}()
+(::Type{CWComplex})() = CWComplex(Dict{Int,Vector{Cell}}())
+# CWComplex() = CWComplex{Cell{Int}}()
+function CWComplex(cells::Cell...)
+    cplx = CWComplex()
     for c in cells
         push!(cplx, c)
     end
@@ -17,21 +17,15 @@ end
 #
 # AbstractComplex Interface
 #
-eltype(cplx::CWComplex{S}) where {S<:AbstractCell} = S
+eltype(cplx::CWComplex) = Cell
 
-function cells(cplx::CWComplex{S}) where {S<:AbstractCell}
-    length(cplx.cells) == 0 && return Vector{S}[] # no cell in complex
+function cells(cplx::CWComplex)
+    length(cplx.cells) == 0 && return Vector{Cell}[] # no cell in complex
     dims = maximum(keys(cplx.cells))
-    return [haskey(cplx.cells, d) ? cplx.cells[d] : S[] for d in 0:dims]
+    return [haskey(cplx.cells, d) ? cplx.cells[d] : Cell[] for d in 0:dims]
 end
 
-cells(cplx::CWComplex{S}, d::Int) where {S<:AbstractCell} = get(cplx.cells, d,  S[])
-
-function boundary(cplx::CWComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
-end
-
-function coboundary(cplx::CWComplex, idx::IX, d::Int, ::Type{PID}) where {PID, IX<:Integer}
-end
+cells(cplx::CWComplex, d::Int) = get(cplx.cells, d,  Cell[])
 
 """
     push!(complex, cell)
