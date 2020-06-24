@@ -37,39 +37,6 @@
     # boundary matrix
     @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
 
-    # boundary
-    resch = Chain(1, map(hash, [Simplex(1,2), Simplex(2,3), Simplex(1,3)]), [1, 1, -1])
-    @testset "Complex boundary chain" for (a,b) in zip(boundary(Simplex(1,2,3)), resch)
-        @test a == b
-    end
-
-    # ∂∘∂(c) == 0
-    @test iszero(boundary(cplx, boundary(cplx, Simplex(1,2,3))))
-
-    # coboundary
-    @test iszero(coboundary(cplx, Simplex(1,2,3)))
-    qch = coboundary(cplx, Simplex(1,3))
-    @test qch[hash(Simplex(1,2,3))] == -1
-
-    resch = Chain(1, [hash(Simplex(1,2,3))], [-1])
-    @testset "Complex coboundary chain" for (a,b) in zip(coboundary(cplx, Simplex(1,3)), qch)
-        @test a == b
-    end
-    @test iszero(coboundary(cplx, qch))
-
-    push!(cplx, Simplex(1,3,5), recursive=true)
-    push!(cplx, Simplex(1,2,3,5), recursive=true)
-
-    qch = Chain(1, [hash(Simplex(1,3))], [1])
-    resch = Chain(2, map(hash,[Simplex(1,3,5), Simplex(1,2,3)]), [1, -1])
-    @testset "Complex coboundary chain" for (a,b) in zip(coboundary(cplx, qch), resch)
-        @test a == b
-    end
-
-    # δ∘δ(c) == 0
-    @test iszero(coboundary(cplx, coboundary(cplx, Simplex(1,3))))
-
-
     # simplex values
     cplx = SimplicialComplex()
 

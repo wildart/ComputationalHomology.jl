@@ -3,12 +3,13 @@ using LinearAlgebra
 using SparseArrays
 using Distances
 using Test
-import Random
+using Random
 
 include("cells.jl")
 include("chains.jl")
 include("simplicial.jl")
 include("cw.jl")
+include("boundary.jl")
 include("filtration.jl")
 include("constructions.jl")
 include("homology.jl")

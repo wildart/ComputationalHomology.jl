@@ -8,14 +8,20 @@ abstract type AbstractComplex end
 # AbstractComplex Public Interface
 #
 """Return a complex boundary given element and dimension"""
-boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
+boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} =
+    throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
 boundary(cplx::AbstractComplex, i::Integer, d::Int) = boundary(cplx, i, d, Int)
-boundary(cplx::AbstractComplex, splx::AbstractCell) = boundary(cplx, hash(splx), dim(splx))
+boundary(cplx::AbstractComplex, splx::AbstractCell, ::Type{PID}) where {PID} =
+    boundary(cplx, hash(splx), dim(splx), PID)
+boundary(cplx::AbstractComplex, splx::AbstractCell) = boundary(cplx, hash(splx), dim(splx), Int)
 
 """Return a complex coboundary given element and dimension"""
-coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} = throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
+coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} =
+    throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
 coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
-coboundary(cplx::AbstractComplex, splx::AbstractCell) = coboundary(cplx, hash(splx), dim(splx))
+coboundary(cplx::AbstractComplex, splx::AbstractCell, ::Type{PID}) where {PID} =
+    coboundary(cplx, hash(splx), dim(splx), PID)
+coboundary(cplx::AbstractComplex, splx::AbstractCell) = coboundary(cplx, hash(splx), dim(splx), Int)
 
 """Return a complex cell type"""
 eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
@@ -31,7 +37,8 @@ cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),In
 
 Insert a `cell` to a complex `cplx`, and returns an array of inserted cell(s). If `recursive=true` is passed then all faces of the `cell` are also added to the complex `cplx`.
 """
-push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) = throw(MethodError(push!, (typeof(cplx),typeof(c))))
+push!(cplx::AbstractComplex, c::AbstractCell; recursive=false) =
+    throw(MethodError(push!, (typeof(cplx),typeof(c))))
 
 #
 # Public Methods
@@ -105,6 +112,7 @@ Return the chain `ch` coboundary in the complex `cplx`.
 function coboundary(cplx::AbstractComplex, ch::Chain{IX,R}) where {R, IX<:Integer}
     d = dim(ch)
     cc = Chain(d+1, IX, R)
+    # δₙ₋₁(c)(σ) = c(∂ₙ(σ))
     for (elem, coef) in ch
         append!(cc, coef * coboundary(cplx, elem, d, R))
     end
@@ -169,3 +177,29 @@ function adjacency_matrix(cplx::AbstractComplex, ::Type{T}) where {T<:Integer}
     return adj
 end
 adjacency_matrix(cplx::AbstractComplex) = adjacency_matrix(cplx, Int)
+
+"""
+    showchain(cplx::AbstractComplex, ch::AbstractChain)
+
+Display the chain `ch` with elements from the complex `cplx`.
+"""
+function showchain(cplx::AbstractComplex, ch::AbstractChain)
+    d = dim(ch)
+    R = valtype(ch)
+    pos = one(R)
+    print("[$d]: ")
+    if iszero(ch)
+        print("0")
+    else
+        for (i,(id,v)) in enumerate(ch.cells)
+            val = abs(v)
+            if sign(v) == pos
+                i != 1 && print(" + ")
+            else
+                print(" - ")
+            end
+            splx = strip(repr("text/plain", cplx[id, d]), ['\"'])
+            print("$val⋅$splx")
+        end
+    end
+end

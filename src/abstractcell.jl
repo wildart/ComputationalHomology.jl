@@ -40,19 +40,11 @@ vertices(c::AbstractCell) = throw(MethodError(vertices,(typeof(c),)))
 
 Calculate boundary chain of the `cell`.
 """
-function boundary(::Type{R}, σ::AbstractCell) where {R}
-    d = dim(σ)
-    ch = Chain(dim(σ)-1, R)
-    d == 0 && return ch
-    i = one(R)
-    sgn = true
-    for face in faces(σ)
-        push!(ch, hash(face)=>(sgn ? i : -i))
-        sgn = !sgn
-    end
-    return ch
-end
+boundary(::Type{R}, c::AbstractCell) where {R} = throw(MethodError(boundary,(typeof(c),)))
 boundary(σ::AbstractCell) = boundary(Int, σ)
+
+
+(+)(ch::AbstractChain{IX,R}, e::Tuple{C,R}) where {C<:AbstractCell,IX,R} = ch + (hash(e[1]), e[2])
 
 
 """Abstract simplex type"""

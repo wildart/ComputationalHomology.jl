@@ -69,9 +69,18 @@ end
     @test dim(c) == 1
     @test vertices(c)[1] == b
     @test vertices(c)[2] == a
-    cb = boundary(c)
-    @test cb[hash(b)] == -1
-    @test cb[hash(a)] == 1
+    @test c.boundaryMap[hash(a)] == 1
+    @test c.boundaryMap[hash(b)] == -1
+
+    d = Cell(Int, 1)
+    push!(d, a)
+    push!(d, b)
+    @test_throws AssertionError push!(d, c)
+    @test dim(d) == 1
+    @test vertices(d)[1] == b
+    @test vertices(d)[2] == a
+    @test d.boundaryMap[hash(a)] == 1
+    @test d.boundaryMap[hash(b)] == -1
 
     c2 = Cell()
     d = Cell(1, a, b, c2)
@@ -86,12 +95,18 @@ end
         @test f1 == f2
     end
 
-    @test vertices(e)[1] == c2
-    @test vertices(e)[2] == b
+    @test vertices(e)[1] == b
+    @test vertices(e)[2] == c2
     @test vertices(e)[3] == a
 
     f = Cell(1, [a, b], [1, 1])
-    cb = boundary(f)
-    @test cb[hash(a)] == 1
-    @test cb[hash(b)] == 1
+    @test f.boundaryMap[hash(a)] == 1
+    @test f.boundaryMap[hash(b)] == 1
+
+    g = Cell(Int, 1)
+    push!(g, a, 1)
+    push!(g, b, 2)
+    @test_throws AssertionError push!(g, f, 3)
+    @test g.boundaryMap[hash(a)] == 1
+    @test g.boundaryMap[hash(b)] == 2
 end

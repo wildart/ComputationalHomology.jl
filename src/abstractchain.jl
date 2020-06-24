@@ -148,7 +148,7 @@ end
 """
     +(ch::AbstractChain{C,R}, e::Tuple{C,R})
 
-Perform non-mutable addition of the element with a coefficient `e` to the chain `ch`.
+Perform non-mutable addition of the element `e` with a coefficient to the chain `ch`.
 """
 (+)(ch::AbstractChain{C,R}, e::Tuple{C,R}) where {C,R} = push!(copy(ch), e)
 
