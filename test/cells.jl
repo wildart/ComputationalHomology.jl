@@ -33,24 +33,27 @@
 end
 
 @testset "Cube" begin
-    c = Cube{Vector{Int}}([0,0,0],Int[]) # 0-cube
+    c = Cube([0,0,0]) # 0-cube
     @test dim(c) == 0
-    c = Cube{Vector{Int}}([0,0,0],Int[0,0,0]) # 0-cube
-    @test dim(c) == 0
-    c = Cube{Vector{Int}}([0,0,0],[1]) # 1-cube
+    c = Cube([0,0,0],[0,0,1]) # 1-cube
     @test dim(c) == 1
-    c = Cube{Vector{Int}}([0,0,0],[1,0,1]) # 2-cube
+    c = Cube([1,0,1]) # 2-cube
     @test dim(c) == 2
-    c = Cube{Vector{Int}}([0,0,0],[1,1,1]) # 3-cube
+    c = Cube([1,1,1]) # 3-cube
     @test dim(c) == 3
     @test hash(c) == hash([0,0,0,1,1,1])
-    @test c == Cube{Vector{Int}}([0,0,0],[1,1,1])
+    @test c == Cube([0,0,0],[1,1,1])
 
-    c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.0,.5]) # 2-cube
+    c = Cube([.5,0,.5]) # 2-cube
+    @testset "Cube faces" for f in faces(c)
+        @test hash(f) ∈ map(hash, [Cube([0,0,.5]), Cube([.5,0,0])])
+    end
+    boundary(Float64, c)
+
+    c = Cube([.5,.0,.5]) # 2-cube
     @test volume(c) == 0.5^2
-    c = Cube{Vector{Float64}}([0.,0.,0.],[.5,.5,.5]) # 2-cube
+    c = Cube([.5,.5,.5]) # 3-cube
     @test volume(c) == 0.5^3
-
 end
 
 @testset "CW" begin
