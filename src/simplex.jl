@@ -31,6 +31,7 @@ end
 
 union(u::Simplex, v::Simplex) = Simplex(collect(u.vs ∪ v.vs))
 
+# TODO make generated
 function faces(σ::Simplex)
     d = dim(σ)
     d == 0 && return Simplex[]
@@ -39,7 +40,7 @@ end
 
 function boundary(::Type{R}, σ::Simplex) where {R}
     d = dim(σ)
-    ch = Chain(d-1, R)
+    ch = Chain(d-1, UInt, R)
     d == 0 && return ch
     o = one(R)
     for (i,face) in enumerate(faces(σ))

@@ -179,3 +179,70 @@ function iterate(h::PersistentHomology, p=0)
     βₚ = group(h, p)
     return (p, βₚ), p+1
 end
+
+
+#
+# Persistent Cohomology
+#
+
+function coboundarymap(coch::Chain{IX,R}, ∂::Chain{IX,R}) where {IX<:Integer, R}
+    sum(coch[be]*bc for (be,bc) in ∂)
+end
+
+function cocycles(ccycs, ∂::Chain{IX,R}, w::Float64) where {IX<:Integer, R}
+    cᵢ = zeros(R, length(ccycs))
+    for (i,intr) in enumerate(ccycs)
+        cᵢ[i] = if w ∉ intr
+            zero(R)
+        else
+            coboundarymap(intr.g, ∂)
+        end
+    end
+    cᵢ
+end
+
+function update!(cyc::Dict{Int,Vector{AnnotatedInterval{F,Chain{IX,R}}}},
+                 cplx, splxs, w::F) where {F<:AbstractFloat, IX<:Integer, R}
+    d = first(first(splxs))
+    d >= length(cyc) && return
+    CXₗ₋₁ = cyc[d-1]
+    for splx in splxs
+        σ = cplx[last(splx), d]
+        dαᵢ = cocycles(CXₗ₋₁, boundary(R, σ), w)
+        idxs = findall(!iszero, dαᵢ)
+        if !isempty(idxs)
+            j = idxs[end]
+            cⱼ = dαᵢ[j]
+            αⱼ = CXₗ₋₁[j].g
+            for i in idxs[1:end-1]
+                cᵢ = dαᵢ[i]
+                CXₗ₋₁[i].g -= (cᵢ/cⱼ)*αⱼ
+            end
+            CXₗ₋₁[j].d = w
+        else
+            intr = AnnotatedInterval(w, F(Inf), Chain(d, [splx[2]], [one(R)]))
+            push!(cyc[d], intr)
+        end
+    end
+end
+
+function persistentcohomology(::Type{R}, flt::Filtration;
+                              length0=false, maxoutdim=dim(complex(flt))) where {R}
+    cplx = complex(flt)
+    d = dim(cplx)
+    itr = Iterators.flatten(
+            ((v => filter(e->first(e) == i, splxs))
+                for i in (:)(extrema(map(first, splxs))...)) for (v, splxs) in flt )
+
+    cyc = Dict(i=>AnnotatedInterval{R,Chain{UInt64,R}}[] for i in -1:min(d-1, maxoutdim))
+    for (w, splxs) in itr
+        update!(cyc, cplx, splxs, w)
+    end
+    delete!(cyc, -1)
+
+    # remove all intervals of 0-length
+    cyc = !length0 ? Dict( d=>filter!(!isempty, c) for (d,c) in cyc) : cyc
+
+    return cyc
+end
+persistentcohomology(flt::Filtration; kwargs...) = persistentcohomology(Float64, flt; kwargs...)

@@ -59,10 +59,36 @@
         push!(flt, s...)
     end
 
-    @testset "Intervals " for (d, itrs) in diagram(flt, length0=true)
+    @testset "PH Intervals " for (d, itrs) in diagram(flt, length0=true)
         titrs = d == 0 ? diagram(0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : diagram(3.0=>4.0, 2.0=>5.0)
         for itr in itrs
             @test itr ∈ titrs
+        end
+    end
+
+    # PCohomology
+    gens = Dict(
+        0 => [
+                Chain(0, Float64) + (Simplex('a'), 1.0) + (Simplex('b'), 1.0) + (Simplex('c'), 1.0) + (Simplex('d'), 1.0),
+                Chain(0, Float64) + (Simplex('b'), 1.0),
+                Chain(0, Float64) + (Simplex('d'), 1.0),
+            ],
+        1 => [
+                Chain(1, Float64) + (Simplex('a', 'd'), 1.0),
+                Chain(1, Float64) + (Simplex('a', 'c'), 1.0),
+            ]
+    )
+    @testset "PCH Intervals " for ((d1, itrs1), (d2, itrs2)) in zip( diagram(flt), persistentcohomology(flt))
+        for (i1,i2) in zip(
+                sort(itrs1, by=ComputationalHomology.birthx),
+                sort(itrs2, by=ComputationalHomology.birthx),
+            )
+            @test i1 == i2
+        end
+        for (ch1,ch2) in zip(itrs2, gens[d2])
+            for (c1, c2) in zip(ch1.g,ch2)
+                @test c1 == c2
+            end
         end
     end
 

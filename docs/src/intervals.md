@@ -20,10 +20,12 @@ Following auxiliary functions are available for any interval instance derived fr
 
 ```@docs
 birthx(::AbstractInterval)
-deathx(::AbstractInterval) = birth(i) + death(i)
-pair(::AbstractInterval) = birth(i) => death(i)
+deathx(::AbstractInterval)
+pair(::AbstractInterval)
+isempty(::AbstractInterval)
 in(::T, ::AbstractInterval{T}) where {T<:AbstractFloat}
 isless(::AbstractInterval, ::AbstractInterval)
+(==)(::AbstractInterval, ::AbstractInterval)
 ```
 
 Implemented interval types:

@@ -26,7 +26,10 @@ show(io::IO, i::AbstractInterval) = print(io, "[$(birth(i)),$(death(i)))")
 birthx(i::AbstractInterval) = birth(i) - death(i)
 deathx(i::AbstractInterval) = birth(i) + death(i)
 pair(i::AbstractInterval) = birth(i) => death(i)
+isempty(i::AbstractInterval) = birth(i) == death(i)
 in(e::T, i::AbstractInterval{T}) where {T<:AbstractFloat} = birth(i) <= e < death(i)
+(==)(i1::AbstractInterval, i2::AbstractInterval) =
+    birth(i1) == birth(i2) && death(i1) == death(i2)
 isless(i1::AbstractInterval, i2::AbstractInterval) =
     birth(i1) < birth(i2) ? true : ( birth(i1) == birth(i2) ? death(i1) < death(i2) : false )
 
@@ -61,6 +64,7 @@ AnnotatedInterval(b::T, d::T) where {T<:AbstractFloat} = AnnotatedInterval(b, d,
 birth(i::AnnotatedInterval) = i.b
 death(i::AnnotatedInterval) = i.d
 generator(i::AnnotatedInterval) = i.g
+show(io::IO, i::AnnotatedInterval) = print(io, "[$(i.b),$(i.d)) => $(i.g)")
 
 """
     diagram(d, pts)

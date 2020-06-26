@@ -4,11 +4,11 @@ We call this sequence of complexes the **filtration** of `f` and
 think of it as a construction by adding chunks of simplices at a time `t::FI`.
 ∅ = K0 ⊆ K1 ⊆ . . . ⊆ Kn = K.
 """
-mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat}
+mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat, IX <: Integer}
     # underlying abstract cell complex
     complex::C
     # total order of simplices as array of (dim, simplex id, filtation value)
-    total::Vector{Tuple{Int,Integer,FI}}
+    total::Vector{Tuple{Int,IX,FI}}
     divisions::Number
 end
 
@@ -23,7 +23,7 @@ length(flt::Filtration) = isinf(flt.divisions) ? length(unique(e->e[3], order(fl
 # Constructors
 #
 Filtration(::Type{C}, ::Type{FI}) where {C <: AbstractComplex, FI} =
-    Filtration(C(), Vector{Tuple{Int,Integer,FI}}(), Inf)
+    Filtration(C(), Vector{Tuple{Int,UInt,FI}}(), Inf)
 Filtration(::Type{C}) where {C <: AbstractComplex} = Filtration(C, Float64)
 similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, FI)
 
@@ -42,7 +42,7 @@ end
 
 """Construct filtration from a cell complex and a complex weight function"""
 function filtration(cplx::C, w::Dict{Int,Vector{FI}}; divisions::Number=Inf) where {C<:AbstractComplex, FI}
-    idx = Vector{Tuple{Int,Integer,FI}}()
+    idx = Vector{Tuple{Int,UInt,FI}}()
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
             ci = position(cplx, c)
@@ -204,7 +204,8 @@ end
 # Iterators
 #
 """Loop through the filtration `flt` producing growing simplicial complexes on every iteration"""
-function iterate(flt::Filtration, state=nothing)
+
+function iterate(flt::Filtration{C,FI,IX}, state=nothing) where {C<:AbstractComplex, FI<:AbstractFloat, IX<:Integer}
     ord = order(flt)
     if state === nothing # calculate initial state
         idx = 1
@@ -214,7 +215,7 @@ function iterate(flt::Filtration, state=nothing)
         idx, fval, incr = state
     end
     idx > length(ord) && return nothing # done
-    splxs = Tuple{Int,Integer}[] #simplex dim & index
+    splxs = Tuple{Int,IX}[] #simplex dim & index
     while idx <= length(ord) && (fval+incr) >= ord[idx][3]
         push!(splxs, ord[idx][1:2])
         idx += 1

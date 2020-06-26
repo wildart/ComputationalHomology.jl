@@ -11,7 +11,7 @@ using SparseArrays: SparseMatrixCSC, spzeros, findnz
 import Base: ==, -, +, *, union, keys, values, hash, first, last, isless, show, length,
              eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in, similar,
              read, write, vec, complex, iszero, convert, reduce, keytype, copy, map, map!,
-             minimum, maximum, parse
+             minimum, maximum, parse, isempty
 import Base.Iterators: pairs
 import SparseArrays: sparse
 import Statistics: mean
@@ -40,7 +40,7 @@ export AbstractCell,
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
        pairs, reduce!,
-       PersistentHomology, persistenthomology,
+       PersistentHomology, persistenthomology, persistentcohomology,
 
        AbstractInterval, birth, death,
        Interval, AnnotatedInterval,
