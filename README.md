@@ -1,9 +1,10 @@
 # Computational Homology
 
-[![Build Status](https://travis-ci.org/wildart/ComputationalHomology.jl.svg?branch=master)](https://travis-ci.org/wildart/ComputationalHomology.jl)
-[![Coverage Status](https://coveralls.io/repos/wildart/ComputationalHomology.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/wildart/ComputationalHomology.jl?branch=master)
-
 This package provides various computational homology tools for cellular complexes.
+
+| **Documentation**                                                               | **Build Status**                                                                                |
+|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][coverage-img]][coverage-url] |
 
 
 ## Installation
@@ -78,3 +79,18 @@ julia> group(ph, 1) # calculate 1-homology group
 ## TODO
 - [ ] Distances for persistance diagrams
 - [ ] Landscape standard deviation
+
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://wildart.github.io/ComputationalHomology.jl/dev
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://wildart.github.io/ComputationalHomology.jl/stable
+
+[travis-img]: https://travis-ci.org/wildart/ComputationalHomology.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/wildart/ComputationalHomology.jl
+
+[coverage-img]: https://img.shields.io/coveralls/wildart/ComputationalHomology.jl.svg
+[coverage-url]: https://coveralls.io/r/wildart/ComputationalHomology.jl?branch=master
+
+[issues-url]: https://github.com/wildart/ComputationalHomology.jl/issues
