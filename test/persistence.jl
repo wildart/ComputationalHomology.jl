@@ -8,8 +8,8 @@
     @test q < p
     @test q < r
 
-    @test ComputationalHomology.birth(p) == -1.
-    @test ComputationalHomology.death(p) == 3.
+    @test ComputationalHomology.birthx(p) == -1.
+    @test ComputationalHomology.deathx(p) == 3.
     @test diag(p)  == Interval(1.5 => 1.5)
 
     #######
@@ -60,7 +60,7 @@
     end
 
     @testset "Intervals " for (d, itrs) in diagram(flt, length0=true)
-        titrs = d == 0 ? diagram(0, 0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : diagram(1, 3.0=>4.0, 2.0=>5.0)
+        titrs = d == 0 ? diagram(0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0) : diagram(3.0=>4.0, 2.0=>5.0)
         for itr in itrs
             @test itr ∈ titrs
         end
@@ -89,12 +89,12 @@
     itr = diagram(flt, length0=true)
     @test Interval(0.0=>0.0) ∈ itr[0]
     @test Interval(1.0=>2.0) ∈ itr[0]
-    @test Interval(1, 3.0=>7.0) ∈ itr[1]
+    @test Interval(3.0=>7.0) ∈ itr[1]
 
     itr = diagram(StandardReduction, flt)
     @test Interval(1.0=>2.0) ∈ itr[0]
-    @test Interval(1, 3.0=>7.0) ∈ itr[1]
-    @test Interval(1, 0.0=>Inf) ∈ itr[1]
+    @test Interval(3.0=>7.0) ∈ itr[1]
+    @test Interval(0.0=>Inf) ∈ itr[1]
 
     #######
     # Ex.2

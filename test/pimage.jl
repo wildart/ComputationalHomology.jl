@@ -1,6 +1,6 @@
 @testset "Persistent Image" begin
 
-    intrs = diagram(0, 0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0)
+    intrs = diagram(0.0=>Inf, 0.0=>1.0, 1.0=>1.0, 1.0=>2.0)
 
     pimg = PersistentImage(intrs...)
     @test length(pimg.intervals) == length(intrs)

@@ -10,6 +10,7 @@ makedocs(
         #"Tutorial" => "tutorial.md",
         "Chains" => "chains.md",
         "Cells" => "cells.md",
+        "Intervals" => "intervals.md",
     ]
 )
 

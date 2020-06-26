@@ -102,7 +102,7 @@ function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
                 dv = ord[d][3]
                 if dv > bv || length0
                     !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
-                    push!(intrs[sdim], Interval(sdim, bv, dv))
+                    push!(intrs[sdim], Interval(bv, dv))
                 end
             end
         end
@@ -110,7 +110,7 @@ function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
     for i in births
         sdim, si, fv = ord[i]
         !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
-        push!(intrs[sdim], Interval(sdim, fv, Inf))
+        push!(intrs[sdim], Interval(fv, Inf))
     end
 
     return intrs

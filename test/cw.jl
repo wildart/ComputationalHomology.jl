@@ -39,7 +39,7 @@
     push!(flt, f6, 6.0)
 
     @test size(complex(flt)) == (2,2,2)
-    homitr = Dict( 0 => diagram(0, 1.0=>Inf, 2.0=>3.0), 1 => diagram(1, 4.0=>5.0), 2 => diagram(2, 6.0=>Inf) )
+    homitr = Dict( 0 => diagram(1.0=>Inf, 2.0=>3.0), 1 => diagram(4.0=>5.0), 2 => diagram(6.0=>Inf) )
     @testset "Intervals " for (d, itrs) in diagram(flt)
         for itr in itrs
             @test itr ∈ homitr[d]

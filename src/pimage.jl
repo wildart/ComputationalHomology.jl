@@ -15,7 +15,7 @@ function (pimg::PersistentImage)(x, y)
 end
 
 function vec(pimg::PersistentImage, B::Int, D::Int)
-    intr = filter(!isinf∘birth, pimg.intervals)
+    intr = filter(!isinf∘birthx, pimg.intervals)
     bmin, bmax = extrema(map(i->i.b, intr))
     dmin, dmax = extrema(map(i->i.d, intr))
     return [pimg(x,y) for x in range(bmin, bmax, length=B), y in range(dmin, dmax, length=D)] |> vec

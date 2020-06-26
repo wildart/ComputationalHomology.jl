@@ -8,63 +8,63 @@ abstract type AbstractInterval{T<:AbstractFloat} end
 const PersistenceDiagram{T} = AbstractVector{<:AbstractInterval{T}}
 
 """
-    first(i::AbstractInterval)
+    birth(i::AbstractInterval)
 
 Return a birth value of the interval `i`.
 """
-
-first(i::AbstractInterval) = error("`first` is not implemented ")
-"""
-    last(i::AbstractInterval)
-
-Return a death value of the interval `i`.
-"""
-last(i::AbstractInterval) = error("`last` is not implemented ")
+birth(i::AbstractInterval) = error("`birth` is not implemented ")
 
 """
-    last(i::AbstractInterval)
+    death(i::AbstractInterval)
 
 Return a death value of the interval `i`.
 """
-dim(i::AbstractInterval) = error("`dim` is not implemented ")
+death(i::AbstractInterval) = error("`death` is not implemented ")
 
 # auxilary methods
-show(io::IO, i::AbstractInterval) = print(io, "[$(first(i)),$(last(i)))")
-isless(i1::AbstractInterval, i2::AbstractInterval) = first(i1) < first(i2) ? true : ( first(i1) == first(i2) ? last(i1) < last(i2) : false )
-birth(i::AbstractInterval) = first(i) - last(i)
-death(i::AbstractInterval) = first(i) + last(i)
-pair(i::AbstractInterval) = first(i) => last(i)
+show(io::IO, i::AbstractInterval) = print(io, "[$(birth(i)),$(death(i)))")
+birthx(i::AbstractInterval) = birth(i) - death(i)
+deathx(i::AbstractInterval) = birth(i) + death(i)
+pair(i::AbstractInterval) = birth(i) => death(i)
+in(e::T, i::AbstractInterval{T}) where {T<:AbstractFloat} = birth(i) <= e < death(i)
+isless(i1::AbstractInterval, i2::AbstractInterval) =
+    birth(i1) < birth(i2) ? true : ( birth(i1) == birth(i2) ? death(i1) < death(i2) : false )
 
 """
-Simple implementation of the `AbstractInterval` type
+    Interval{T<:AbstractFloat} <: AbstractInterval{T}
+
+Simple implementation of the `AbstractInterval` type.
 """
 struct Interval{T<:AbstractFloat} <: AbstractInterval{T}
-    dim::Int
     b::T
     d::T
 end
-Interval(dim::Int, p::Pair{T,T}) where {T<:AbstractFloat} = Interval(dim, first(p), last(p))
-Interval(p::Pair) = Interval(0, p)
+Interval(p::Pair{T,T}) where {T<:AbstractFloat} = Interval(p.first, p.second)
+Interval() = Interval(0.0=>Inf)
 
-dim(i::Interval) = i.dim
-first(i::Interval) = i.b
-last(i::Interval) = i.d
-diag(i::Interval) = let c = death(i)/2.0; Interval(dim(i), c, c) end
+birth(i::Interval) = i.b
+death(i::Interval) = i.d
+diag(i::Interval) = let c = deathx(i)/2.0; Interval(c, c) end
 
 """
-Interval annotated with a generator
+    AnnotatedInterval{T<:AbstractFloat, C<:AbstractChain} <: AbstractInterval{T}
+
+Interval type annotated with a generator chain.
 """
-struct AnnotatedInterval{T<:AbstractFloat} <: AbstractInterval{T}
-    dim::Int
+mutable struct AnnotatedInterval{T<:AbstractFloat, C<:AbstractChain} <: AbstractInterval{T}
     b::T
     d::T
-    generator::AbstractChain
+    g::C
 end
-AnnotatedInterval(dim::Int, b::T, d::T) where {T<:AbstractFloat} = AnnotatedInterval(dim, b, d, EmptyChain())
+AnnotatedInterval(b::T, d::T) where {T<:AbstractFloat} = AnnotatedInterval(b, d, EmptyChain())
+
+birth(i::AnnotatedInterval) = i.b
+death(i::AnnotatedInterval) = i.d
+generator(i::AnnotatedInterval) = i.g
 
 """
     diagram(d, pts)
 
 Construct persistence diagram of dimension `d` from point pairs `pts`.
 """
-diagram(d::Int, pts::Pair...) = [Interval(d, p) for p in pts]
+diagram(pts::Pair...) = [Interval(p) for p in pts]

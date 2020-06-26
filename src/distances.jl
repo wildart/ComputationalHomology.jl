@@ -1,7 +1,7 @@
 rot(θ) = [cos(θ) -sin(θ); sin(θ) cos(θ)]
 
 convert(::Type{Matrix}, dgm::PersistenceDiagram; skipinf=true) =
-    hcat(( [first(i), last(i)] for i in dgm if !skipinf || !isinf(birth(i)) )...)
+    hcat(( [birth(i), death(i)] for i in dgm if !skipinf || !isinf(birthx(i)) )...)
 
 """
     wasserstein(dgm1, dgm2)
