@@ -37,7 +37,7 @@
 
         f = filtration(cplx, w)
         @testset "Test from Gudhi" for ((v,ls), d) in
-            zip(simplices(f), [0. 0.5 0.559017 0.707107 0.99999 1.0])
+            zip(f, [0. 0.5 0.559017 0.707107 0.99999 1.0])
             @test v ≈ d atol=1e-4
         end
 
@@ -58,7 +58,7 @@
 
             f = filtration(cplx, w)
             @testset "Test from Gudhi" for ((v,ls), d) in
-                zip(simplices(f),
+                zip(f,
                     [0. 5. 5.38516 5.83095 6.08276 6.32456 6.7082 7.28011 8.94427 9.43398 9.48683 11])
                 @test v ≈ d atol=1e-4
             end

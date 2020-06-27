@@ -8,6 +8,7 @@
     cplx = SimplicialComplex(Simplex(1,2,3), Simplex(2,4), Simplex(4))
 
     @test eltype(cplx) == Simplex
+    @test length(cplx) == 9
     @test length(cells(cplx)) == 3
     @test length(cells(cplx,2)) == 1
     @test length(cells(cplx,3)) == 0
@@ -21,12 +22,7 @@
     @test ComputationalHomology.position(cplx, Simplex(4)) == 4
     @test Simplex(10) ∉ cplx
 
-    @test length(simplices(cplx)) == 9
-    scitr = simplices(cplx, 1)
-    @test length(scitr) == 4
-    for s in simplices(cplx, 2)
-        @test s == Simplex(1,2,3)
-    end
+    @test first(Iterators.drop(cplx, 5)) == Simplex(1,3)
 
     cplx = SimplicialComplex(Simplex(1,2,3),
                        Simplex(2,4),

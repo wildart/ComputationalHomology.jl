@@ -5,7 +5,7 @@
                         Simplex(5,4),
                         Simplex(6))
 
-    h = homology(cplx, Int)
+    h = homology(Int, cplx)
     @test eltype(h) == Tuple{Int64,Int64,Int64}
     @test grouptype(supertype(typeof(h))) == Nothing
     @test grouptype(typeof(h)) == Int

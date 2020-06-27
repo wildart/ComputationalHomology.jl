@@ -11,6 +11,9 @@
     @test cells(cplx) == [[v1, v2]]
     @test cells(cplx, 0) == [v1, v2]
     @test eltype(cplx) == Cell
+    @testset "Iterator" for (i,c) in enumerate(cplx)
+        @test c == (i == 1 ? v1 : v2)
+    end
 
     cplx = CWComplex()
     push!(cplx, v1)

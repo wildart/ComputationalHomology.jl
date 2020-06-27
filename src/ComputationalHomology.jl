@@ -40,7 +40,8 @@ export AbstractCell,
        AbstractPersistenceReduction,
        StandardReduction, TwistReduction,
        pairs, reduce!,
-       PersistentHomology, persistenthomology, persistentcohomology,
+       PersistentHomology, persistenthomology,
+       PersistentCocycleReduction, persistentcohomology, PersistentCocycleReduction,
 
        AbstractInterval, birth, death,
        Interval, AnnotatedInterval,
@@ -67,6 +68,7 @@ include("landscape.jl")
 include("pimage.jl")
 include("examples.jl")
 include("distances.jl")
+include("iterators.jl")
 
 @deprecate intervals(d, ps...) diagram(d, ps...)
 @deprecate celltype(cplx) eltype(cplx)

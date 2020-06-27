@@ -189,32 +189,3 @@ function write(io::IO, cplx::SimplicialComplex)
     end
     return
 end
-
-#
-# Complex simplex iterator
-#
-
-struct Simplices{T}
-    itr::T
-    dim::Int
-end
-simplices(itr::T, dim::Int=-1) where T = Simplices{T}(itr, dim)
-show(io::IO, splxs::Simplices{T}) where T =
-    print(io, "Simplex Iterator", splxs.dim < 0 ? "" : " (d=$(splxs.dim))", " for $T")
-
-length(splxs::Simplices) = splxs.dim < 0 ? sum(size(splxs.itr)) : size(splxs.itr, splxs.dim)
-
-eltype(iter::Simplices) = eltype(iter.itr)
-
-# State (total id, dim, dim id)
-function iterate(iter::Simplices, (tid, d, did)=(0, iter.dim, 1))
-    tid >= length(iter) && return nothing
-    if d < 0
-        d = 0
-    end
-    if did > size(iter.itr, d)
-        d += 1
-        did = 1
-    end
-    return cells(iter.itr, d)[did], (tid+1, d, did+1)
-end

@@ -11,7 +11,7 @@ Homology group iterator for an abstract complex
 struct Homology{C<:AbstractComplex, PID} <: AbstractHomology
     complex::C
 end
-homology(c::C, ::Type{PID}) where {C<:AbstractComplex, PID} = Homology{C, PID}(c)
+homology(::Type{PID}, c::C) where {C<:AbstractComplex, PID} = Homology{C, PID}(c)
 
 show(io::IO, h::Homology{C, PID}) where {C<:AbstractComplex, PID} = print(io, "Homology($PID)[$(h.complex)]")
 

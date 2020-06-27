@@ -57,7 +57,7 @@
     @test length(∂) == 7
     @test count(!iszero, sparse(∂)) == 9
 
-    Random.seed!(9236493643764)
+    Random.seed!(9236493643764);
     N = 10
     X = rand(3,N)
     cplx, w = vietorisrips(X, 0.4)
@@ -66,8 +66,6 @@
     @test length(∂) == sum(size(cplx))
     @test count(!iszero, sparse(∂)) == sum(size(cplx))
 
-    SF = simplices(flt)
-    @test length(SF) == 9
     @test length(flt) == 9
     @test length(complex(flt)) == 19
     let (fv, ss) = first(flt)
@@ -75,7 +73,6 @@
         @test length(ss) == N
     end
     @test sum(length(last(v)) for v in flt) == 19
-    @test sum(map(e->length(e[2]), SF)) == 19
     @testset for (l1, l2) in zip((length(last(v)) for v in flt), [10, 1, 1, 1, 1, 1, 1, 2, 1])
         @test l1 == l2
     end

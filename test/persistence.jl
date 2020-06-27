@@ -28,16 +28,24 @@
     end
     @test size(complex(flt)) == (3,3,1)
 
-    # Twist reduction
-    ps, R = ComputationalHomology.pairs(TwistReduction, flt, reduced=true)
-    @testset for (p, t) = zip(ps, [0=>1, 2=>4, 3=>5, 6=>7])
-        @test p == t
+    dgm = Dict( 0 => diagram(2.0=>4.0, 3.0=>5.0, 1.0=>Inf), 1 => diagram(6.0=>7.0))
+
+    @testset "Intervals for TwistReduction" for (d, itrs) in diagram(TwistReduction, flt)
+        for itr in itrs
+            @test itr ∈ dgm[d]
+        end
     end
 
-    # Standard reduction
-    ps, R = ComputationalHomology.pairs(StandardReduction, flt)
-    @testset for (p, t) = zip(ps, [2=>4, 3=>5, 6=>7, 1=>Inf])
-        @test p == t
+    @testset "Intervals for Standard Reduction" for (d, itrs) in diagram(StandardReduction, flt)
+        for itr in itrs
+            @test itr ∈ dgm[d]
+        end
+    end
+
+    @testset "Intervals for Standard Reduction" for (d, itrs) in diagram(PersistentCocycleReduction{Float64}, flt)
+        for itr in itrs
+            @test itr ∈ dgm[d]
+        end
     end
 
     #######
@@ -78,7 +86,7 @@
                 Chain(1, Float64) + (Simplex('a', 'c'), 1.0),
             ]
     )
-    @testset "PCH Intervals " for ((d1, itrs1), (d2, itrs2)) in zip( diagram(flt), persistentcohomology(flt))
+    @testset "PCH Intervals " for ((d1, itrs1), (d2, itrs2)) in zip( diagram(flt), diagram(PersistentCocycleReduction{Float64}, flt))
         for (i1,i2) in zip(
                 sort(itrs1, by=ComputationalHomology.birthx),
                 sort(itrs2, by=ComputationalHomology.birthx),
@@ -167,7 +175,7 @@
     @test_throws AssertionError group(ph, 3)
 
     # PH iterator
-    @testset "Method Comparison" for (g1, g2) in zip(homology(complex(flt), Int), persistenthomology(TwistReduction, flt))
+    @testset "Method Comparison" for (g1, g2) in zip(homology(Int, complex(flt)), persistenthomology(TwistReduction, flt))
         @test g1[1] == g2[1]
         @test g1[2] == g2[2]
     end

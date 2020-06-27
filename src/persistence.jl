@@ -49,34 +49,6 @@ end
 
 reduce(::Type{R}, ∂::Vector{<:AbstractSet}) where {R<:AbstractPersistenceReduction} = reduce!(R, deepcopy(∂))
 
-function generate_pairs(∂::Vector{<:AbstractSet}; reduced = false)
-    ridx = reduced ? 1 : 0
-    births = eltype(∂)()
-    ps = Pair[]
-    for i in eachindex(∂)
-        if length(∂[i]) > 0
-            b = last(∂[i])
-            d = i
-            delete!(births, b)
-            delete!(births, d)
-            (d > b) && push!(ps, (b-ridx) => (d-ridx) )
-        else
-            push!(births, i)
-        end
-    end
-    for i in births # no lowest, create semi-infinite interval
-        push!(ps, (i-ridx)=>Inf)
-    end
-    return ps
-end
-
-"Compute raw persistence pairs (boundary matrix is reduced in a process)"
-function pairs(::Type{R}, ∂::Vector{<:AbstractSet}; reduced = false) where {R <: AbstractPersistenceReduction}
-    reduce!(R, ∂) # reduce  boundary matrix
-    return generate_pairs(∂, reduced=reduced), ∂  # generate pairs
-end
-pairs(::Type{R}, flt::Filtration; reduced = false) where {R <: AbstractPersistenceReduction} =
-    pairs(R, boundary(flt, reduced = reduced), reduced = reduced)
 
 """Return persistent diagram (birth-death pairs) per dimension."""
 function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
@@ -115,7 +87,6 @@ function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
 
     return intrs
 end
-
 diagram(::Type{R}, flt::Filtration; length0=false, absolute=true) where {R <: AbstractPersistenceReduction} =
     diagram(flt, reduce!(R, boundary(flt)), length0, absolute)
 diagram(flt::Filtration; kwargs...) = diagram(TwistReduction, flt; kwargs...)
@@ -140,45 +111,6 @@ end
 betti(::Type{R}, flt::Filtration, p::Int) where {R <: AbstractPersistenceReduction} =
     betti(flt, reduce!(R, boundary(flt)), p)
 betti(flt::Filtration, p::Int) = betti(TwistReduction, flt, p)
-
-"""
-Persistent homology group iterator for a filtration
-"""
-mutable struct PersistentHomology{R <: AbstractPersistenceReduction} <: AbstractHomology
-    filtration::Filtration
-    ∂::Vector{<:AbstractSet}
-end
-function persistenthomology(::Type{R}, flt::Filtration;
-                            reduced::Bool=false) where {R <: AbstractPersistenceReduction}
-    RM = reduce!(R, boundary(flt, reduced = reduced))
-    return PersistentHomology{R}(flt, RM)
-end
-persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
-
-show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
-    print(io, "PersistentHomology[$(h.filtration) with $R]")
-
-#
-# Interface methods
-#
-
-group(h::PersistentHomology, p::Int) = betti(h.filtration, h.∂, p)
-diagram(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = diagram(R, h.filtration)
-
-#
-# Iterator methods
-#
-
-length(h::PersistentHomology) = dim(h.filtration.complex)+1
-
-"""Return homology group type: dimension & Betti numbers."""
-eltype(h::PersistentHomology) = Tuple{Int, Int}
-
-function iterate(h::PersistentHomology, p=0)
-    p > dim(h.filtration.complex) && return nothing
-    βₚ = group(h, p)
-    return (p, βₚ), p+1
-end
 
 
 #
@@ -246,3 +178,14 @@ function persistentcohomology(::Type{R}, flt::Filtration;
     return cyc
 end
 persistentcohomology(flt::Filtration; kwargs...) = persistentcohomology(Float64, flt; kwargs...)
+
+"""
+Persistent Cocycle Reduction
+
+Vin de Silva, Dmitriy Morozov, Mikael Vejdemo-Johansson, Persistent Cohomology and Circular Coordinates,
+Discrete Comput Geom (2011) 45: 737–759, DOI 10.1007/s00454-011-9344-x
+"""
+struct PersistentCocycleReduction{R} <: AbstractPersistenceReduction end
+
+diagram(::Type{PersistentCocycleReduction{R}}, flt::Filtration; kwargs...) where {R} =
+    persistentcohomology(R, flt, kwargs...)
