@@ -46,43 +46,44 @@ end
 """
 Persistent homology group iterator for a filtration
 """
-mutable struct PersistentHomology{R <: AbstractPersistenceReduction, C, FI, IX} <: AbstractHomology
-    filtration::Filtration{C,FI,IX}
-    ∂::Vector{<:AbstractSet}
-    length0::Bool
+struct PersistentHomology{R<:AbstractPersistenceReduction, T} <: AbstractHomology
+    diagram::Dict{Int, PersistenceDiagram{T}}
 end
-function persistenthomology(::Type{R}, flt::Filtration{C,FI,IX}; length0=false,
-                            reduced::Bool=false) where {R <: AbstractPersistenceReduction, C, FI, IX}
-    RM = reduce!(R, boundary(flt, reduced = reduced))
-    return PersistentHomology{R,C,FI,IX}(flt, RM, length0)
+function persistenthomology(::Type{R}, flt::Filtration{C,FI,IX};
+                            kwargs...) where {R<:AbstractPersistenceReduction, C<:AbstractComplex, FI, IX}
+    dgm = diagram(R, flt; kwargs...)
+    return PersistentHomology{R,FI}(dgm)
 end
-
-persistenthomology(::Type{PersistentCocycleReduction{R}}, flt::Filtration; length0=false) where {R} =
-    PersistentHomology{PersistentCocycleReduction{R}}(flt, Set[], length0)
-
 persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
 
+diagram(ph::PersistentHomology) = ph.diagram
 show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
-    print(io, "PersistentHomology[$(h.filtration) with $R]")
-
-#
-# Interface methods
-#
-
-group(h::PersistentHomology, p::Int) = betti(h.filtration, h.∂, p)
-diagram(h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} = diagram(R, h.filtration)
+    print(io, "Persistent Homology with $R")
 
 #
 # Iterator methods
 #
+values(ph::PersistentHomology) = Iterators.flatten( [birth.(dgm); death.(dgm)] for (d,dgm) in ph.diagram) |> unique |> sort!
+length(ph::PersistentHomology) = length(values(ph))
 
-length(h::PersistentHomology) = dim(h.filtration.complex)+1
+"""Return persistent homology group type: filtraton value & Betti numbers"""
+eltype(ph::PersistentHomology{R,T}) where {R, T} = Tuple{T, NTuple}
 
-"""Return homology group type: dimension & Betti number"""
-eltype(h::PersistentHomology) = Tuple{Int, Int}
-
-function iterate(h::PersistentHomology, p=0)
-    p > dim(h.filtration.complex) && return nothing
-    βₚ = group(h, p)
-    return (p, βₚ), p+1
+function iterate(ph::PersistentHomology,
+                 p=(1, sort!(collect(keys(ph.diagram))), values(ph)) )
+    fidx, dims, fvals = p
+    fidx > length(fvals) && return nothing
+    maxd = length(dims)
+    fv = fvals[fidx]
+    βₚ = ntuple(maxd) do i
+        if isinf(fv)
+            count(v->isinf(death(v)), ph.diagram[i-1])
+        else
+            count(v->fv ∈ v, ph.diagram[i-1])
+        end
+    end
+    return (fv, βₚ), (fidx+1, dims, fvals)
 end
+
+generators(ph::PersistentHomology{PersistentCocycleReduction{R}, T}) where {R, T} =
+    Dict( d=>getfield.(cyc, :g) for (d, cyc) in ph.diagram)

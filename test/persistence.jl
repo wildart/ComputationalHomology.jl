@@ -167,16 +167,20 @@
 
     # PH object
     ph = persistenthomology(flt)
-    @test eltype(ph) == Tuple{Int64,Int64}
-    @test length(ph) == 3
-    @test group(ph, 0) == 1
-    @test group(ph, 1) == 1
-    @test group(ph, 2) == 0
-    @test_throws AssertionError group(ph, 3)
+    @test eltype(ph) == Tuple{Float64,NTuple}
+    @test length(ph) == 13
+
+    # ph = persistenthomology(flt)
+    # dgm = diagram(ph)
+    # ph = persistenthomology(PersistentCocycleReduction{Float64}, flt)
+    # dgm = diagram(ph)
+    # generators(ph)
 
     # PH iterator
-    @testset "Method Comparison" for (g1, g2) in zip(homology(Int, complex(flt)), persistenthomology(TwistReduction, flt))
-        @test g1[1] == g2[1]
-        @test g1[2] == g2[2]
+    @testset "Method Comparison" for (g1, g2) in zip(
+            ComputationalHomology.betti(homology(Int, complex(flt))),
+            last(last(collect(persistenthomology(TwistReduction, flt)))) )
+        @test g1 == g2
+        @test g1 == g2
     end
 end

@@ -2,7 +2,6 @@
 
 abstract type AbstractHomology end
 grouptype(::Type{AbstractHomology}) = Nothing
-# grouptype(::Type{H}) where {H <: AbstractHomology} = grouptype(supertype(H))
 group(h::AbstractHomology, dim::Int; kw...) = throw(MethodError(group,(typeof(h),Int)))
 
 """

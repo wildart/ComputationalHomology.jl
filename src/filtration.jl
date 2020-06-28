@@ -4,7 +4,7 @@ We call this sequence of complexes the **filtration** of `f` and
 think of it as a construction by adding chunks of simplices at a time `t::FI`.
 ∅ = K0 ⊆ K1 ⊆ . . . ⊆ Kn = K.
 """
-mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat, IX <: Integer}
+mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat, IX<:Integer}
     # underlying abstract cell complex
     complex::C
     # total order of simplices as array of (dim, simplex id, filtation value)
