@@ -157,10 +157,10 @@
     @test sparse(∂)[5,11] == 5
     @test length(∂[9]) > 0
     R = reduce(StandardReduction, ∂)
-    @test ComputationalHomology.betti(flt, R, 0) == 1
-    @test ComputationalHomology.betti(flt, R, 1) == 1
-    @test ComputationalHomology.betti(flt, R, 2) == 0
-    @test_throws AssertionError ComputationalHomology.betti(flt, R, 3)
+    @test betti(flt, R, 0) == 1
+    @test betti(flt, R, 1) == 1
+    @test betti(flt, R, 2) == 0
+    @test_throws AssertionError betti(flt, R, 3)
     @test length(R[9]) == 0
     reduce!(StandardReduction, ∂)
     @test length(∂[9]) == 0
@@ -178,8 +178,8 @@
 
     # PH iterator
     @testset "Method Comparison" for (g1, g2) in zip(
-            ComputationalHomology.betti(homology(Int, complex(flt))),
-            last(last(collect(persistenthomology(TwistReduction, flt)))) )
+            betti(homology(Int, complex(flt))),
+            last(betti(persistenthomology(TwistReduction, flt))) )
         @test g1 == g2
         @test g1 == g2
     end

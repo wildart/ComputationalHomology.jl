@@ -34,6 +34,7 @@ export AbstractCell,
 
        AbstractHomology, grouptype, group,
        Homology, homology, withgenerators, generators,
+       betti, euler,
 
        Filtration, filtration, order, simplices, similarity,
 

@@ -9,7 +9,7 @@
     @test eltype(h) == Tuple{Int64,Int64,Int64}
     @test grouptype(supertype(typeof(h))) == Nothing
     @test grouptype(typeof(h)) == Int
-    @test length(h) == 3
+    @test length(h) == 2
 
     b, t, _ = group(h,0);
     @test b == 2
@@ -25,19 +25,14 @@
     @test itm[2] == 1
     @test st[1] == 2
 
-    itm, st = iterate(h, st)
-    @test itm[1] == 2
-    @test itm[2] == 0
-    @test st[1] == 3
-
     @test iterate(h, st) === nothing
 
-    @test ComputationalHomology.betti(h) == [2,1,0]
-    @test ComputationalHomology.euler(h) == 1
+    @test betti(h) == (2,1)
+    @test euler(betti(h)) == 1
 
     g = withgenerators(h)
     @test eltype(g) == Tuple{Int64,Int64,Int64,Dict{Chain,Int64}}
-    @test length(g) == 3
+    @test length(g) == 2
 
     itm, st = iterate(g)
     @test itm[1] == 0
@@ -57,12 +52,7 @@
         @test a == b
     end
 
-    itm, st = iterate(g, st)
-    @test itm[1] == 2
-    @test itm[2] == 0
-    @test length(itm[4]) == 0
-
     @test iterate(g, st) === nothing
 
-    @test length(generators(g)) == 3
+    @test length(generators(g)) == 2
 end

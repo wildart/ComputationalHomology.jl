@@ -85,5 +85,7 @@ function iterate(ph::PersistentHomology,
     return (fv, βₚ), (fidx+1, dims, fvals)
 end
 
+betti(g::PersistentHomology) = map(last, g)
+
 generators(ph::PersistentHomology{PersistentCocycleReduction{R}, T}) where {R, T} =
     Dict( d=>getfield.(cyc, :g) for (d, cyc) in ph.diagram)

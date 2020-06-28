@@ -60,7 +60,7 @@ end
 """Return homology group type: dimension, Betti & torsion numbers."""
 eltype(h::Homology) = Tuple{Int, Int, Int}
 
-length(h::Homology) = dim(h.complex)+1
+length(h::Homology) = dim(h.complex)
 
 function iterate(h::Homology{C, PID}, state=nothing) where {C<:AbstractComplex, PID}
     if state === nothing
@@ -70,7 +70,7 @@ function iterate(h::Homology{C, PID}, state=nothing) where {C<:AbstractComplex, 
     end
 
     p = state[1]
-    p > dim(h.complex) && return nothing
+    p >= dim(h.complex) && return nothing
 
     βₚ, τₚ, snfstate = group(h, p, Dₚ = state[2][end])
     return ((p, βₚ, τₚ), (p+1, snfstate))
@@ -159,10 +159,10 @@ end
 #
 
 """Calculate Betti number"""
-betti(g::AbstractHomology) = [gst[2] for gst in g]
+betti(g::AbstractHomology) = tuple((gst[2] for gst in g)...)
 
 """Calculate Euler characteristic"""
-euler(g::AbstractHomology) = [isodd(i) ? gst[2] : -gst[2] for (i,gst) in enumerate(g)] |> sum
+euler(btn::Tuple) = sum(isodd(i) ? v : -v for (i,v) in enumerate(btn))
 
 """Return linearly independent generators"""
 function generators(g::WithGenerators{H}) where {H <: AbstractHomology}
