@@ -15,14 +15,14 @@ Get a collection of `cell` faces.
 faces(c::AbstractCell) = throw(MethodError(faces,(typeof(c),)))
 
 """
-hash(cell)
+    hash(cell) -> UInt
 
-Get a unique identifier of the `cell`
+Return a unique identifier of the `cell` of `UInt` type
 """
 hash(c::AbstractCell) = throw(MethodError(hash,(typeof(c),)))
 
 """
-union(u, v)
+    union(u, v)
 
 Create a new cell from a combination of vertices of cells `u` and `v`.
 """

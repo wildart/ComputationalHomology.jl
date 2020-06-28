@@ -2,13 +2,14 @@
 
 We call this sequence of complexes the **filtration** of `f` and
 think of it as a construction by adding chunks of simplices at a time `t::FI`.
-∅ = K0 ⊆ K1 ⊆ . . . ⊆ Kn = K.
+
+∅ = K₀ ⊆ K₁ ⊆ . . . ⊆ Kₙ = K.
 """
-mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat, IX<:Integer}
+mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat}
     # underlying abstract cell complex
     complex::C
     # total order of simplices as array of (dim, simplex id, filtation value)
-    total::Vector{Tuple{Int,IX,FI}}
+    total::Vector{Tuple{Int,UInt,FI}}
     divisions::Number
 end
 
@@ -29,7 +30,7 @@ similar(flt::Filtration{C,FI}) where {C <: AbstractComplex, FI} = Filtration(C, 
 
 """Construct filtration from a cell complex using the order of their appearence in the complex"""
 function filtration(cplx::AbstractComplex)
-    idx = Vector{Tuple{Int,Integer,Float64}}()
+    idx = Vector{Tuple{Int,UInt,Float64}}()
     i = 1
     for d in 0:dim(cplx)
         for c in cells(cplx, d)

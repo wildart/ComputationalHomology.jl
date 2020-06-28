@@ -16,12 +16,12 @@ function iterate(cplx::AbstractComplex, (tid, d, did)=(0, -1, 1))
 end
 
 """
-    iterate(flt::Filtration{C,FI,IX}) -> Union{Nothing, Tuple{FI,Vector{Tuple{Int,IX}}}}
+    iterate(flt::Filtration{C,FI}) -> Union{Nothing, Tuple{FI,Vector{Tuple{Int,UInt}}}}
 
 Advance the filtration iterator `flt` to obtain the next filtration value of type `FI` with
-a corresponding collection of cell parameters: dimension & identifier of type `IX`.
+a corresponding collection of cell parameters: dimension & identifier.
 """
-function iterate(flt::Filtration{C,FI,IX}, state=nothing) where {C<:AbstractComplex, FI<:AbstractFloat, IX<:Integer}
+function iterate(flt::Filtration{C,FI}, state=nothing) where {C<:AbstractComplex, FI<:AbstractFloat}
     ord = order(flt)
     if state === nothing # calculate initial state
         idx = 1
@@ -31,7 +31,7 @@ function iterate(flt::Filtration{C,FI,IX}, state=nothing) where {C<:AbstractComp
         idx, fval, incr = state
     end
     idx > length(ord) && return nothing # done
-    splxs = Tuple{Int,IX}[] #simplex dim & index
+    splxs = Tuple{Int,UInt}[] #simplex dim & index
     while idx <= length(ord) && (fval+incr) >= ord[idx][3]
         push!(splxs, ord[idx][1:2])
         idx += 1
@@ -49,8 +49,8 @@ Persistent homology group iterator for a filtration
 struct PersistentHomology{R<:AbstractPersistenceReduction, T} <: AbstractHomology
     diagram::Dict{Int, PersistenceDiagram{T}}
 end
-function persistenthomology(::Type{R}, flt::Filtration{C,FI,IX};
-                            kwargs...) where {R<:AbstractPersistenceReduction, C<:AbstractComplex, FI, IX}
+function persistenthomology(::Type{R}, flt::Filtration{C,FI};
+                            kwargs...) where {R<:AbstractPersistenceReduction, C<:AbstractComplex, FI}
     dgm = diagram(R, flt; kwargs...)
     return PersistentHomology{R,FI}(dgm)
 end
