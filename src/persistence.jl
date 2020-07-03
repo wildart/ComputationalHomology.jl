@@ -51,8 +51,8 @@ reduce(::Type{R}, ∂::Vector{<:AbstractSet}) where {R<:AbstractPersistenceReduc
 
 
 """Return persistent diagram (birth-death pairs) per dimension."""
-function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
-                 absolute=true) where {C <: AbstractComplex, FI <: AbstractFloat}
+function diagram(flt::Filtration{C,FI}, R::Vector; length0=false,
+                 absolute=true, maxoutdim=dim(complex(flt))) where {C <: AbstractComplex, FI <: AbstractFloat}
     # resulting intervals
     intrs = Dict{Int,Vector{Interval{FI}}}()
 
@@ -60,6 +60,7 @@ function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
     births = Set{Int}()
     ord = order(flt)
     for (i, (sdim, si, fv)) in enumerate(ord)
+        sdim > maxoutdim && continue
         col = R[i]
         if length(col) == 0
             push!(births, i)
@@ -87,8 +88,8 @@ function diagram(flt::Filtration{C,FI}, R::Vector, length0=false,
 
     return intrs
 end
-diagram(::Type{R}, flt::Filtration; length0=false, absolute=true) where {R <: AbstractPersistenceReduction} =
-    diagram(flt, reduce!(R, boundary(flt)), length0, absolute)
+diagram(::Type{R}, flt::Filtration; kwargs...) where {R <: AbstractPersistenceReduction} =
+    diagram(flt, reduce!(R, boundary(flt)); kwargs...)
 diagram(flt::Filtration; kwargs...) = diagram(TwistReduction, flt; kwargs...)
 
 "Calculate persistent Betti numbers for a filtration complex of dimension `dim`"
@@ -136,7 +137,7 @@ end
 function update!(cyc::Dict{Int,Vector{AnnotatedInterval{F,Chain{IX,R}}}},
                  cplx, splxs, w::F) where {F<:AbstractFloat, IX<:Integer, R}
     d = first(first(splxs))
-    d >= length(cyc) && return
+    d > maximum(keys(cyc)) && return
     CXₗ₋₁ = cyc[d-1]
     for splx in splxs
         σ = cplx[last(splx), d]
@@ -166,7 +167,7 @@ function persistentcohomology(::Type{R}, flt::Filtration;
             ((v => filter(e->first(e) == i, splxs))
                 for i in (:)(extrema(map(first, splxs))...)) for (v, splxs) in flt )
 
-    cyc = Dict(i=>AnnotatedInterval{R,Chain{UInt64,R}}[] for i in -1:min(d-1, maxoutdim))
+    cyc = Dict(i=>AnnotatedInterval{R,Chain{UInt64,R}}[] for i in -1:min(d, maxoutdim))
     for (w, splxs) in itr
         update!(cyc, cplx, splxs, w)
     end
@@ -188,4 +189,4 @@ Discrete Comput Geom (2011) 45: 737–759, DOI 10.1007/s00454-011-9344-x
 struct PersistentCocycleReduction{R} <: AbstractPersistenceReduction end
 
 diagram(::Type{PersistentCocycleReduction{R}}, flt::Filtration; kwargs...) where {R} =
-    persistentcohomology(R, flt, kwargs...)
+    persistentcohomology(R, flt; kwargs...)

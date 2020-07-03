@@ -54,7 +54,7 @@ function persistenthomology(::Type{R}, flt::Filtration{C,FI};
     dgm = diagram(R, flt; kwargs...)
     return PersistentHomology{R,FI}(dgm)
 end
-persistenthomology(flt::Filtration) = persistenthomology(TwistReduction, flt)
+persistenthomology(flt::Filtration; kwargs...) = persistenthomology(TwistReduction, flt; kwargs...)
 
 diagram(ph::PersistentHomology) = ph.diagram
 show(io::IO, h::PersistentHomology{R}) where {R <: AbstractPersistenceReduction} =
