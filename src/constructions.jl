@@ -123,6 +123,7 @@ function vietorisrips(D::AbstractMatrix{T}, ɛ::Real, weights::Bool;
     cplx = SimplicialComplex(splxs...)
 
     # build 1-skeleton (neighborhood graph)
+    @debug "Build 1-skeleton from distance matrix"
     E = spzeros(Bool, n, n) # adjacency matrix
     for i in 1:n
         E[i,i] = true
@@ -143,8 +144,9 @@ function vietorisrips(D::AbstractMatrix{T}, ɛ::Real, weights::Bool;
     # calculate weights of nerve
     w = nothing
     if weights
+        @debug "Calculate weights of 1-skeleton"
         w = Dict{Int, Vector{T}}()
-        w[0] = zeros(size(cplx,0))
+        w[0] = zeros(n)
         if size(cplx, 1) > 0
             w[1] = zeros(size(cplx,1))
             for e in cells(cplx,1)

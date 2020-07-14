@@ -169,6 +169,7 @@ function persistentcohomology(::Type{R}, flt::Filtration;
 
     cyc = Dict(i=>AnnotatedInterval{R,Chain{UInt64,R}}[] for i in -1:min(d, maxoutdim))
     for (w, splxs) in itr
+        @debug "Filtration step" Value=w Simpices=length(splxs)
         update!(cyc, cplx, splxs, w)
     end
     delete!(cyc, -1)
