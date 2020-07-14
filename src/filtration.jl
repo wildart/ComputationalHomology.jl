@@ -200,3 +200,27 @@ function writeboundarymatrix(io::IO, bm::Vector, zeroindex = true)
         write(io, 0x0A)
     end
 end
+
+function writebin(io::IO, flt::Filtration)
+    cplx = complex(flt)
+    for (d, ci, fv) in order(flt)
+        write(io, UInt8(d))
+        for k in values(cplx[ci,d])
+            write(io, UInt32(k))
+        end
+        write(io, fv)
+    end
+end
+
+function readbin(io::IO, ::Type{Filtration{C,FI}}, ::Type{CL}; maxoutdim=1) where {C <: AbstractComplex, FI, CL<:AbstractCell}
+    flt = Filtration(C,FI)
+    while !eof(io)
+        d = read(io, UInt8)
+        vals = Int[read(io, UInt32) for i in 1:(d+1)]
+        fval = read(io, FI)
+        if d <= maxoutdim
+            push!(flt, CL(vals), fval)
+        end
+    end
+    return flt
+end
