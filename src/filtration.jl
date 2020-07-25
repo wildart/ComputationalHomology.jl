@@ -212,11 +212,11 @@ function writebin(io::IO, flt::Filtration)
     end
 end
 
-function readbin(io::IO, ::Type{Filtration{C,FI}}, ::Type{CL}; maxoutdim=1) where {C <: AbstractComplex, FI, CL<:AbstractCell}
+function readbin(io::IO, ::Type{Filtration{C,FI}}, ::Type{CL}, ::Type{ST}; maxoutdim=1) where {C <: AbstractComplex, FI, CL<:AbstractCell, ST}
     flt = Filtration(C,FI)
     while !eof(io)
         d = read(io, UInt8)
-        vals = Int[read(io, UInt32) for i in 1:(d+1)]
+        vals = ST[read(io, UInt32) for i in 1:(d+1)]
         fval = read(io, FI)
         if d <= maxoutdim
             push!(flt, CL(vals), fval)
