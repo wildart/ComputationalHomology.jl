@@ -166,7 +166,7 @@ cochain(cplx::AbstractComplex, d::Int, coef::PID) where {PID} =
 
 Construct an adjacency matrix of type `T` from a 1-skeleton (1D subcomplex) of the complex `cplx`.
 """
-function adjacency_matrix(cplx::AbstractComplex, ::Type{T}) where {T<:Integer}
+function adjacency_matrix(cplx::AbstractComplex, ::Type{T}) where {T<:Real}
     C0 = map(hash, cells(cplx, 0))
     N = length(C0)
     adj = spzeros(T,N,N)
