@@ -29,14 +29,14 @@ Return a complex cell type
 eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
 
 """
-    cells(cplx::AbstractComplex) -> Dict{Int, Vector{AbstractCell}}
+    cells(cplx::AbstractComplex) -> Dict{Int, AbstractVector{AbstractCell}}
 
 Return a cell collection per dimension (increasing)
 """
 cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
 
 """
-    cells(cplx::AbstractComplex, d::Int) -> Vector{AbstractCell}
+    cells(cplx::AbstractComplex, d::Int) -> AbstractVector{AbstractCell}
 
 Return a cell collection for the dimenion `d`.
 """
