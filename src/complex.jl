@@ -23,13 +23,23 @@ coboundary(cplx::AbstractComplex, splx::AbstractCell, ::Type{PID}) where {PID} =
     coboundary(cplx, hash(splx), dim(splx), PID)
 coboundary(cplx::AbstractComplex, splx::AbstractCell) = coboundary(cplx, hash(splx), dim(splx), Int)
 
-"""Return a complex cell type"""
+"""
+Return a complex cell type
+"""
 eltype(cplx::AbstractComplex) = throw(MethodError(eltype, (typeof(cplx),)))
 
-"""Return a cell collection per dimension (increasing)"""
+"""
+    cells(cplx::AbstractComplex) -> Dict{Int, Vector{AbstractCell}}
+
+Return a cell collection per dimension (increasing)
+"""
 cells(cplx::AbstractComplex) = throw(MethodError(cells, (typeof(cplx),)))
 
-"""Return a nullable cell collection per dimension (increasing)"""
+"""
+    cells(cplx::AbstractComplex, d::Int) -> Vector{AbstractCell}
+
+Return a cell collection for the dimenion `d`.
+"""
 cells(cplx::AbstractComplex, d::Int) = throw(MethodError(cells, (typeof(cplx),Int)))
 
 """

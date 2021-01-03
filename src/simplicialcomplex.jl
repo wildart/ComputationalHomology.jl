@@ -84,7 +84,7 @@ function addsimplices!(cplx::SimplicialComplex, splx::AbstractSimplex)
         tmp ∈ cplx  && continue # skip if already in complex
         tmp ∈ added && continue # skip if already processed
 
-        s = addsimplex!(cplx, tmp) # add simples to the complex
+        s = addsimplex!(cplx, tmp) # add simplex to the complex
         push!(addedidxs, (sum(size(cplx)), dim(s), hash(s)))
         push!(added, tmp) # mark as processed
         push!(ret, s)
