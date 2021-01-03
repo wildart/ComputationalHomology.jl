@@ -42,17 +42,23 @@ Calculate boundary chain of the `cell`.
 """
 boundary(::Type{R}, c::AbstractCell) where {R} = throw(MethodError(boundary,(typeof(c),)))
 boundary(σ::AbstractCell) = boundary(Int, σ)
-
-
 (+)(ch::AbstractChain{IX,R}, e::Tuple{C,R}) where {C<:AbstractCell,IX,R} = ch + (hash(e[1]), e[2])
+
+"""
+    value(cell)
+
+Return a value stored in the cell
+"""
+value(c::AbstractCell) = nothing
+# valtype(c::AbstractCell) = Nothing
 
 
 """Abstract simplex type"""
 abstract type AbstractSimplex <: AbstractCell end
 
 """
-    values(cell)
+    indices(cell)
 
-Get an array of `cell` values.
+Get an array of `cell` indices.
 """
-values(c::AbstractSimplex) = throw(MethodError(values,(typeof(c),)))
+indices(c::AbstractSimplex) = throw(MethodError(indices,(typeof(c),)))

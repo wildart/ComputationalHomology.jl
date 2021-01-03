@@ -171,13 +171,13 @@ function write(io::IO, cplx::SimplicialComplex)
     zsplxs = Dict{Int,UInt}()
     for s in cells(cplx, 0)
         idx = position(cplx, s)
-        zsplxs[first(values(s))] = idx
+        zsplxs[first(indices(s))] = idx
         write(io, "$idx")
         write(io, 0x0A)
     end
     for d in 1:dim(cplx)
         for s in cplx.cells[d]
-            for (j,i) in enumerate(values(s))
+            for (j,i) in enumerate(indices(s))
                 write(io, "$(zsplxs[i])")
                 if j>d
                     write(io, 0x0A)

@@ -40,31 +40,31 @@
     @test ComputationalHomology.position(cplx, splx[1]) == 1
     @test dim(splx[1]) == 0
     @test sum(size(cplx)) == 1
-    @test values(cells(cplx, 0)[1]) == [1]
+    @test indices(cells(cplx, 0)[1]) == [1]
 
     splx = push!(cplx, Simplex(1,2))
     @test splx[1] == Simplex(1,2)
     @test dim(splx[1]) == 1
     @test sum(size(cplx)) == 2
-    @test sort!(values(cells(cplx, 1)[1])) == [1,2]
+    @test sort!(indices(cells(cplx, 1)[1])) == [1,2]
 
     cplx = SimplicialComplex()
     splxs = push!(cplx, Simplex(1, 2), recursive=true)
     @test splxs[1] == Simplex(1,2)
-    @test sort!(values(splxs[1])) == [1, 2]
+    @test sort!(indices(splxs[1])) == [1, 2]
     @test splxs[3] == Simplex(2)
-    @test values(splxs[3]) == [2]
+    @test indices(splxs[3]) == [2]
     @test splxs[2] == Simplex(1)
-    @test values(splxs[2]) == [1]
+    @test indices(splxs[2]) == [1]
     @test sum(size(cplx)) == 3
     @test size(cplx, 0) == 2
     @test size(cplx, 1) == 1
 
     splxs = push!(cplx, Simplex(1,3), recursive=true)
     @test splxs[1] == Simplex(1,3)
-    @test sort!(values(splxs[1])) == [1,3]
+    @test sort!(indices(splxs[1])) == [1,3]
     @test splxs[2] == Simplex(3)
-    @test values(splxs[2]) == [3]
+    @test indices(splxs[2]) == [3]
     @test sum(size(cplx)) == 5
     @test size(cplx, 0) == 3
     @test size(cplx, 1) == 2

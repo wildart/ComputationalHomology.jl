@@ -1,17 +1,17 @@
 @testset "Simplex" begin
     s = Simplex(1, 2, 3)
     @test s == Simplex(1, 2, 3)
-    @test sort!(values(s)) == [1,2,3]
+    @test sort!(indices(s)) == [1,2,3]
     @test eltype(s) == Int
     @test eltype(Simplex{1,Float64}) == Float64
 
     s = Simplex([1,2,3])
     @test dim(s) == 2
-    @test sort!(values(s)) == [1,2,3]
+    @test sort!(indices(s)) == [1,2,3]
     allfaces = [Simplex(2, 3), Simplex(1, 3), Simplex(1, 2)]
     @testset "Simplex faces" for o in faces(s)
         idx = findfirst(isequal(o), allfaces)
-        @test values(o) == values(allfaces[idx])
+        @test indices(o) == indices(allfaces[idx])
     end
 
     ss = Set{Simplex}()

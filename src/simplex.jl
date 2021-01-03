@@ -51,7 +51,7 @@ end
 
 # Public methods for AbstractSimplex
 
-values(splx::Simplex) = collect(splx.vs)
+indices(splx::Simplex) = collect(splx.vs)
 
 
 # Misc. methods
@@ -62,7 +62,7 @@ function volume(S::AbstractMatrix)
     v0 = S[:,1]
     return abs(det(S[:,2:end] .- v0))/prod(1:d)
 end
-volume(s::Simplex{N,Int}, X::AbstractMatrix) where {N}= volume(X[:, values(s)])
+volume(s::Simplex{N,Int}, X::AbstractMatrix) where {N}= volume(X[:, indices(s)])
 
 parse(::Type{Simplex{N,P}}, str::AbstractString) where {N,P} =
     Simplex(map(e->parse(P, e), split(str, ' ')))
