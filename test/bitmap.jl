@@ -31,7 +31,7 @@
     @test cdc == cdt
 
     @test faces(cplx, 9) == [2, 16, 10, 8]
-    @test_skip cofaces(cplx, 3) == [10, 2, 4]
+    @test cofaces(cplx, 3) == [10, 2, 4]
 
     flt = filtration(cplx)
     @test eltype(flt) == BitmapComplex{Int}

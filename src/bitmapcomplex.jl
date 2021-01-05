@@ -95,7 +95,23 @@ function faces(cplx::BitmapComplex, ci::IX) where {IX<:Integer}
 end
 
 function cofaces(cplx::BitmapComplex, ci::IX) where {IX<:Integer}
-    return IX[]
+    ret = IX[]
+    c=ci-1
+    p = foldl((p,m)-> (push!(p[1], div(p[2],m)+1), mod(p[2],m)),
+              reverse(cplx.mult), init=(Int[],c)) |> first
+    d = dim(cplx)+1
+    for (i,m) in enumerate(reverse(cplx.mult))
+        if div(c, m) % 2 == 0
+            if ci > m+1 && p[i] != 1
+                push!(ret, ci - m)
+            end
+            if (ci + m < length(cplx)) && (p[i] != 2 * cplx.dims[d-i]+1)
+                push!(ret, ci + m)
+            end
+        end
+        c = mod(c, m)
+    end
+    return ret
 end
 
 show(io::IO, cplx::BitmapComplex) = print(io, "BitmapComplex($(size(cplx)))")
@@ -120,32 +136,6 @@ function filtration(cplx::BitmapComplex{T}) where {T<:Real}
     sort!(idx, by=x->(x[3], x[1])) # sort by dimension & filtration value
     return Filtration(cplx, idx, U(Inf))
 end
-
-# function boundary(flt::Filtration{BitmapComplex{T},FI}; kwargs...) where {T<:Real, FI<:AbstractFloat}
-#     # initialize boundary matrix
-#     cplx = complex(flt)
-#     sz = length(cplx)
-
-#     # find suitable type for BM storage
-#     STs = [Int8, Int16, Int32, Int64]
-#     STi = findfirst(i->i>sz, map(typemax, STs))
-#     BT = STi == 1 ? BitSet : Set{STs[STi]}
-
-#     # create empty BM
-#     bm = map(i->BT(), 1:sz)
-
-#     # fill boundary matrix
-#     ord = order(flt)
-#     revidx = Dict((ci, d) => i for (i, (d, ci, fv)) in enumerate(ord))
-#     for (i, (d, ci, fv)) in enumerate(ord)
-#         if d > 0
-#             for fi in faces(cplx, Int(ci))
-#                 push!(bm[i], revidx[(fi, d-1)])
-#             end
-#         end
-#     end
-#     return bm
-# end
 
 # Miscellaneous
 
