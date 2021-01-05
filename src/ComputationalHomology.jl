@@ -18,9 +18,9 @@ import Statistics: mean
 import LinearAlgebra: diag
 
 export AbstractCell,
-       dim, faces, volume,
+       dim, faces, cofaces, volume,
        AbstractSimplex,
-       values, vertices,
+       indices, vertices,
        Simplex, Cube, Cell,
 
        AbstractChain,

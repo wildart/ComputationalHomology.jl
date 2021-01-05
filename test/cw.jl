@@ -41,7 +41,19 @@
     push!(flt, f5, 5.0)
     push!(flt, f6, 6.0)
 
-    @test size(complex(flt)) == (2,2,2)
+    cplx = complex(flt)
+    @test size(cplx) == (2,2,2)
+
+    # (co)faces
+    @testset "Faces" for fi in faces(cplx, hash(f5))
+        @test fi ∈ map(hash, [e3, e4])
+    end
+    @test length(faces(cplx, hash(v1))) == 0
+    @testset "Cofaces" for fi in cofaces(cplx, hash(e4))
+        @test fi ∈ map(hash, [f5, f6])
+    end
+    @test length(cofaces(cplx, hash(f6))) == 0
+
     homitr = Dict( 0 => diagram(1.0=>Inf, 2.0=>3.0), 1 => diagram(4.0=>5.0), 2 => diagram(6.0=>Inf) )
     @testset "Intervals " for (d, itrs) in diagram(flt)
         for itr in itrs

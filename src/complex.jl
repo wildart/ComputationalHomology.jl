@@ -11,17 +11,32 @@ abstract type AbstractComplex end
 boundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} =
     throw(MethodError(boundary, (typeof(cplx),Int,Int,PID)))
 boundary(cplx::AbstractComplex, i::Integer, d::Int) = boundary(cplx, i, d, Int)
-boundary(cplx::AbstractComplex, splx::AbstractCell, ::Type{PID}) where {PID} =
-    boundary(cplx, hash(splx), dim(splx), PID)
-boundary(cplx::AbstractComplex, splx::AbstractCell) = boundary(cplx, hash(splx), dim(splx), Int)
+boundary(cplx::AbstractComplex, cell::AbstractCell, ::Type{PID}) where {PID} =
+    boundary(cplx, hash(cell), dim(cell), PID)
+boundary(cplx::AbstractComplex, cell::AbstractCell) = boundary(cplx, hash(cell), dim(cell), Int)
 
 """Return a complex coboundary given element and dimension"""
 coboundary(cplx::AbstractComplex, i::Integer, d::Int, ::Type{PID}) where {PID} =
     throw(MethodError(coboundary, (typeof(cplx),Int,Int,PID)))
 coboundary(cplx::AbstractComplex, i::Integer, d::Int) = coboundary(cplx, i, d, Int)
-coboundary(cplx::AbstractComplex, splx::AbstractCell, ::Type{PID}) where {PID} =
-    coboundary(cplx, hash(splx), dim(splx), PID)
-coboundary(cplx::AbstractComplex, splx::AbstractCell) = coboundary(cplx, hash(splx), dim(splx), Int)
+coboundary(cplx::AbstractComplex, cell::AbstractCell, ::Type{PID}) where {PID} =
+    coboundary(cplx, hash(cell), dim(cell), PID)
+coboundary(cplx::AbstractComplex, cell::AbstractCell) = coboundary(cplx, hash(cell), dim(cell), Int)
+
+"""
+    faces(cplx::AbstractComplex, cellidx::Integer) -> Vector{Integer}
+
+Return an index collection of faces of a cell element with an indentifier `cellidx` in the complex `cplx`.
+"""
+faces(cplx::AbstractComplex, cellidx::Integer) = throw(MethodError(faces, (typeof(cplx),Integer)))
+
+"""
+    cofaces(cplx::AbstractComplex, cellidx::Integer) -> Vector{Integer}
+
+Return an index collection of cofaces of a cell element with an indentifier `cellidx` in the complex `cplx`.
+"""
+cofaces(cplx::AbstractComplex, cellidx::Integer) = throw(MethodError(cofaces, (typeof(cplx),Integer)))
+
 
 """
 Return a complex cell type

@@ -30,6 +30,20 @@
                        Simplex(5,4),
                        Simplex(6))
 
+    # (co)faces
+    fs = [Simplex(4), Simplex(3)]
+    @testset "Faces" for fi in faces(cplx, hash(Simplex(3,4)))
+        @test cplx[fi,0] ∈ fs
+        @test fi ∈ map(hash, fs)
+    end
+    @test length(faces(cplx, hash(Simplex(1)))) == 0
+    fs = [Simplex(2,4), Simplex(3,4), Simplex(5,4)]
+    @testset "Cofaces" for fi in cofaces(cplx, hash(Simplex(4)))
+        @test cplx[fi,1] ∈ fs
+        @test fi ∈ map(hash, fs)
+    end
+    @test length(cofaces(cplx, hash(Simplex(1,2,3)))) == 0
+
     # boundary matrix
     @test convert(Matrix, boundary(cplx, 2, Int)) == [1 -1 1 0 0 0]'
 

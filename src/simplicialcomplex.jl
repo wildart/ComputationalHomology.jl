@@ -23,7 +23,7 @@ function SimplicialComplex(splxs::AbstractSimplex...)
         while(length(toprocess) > 0)
             tmp = pop!(toprocess) # processing simplex faces
             tmp in added && continue # skip if already processed
-            addsimplex!(cplx, tmp) # add simples to complex
+            addsimplex!(cplx, tmp) # add the simplex to the complex
             push!(added, tmp) # mark as processed
             for f in faces(tmp) # add simplex faces for processing
                 push!(toprocess, f)
@@ -110,6 +110,27 @@ function cells(cplx::SimplicialComplex)
 end
 
 cells(cplx::SimplicialComplex, d::Int) = get(cplx.cells, d,  AbstractSimplex[])
+
+function faces(cplx::SimplicialComplex, ci::IX) where {IX<:Integer}
+    idxs = IX[]
+    d = findfirst(d->ci ∈ keys(d), cplx.order)
+    d === nothing && return idxs
+    splx = cplx[ci, d-1]
+    for f in faces(splx)
+        push!(idxs, hash(f))
+    end
+    return idxs
+end
+
+function cofaces(cplx::SimplicialComplex, ci::IX) where {IX<:Integer}
+    idxs = IX[]
+    d = findfirst(d->ci ∈ keys(d), cplx.order)
+    d === nothing || d > dim(cplx) && return idxs
+    for cid in keys(cplx.order[d+1])
+        ci ∈ faces(cplx, cid) && push!(idxs, cid)
+    end
+    return idxs
+end
 
 function boundary(cplx::SimplicialComplex, idx::IX, d::Int, ::Type{R}) where {R, IX<:Integer}
     ch = Chain(d-1, IX, R)

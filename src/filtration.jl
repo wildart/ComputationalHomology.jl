@@ -8,7 +8,7 @@ think of it as a construction by adding chunks of simplices at a time `t::FI`.
 mutable struct Filtration{C<:AbstractComplex, FI<:AbstractFloat}
     # underlying abstract cell complex
     complex::C
-    # total order of simplices as array of (dim, simplex id, filtation value)
+    # total order of simplices as array of (dim, simplex id, filtration value)
     total::Vector{Tuple{Int,UInt,FI}}
     divisions::Number
 end
@@ -34,7 +34,7 @@ function filtration(cplx::AbstractComplex)
     i = 1
     for d in 0:dim(cplx)
         for c in cells(cplx, d)
-            push!(idx, (dim(c), hash(c), i))
+            push!(idx, (d, hash(c), i))
             i += 1
         end
     end
@@ -116,9 +116,8 @@ function boundary(flt::Filtration; reduced=false)
     revidx = Dict((ci, d) => i for (i, (d, ci, fv)) in enumerate(ord))
     for (i, (d, ci, fv)) in enumerate(ord)
         if d > 0
-            splx = cplx[ci, d]
-            for face in faces(splx)
-                push!(bm[i+ridx], revidx[(hash(face), d-1)]+ridx)
+            for face in faces(cplx, ci)
+                push!(bm[i+ridx], revidx[(face, d-1)]+ridx)
             end
         elseif reduced
             push!(bm[i+ridx], 1)
@@ -133,7 +132,7 @@ function sparse(∂::Vector{<:AbstractSet})
     for i in 1:m
         bm = ∂[i]
         for (l, j) in enumerate(bm)
-            ret[j,i] = j # (-1)^((l-1)%2) # coefs require exact order of faces in provides simplex
+            ret[j,i] = j # (-1)^((l-1)%2) # coefficients require exact order of faces in provides simplex
         end
     end
     return ret
@@ -167,7 +166,7 @@ end
 function write(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
-        for k in values(cplx[ci,d])
+        for k in indices(cplx[ci,d])
             write(io, "$k,")
         end
         write(io, "$fv\n")
@@ -205,7 +204,7 @@ function writebin(io::IO, flt::Filtration)
     cplx = complex(flt)
     for (d, ci, fv) in order(flt)
         write(io, UInt8(d))
-        for k in values(cplx[ci,d])
+        for k in indices(cplx[ci,d])
             write(io, UInt32(k))
         end
         write(io, fv)
