@@ -29,7 +29,7 @@ export AbstractCell,
        AbstractComplex,
        boundary, coboundary, cells,
        SimplicialComplex, addsimplex!, addsimplices!,
-       CWComplex,
+       CWComplex, BitmapComplex,
        vietorisrips, witness, cech, čech,
 
        AbstractHomology, grouptype, group,
@@ -62,6 +62,7 @@ include("simplicialcomplex.jl")
 include("cwcomplex.jl")
 include("constructions.jl")
 include("filtration.jl")
+include("bitmapcomplex.jl")
 include("homology.jl")
 include("intervals.jl")
 include("persistence.jl")

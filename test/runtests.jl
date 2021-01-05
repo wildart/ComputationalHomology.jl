@@ -8,6 +8,7 @@ using Random
 include("cells.jl")
 include("chains.jl")
 include("simplicial.jl")
+include("bitmap.jl")
 include("cw.jl")
 include("boundary.jl")
 include("filtration.jl")
