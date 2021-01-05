@@ -83,7 +83,7 @@ function diagram(flt::Filtration{C,FI}, R::Vector; length0=false,
     for i in births
         sdim, si, fv = ord[i]
         !haskey(intrs, sdim) && setindex!(intrs, Interval[], sdim)
-        push!(intrs[sdim], Interval(fv, Inf))
+        push!(intrs[sdim], Interval(fv, FI(Inf)))
     end
 
     return intrs
