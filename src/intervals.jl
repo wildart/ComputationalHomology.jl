@@ -27,6 +27,7 @@ birthx(i::AbstractInterval) = birth(i) - death(i)
 deathx(i::AbstractInterval) = birth(i) + death(i)
 pair(i::AbstractInterval) = birth(i) => death(i)
 isempty(i::AbstractInterval) = birth(i) == death(i)
+eltype(i::AbstractInterval{T}) where {T<:AbstractFloat} = T
 in(e::T, i::AbstractInterval{T}) where {T<:AbstractFloat} = birth(i) <= e < death(i)
 (==)(i1::AbstractInterval, i2::AbstractInterval) =
     birth(i1) == birth(i2) && death(i1) == death(i2)

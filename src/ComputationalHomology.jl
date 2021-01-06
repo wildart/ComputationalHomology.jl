@@ -7,6 +7,7 @@ using Distances: Metric, Euclidean, pairwise, colwise, pairwise!
 using Random: shuffle!, randperm
 using BoundingSphere: boundingsphere
 using SparseArrays: SparseMatrixCSC, spzeros, findnz
+using Combinatorics: combinations
 
 import Base: ==, -, +, *, union, keys, values, hash, first, last, isless, show, length,
              eltype, valtype, getindex, setindex!, size, iterate, push!, append!, in, similar,
@@ -49,7 +50,8 @@ export AbstractCell,
        PersistenceDiagram, diagram,
        Landscape, landscape, mean,
        PersistentImage,
-       wasserstein
+       wasserstein,
+       tropic
 
 include("abstractchain.jl")
 include("chains.jl")
@@ -71,6 +73,7 @@ include("pimage.jl")
 include("examples.jl")
 include("distances.jl")
 include("iterators.jl")
+include("tropic.jl")
 
 @deprecate intervals(d, ps...) diagram(d, ps...)
 @deprecate celltype(cplx) eltype(cplx)

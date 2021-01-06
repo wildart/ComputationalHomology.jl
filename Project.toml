@@ -1,6 +1,6 @@
 name = "ComputationalHomology"
 uuid = "9393a4d0-be1e-45b0-9991-b60434c721e6"
-version = "0.6.4"
+version = "0.7.0"
 keywords = ["computational homology", "computational topology", "persistent homology"]
 license = "MIT"
 desc = "A Julia package for computational topology and homology"
@@ -15,12 +15,14 @@ Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 BoundingSphere = "747eb165-47b8-53f2-ad32-9704a7dfc50a"
 Hungarian = "e91730f6-4275-51fb-a7a0-7064cfbd3b39"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 
 [compat]
 BoundingSphere = "^0.2"
 Distances = "^0.10"
 Hungarian = "^0.6"
 SmithNormalForm = "^0.3"
+Combinatorics = "^1"
 julia = "^1.1"
 
 [extras]

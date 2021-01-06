@@ -51,7 +51,7 @@ pkg> add ComputationalHomology
     - Persistence Image
     - Distances
         - Wasserstein
-
+    - Tropical Coordinates
 
 ## Example
 ```julia
@@ -77,7 +77,7 @@ julia> group(ph, 1) # calculate 1-homology group
 ```
 
 ## TODO
-- [ ] Distances for persistance diagrams
+- [ ] Distances for persistence diagrams
 - [ ] Landscape standard deviation
 
 
