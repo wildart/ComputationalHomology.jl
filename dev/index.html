@@ -5,10 +5,10 @@ pkg&gt; add ComputationalHomology</code></pre><p>A simple example of computing t
 julia&gt; X = rand(3,10); # generate dataset
 
 julia&gt; flt = filtration(vietorisrips(X, 0.4)...)
-Filtration(SimplicialComplex((10, 4)), Float64)
+Filtration(SimplicialComplex((10, 6)), Float64)
 
 julia&gt; ph = persistenthomology(flt)
 Persistent Homology with TwistReduction
 
 julia&gt; group(ph, 0)
-ERROR: MethodError: no method matching group(::Type{PersistentHomology{TwistReduction,Float64}}, ::Type{Int64})</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="chains/">Chains »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 6 January 2021 07:48">Wednesday 6 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ERROR: MethodError: no method matching group(::Type{PersistentHomology{TwistReduction,Float64}}, ::Type{Int64})</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="chains/">Chains »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 8 January 2021 02:58">Friday 8 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
