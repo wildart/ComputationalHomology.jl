@@ -1,7 +1,3 @@
-using ComputationalHomology
-using Test
-using DelimitedFiles
-
 @testset "Tropic Coordinates" begin
     # example from arXiv:1709.02647, p.13
     pd1 = Dict(0 => diagram(1.0=>3.0, 3.0=>4.0))
