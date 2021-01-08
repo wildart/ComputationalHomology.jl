@@ -73,3 +73,33 @@ show(io::IO, i::AnnotatedInterval) = print(io, "[$(i.b),$(i.d)) => $(i.g)")
 Construct persistence diagram of dimension `d` from point pairs `pts`.
 """
 diagram(pts::Pair...) = [Interval(p) for p in pts]
+
+#
+# I/O
+#
+
+function write(io::IO, pdd::Dict{Int, PD}) where {T<:Real, PD<:PersistenceDiagram{T}}
+    for (d, pd) in pdd
+        write(io, "$d\n")
+        for i in pd
+            write(io, "$(birth(i)) $(death(i))\n")
+        end
+    end
+end
+
+function read(io::IO, ::Type{I}) where {T<:Real, I<:AbstractInterval{T}}
+    pd = Dict{Int, Vector{I}}()
+    d = -1
+    while !eof(io)
+        l = readline(io)
+        vals = split(l, ' ')
+        if length(vals) == 1
+            d = parse(Int, vals[1])
+            pd[d] = I[]
+        else
+            vs = parse.(T, vals)
+            push!(pd[d], Interval(vs[1],vs[2]))
+        end
+    end
+    return pd
+end
